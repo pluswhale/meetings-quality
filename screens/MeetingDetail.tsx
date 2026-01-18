@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { useStore } from '../store';
 import { MeetingPhase, EvaluationRecord } from '../types';
 
@@ -42,7 +43,13 @@ export const MeetingDetail: React.FC = () => {
 
   const handleSaveEval = () => {
     submitEvaluation(record);
-    alert('Прогресс сохранен');
+    
+    // Check if task was created
+    if (record.taskDescription && record.deadline) {
+      alert(`✅ Оценки сохранены!\n\n📝 Ваша задача "${record.taskDescription.substring(0, 50)}..." добавлена в раздел "Задачи"`);
+    } else {
+      alert('✅ Прогресс сохранен');
+    }
   };
 
   const mockParticipants = [
@@ -58,21 +65,57 @@ export const MeetingDetail: React.FC = () => {
       : 0;
 
     return (
-      <div className="max-w-5xl mx-auto p-6 md:p-12 animate-in fade-in slide-in-from-top-4 duration-700">
-        <button onClick={() => navigate('/dashboard')} className="group text-slate-500 mb-8 flex items-center gap-2 font-bold hover:text-slate-900 transition-colors">
-          <svg className="w-5 h-5 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="max-w-5xl mx-auto p-6 md:p-12"
+      >
+        <motion.button
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.1 }}
+          whileHover={{ x: -5 }}
+          onClick={() => navigate('/dashboard')}
+          className="group text-slate-500 mb-8 flex items-center gap-2 font-bold hover:text-slate-900 transition-colors"
+        >
+          <svg className="w-5 h-5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
           Назад к дашборду
-        </button>
+        </motion.button>
         
-        <header className="mb-12">
+        <motion.header
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="mb-12"
+        >
           <div className="flex items-center gap-4 mb-4">
-            <div className="px-4 py-1.5 rounded-full bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest">Архив</div>
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.3, type: 'spring' }}
+              className="px-4 py-1.5 rounded-full bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest"
+            >
+              Архив
+            </motion.div>
             <span className="text-slate-400 text-sm font-medium">{new Date(meeting.createdAt).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
           </div>
-          <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight leading-tight">{meeting.title}</h1>
-        </header>
+          <motion.h1
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.4 }}
+            className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight leading-tight"
+          >
+            {meeting.title}
+          </motion.h1>
+        </motion.header>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16"
+        >
           <div className="md:col-span-2 p-10 bg-white rounded-[40px] border border-slate-200 shadow-xl shadow-slate-200/50">
              <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6">Средний показатель понимания</h3>
              <div className="flex items-end gap-6">
@@ -87,16 +130,33 @@ export const MeetingDetail: React.FC = () => {
             <p className="text-7xl font-black">{meetingEvals.length}</p>
             <p className="mt-4 text-blue-100 font-medium">Предоставили данные для анализа</p>
           </div>
-        </div>
+        </motion.div>
 
-        <h2 className="text-2xl font-black text-slate-900 mb-8 flex items-center gap-3">
+        <motion.h2
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6 }}
+          className="text-2xl font-black text-slate-900 mb-8 flex items-center gap-3"
+        >
           Подробный отчет по участникам
           <div className="flex-1 h-px bg-slate-200" />
-        </h2>
+        </motion.h2>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {meetingEvals.map(ev => (
-            <div key={ev.userId} className="group p-8 bg-white border border-slate-200 rounded-[32px] hover:border-blue-300 hover:shadow-2xl transition-all duration-300">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.7 }}
+          className="grid grid-cols-1 md:grid-cols-2 gap-6"
+        >
+          {meetingEvals.map((ev, index) => (
+            <motion.div
+              key={ev.userId}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8 + index * 0.1 }}
+              whileHover={{ scale: 1.02, y: -4 }}
+              className="group p-8 bg-white border border-slate-200 rounded-[32px] hover:border-blue-300 hover:shadow-2xl transition-all duration-300"
+            >
               <div className="flex justify-between items-start mb-6">
                 <div>
                   <h4 className="font-black text-slate-900 text-lg">{ev.userId === currentUser?.id ? 'Вы' : ev.userId}</h4>
@@ -132,21 +192,36 @@ export const MeetingDetail: React.FC = () => {
                   </div>
                 )}
               </div>
-            </div>
+            </motion.div>
           ))}
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     );
   }
 
   return (
-    <div className="max-w-5xl mx-auto p-6 md:p-12 pb-40">
-      <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-8">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="max-w-5xl mx-auto p-6 md:p-12 pb-40"
+    >
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-8"
+      >
         <div className="flex-1">
-          <button onClick={() => navigate('/dashboard')} className="text-slate-500 mb-6 flex items-center gap-2 font-bold hover:text-slate-900 transition-colors">
+          <motion.button
+            whileHover={{ x: -5 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => navigate('/dashboard')}
+            className="text-slate-500 mb-6 flex items-center gap-2 font-bold hover:text-slate-900 transition-colors"
+          >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
             Вернуться
-          </button>
+          </motion.button>
           <h1 className="text-4xl font-black text-slate-900 tracking-tight leading-tight mb-4">{meeting.title}</h1>
           <div className="flex items-center gap-4 text-slate-400 text-sm font-bold uppercase tracking-widest">
             <span>#{id}</span>
@@ -156,7 +231,12 @@ export const MeetingDetail: React.FC = () => {
         </div>
         
         {/* Visual Stepper */}
-        <div className="flex items-center gap-3">
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.3 }}
+          className="flex items-center gap-3"
+        >
           {phases.map((p, i) => (
             <React.Fragment key={p.key}>
               <div className={`flex flex-col items-center gap-2`}>
@@ -176,11 +256,16 @@ export const MeetingDetail: React.FC = () => {
               )}
             </React.Fragment>
           ))}
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
       {/* Main Content Area */}
-      <div className="space-y-12">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+        className="space-y-12"
+      >
         <div className="bg-white rounded-[40px] shadow-2xl shadow-slate-200/50 border border-slate-100 overflow-hidden group">
           <div className="p-10 md:p-14">
             <h3 className="text-[10px] font-black text-blue-600 mb-6 uppercase tracking-[0.3em]">Центральный вопрос</h3>
@@ -309,25 +394,36 @@ export const MeetingDetail: React.FC = () => {
                 <div className="flex-1 h-px bg-slate-200" />
               </h2>
               <div className="p-10 md:p-14 bg-white border border-slate-200 rounded-[40px] shadow-2xl shadow-slate-200/50 space-y-10">
+                <div className="p-4 bg-blue-50 border-l-4 border-blue-600 rounded-lg mb-6">
+                  <p className="text-sm text-blue-900 font-semibold">
+                    💡 Заполните все поля, чтобы задача автоматически появилась в разделе "Задачи"
+                  </p>
+                </div>
                 <div className="space-y-4">
-                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest">Формулировка вашей задачи</label>
+                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                    Формулировка вашей задачи <span className="text-red-500">*</span>
+                  </label>
                   <textarea
                     className="w-full px-8 py-6 bg-slate-50 border-2 border-slate-100 rounded-[24px] focus:ring-4 focus:ring-blue-100 focus:border-blue-400 focus:bg-white text-slate-900 text-lg font-bold transition-all outline-none placeholder:text-slate-300"
                     rows={4}
                     placeholder="Например: Разработать архитектуру бэкенда для модуля уведомлений..."
                     value={record.taskDescription || ''}
                     onChange={e => setRecord({...record, taskDescription: e.target.value})}
+                    required
                   />
                 </div>
                 
                 <div className="grid md:grid-cols-2 gap-10">
                   <div className="space-y-4">
-                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest">Крайний срок (Дедлайн)</label>
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                      Крайний срок (Дедлайн) <span className="text-red-500">*</span>
+                    </label>
                     <input
                       type="date"
                       className="w-full px-8 py-5 bg-slate-50 border-2 border-slate-100 rounded-[20px] focus:ring-4 focus:ring-blue-100 focus:border-blue-400 focus:bg-white text-slate-900 font-bold transition-all outline-none"
                       value={record.deadline || ''}
                       onChange={e => setRecord({...record, deadline: e.target.value})}
+                      required
                     />
                   </div>
                   <div className="space-y-4">
@@ -346,34 +442,52 @@ export const MeetingDetail: React.FC = () => {
               </div>
             </section>
             
-            <div className="flex justify-center pt-4">
-              <button onClick={handleSaveEval} className="px-12 py-5 bg-slate-900 text-white rounded-3xl font-black uppercase tracking-widest shadow-2xl hover:bg-black transition-all hover:-translate-y-1">
-                Подтвердить результаты
+            <div className="flex flex-col items-center gap-4 pt-4">
+              {(!record.taskDescription || !record.deadline) && (
+                <p className="text-sm text-orange-600 font-semibold">
+                  ⚠️ Заполните описание задачи и дедлайн для создания задачи
+                </p>
+              )}
+              <button
+                onClick={handleSaveEval}
+                disabled={!record.taskDescription || !record.deadline}
+                className="px-12 py-5 bg-slate-900 text-white rounded-3xl font-black uppercase tracking-widest shadow-2xl hover:bg-black transition-all hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              >
+                {record.taskDescription && record.deadline ? '✓ Подтвердить и создать задачу' : 'Подтвердить результаты'}
               </button>
             </div>
           </div>
         )}
-      </div>
+      </motion.div>
 
       {/* Persistent Creator Control Bar */}
       {isCreator && (
-        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 w-[90%] max-w-2xl bg-slate-900/90 backdrop-blur-xl border border-white/10 p-6 rounded-[32px] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.4)] z-50">
-          <div className="flex items-center justify-between gap-6">
-            <div className="hidden md:block">
-              <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1">Панель управления</p>
-              <p className="text-white text-sm font-bold truncate">Переключить фазу встречи</p>
+        <motion.div
+          initial={{ y: 100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.6, type: 'spring', stiffness: 200 }}
+          className="fixed bottom-10 left-0 right-0 flex justify-center px-4 z-50"
+        >
+          <div className="w-full max-w-2xl bg-slate-900/90 backdrop-blur-xl border border-white/10 p-6 rounded-[32px] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.4)]">
+            <div className="flex flex-col md:flex-row items-center justify-center md:justify-between gap-4 md:gap-6">
+              <div className="hidden md:block">
+                <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1">Панель управления</p>
+                <p className="text-white text-sm font-bold">Переключить фазу встречи</p>
+              </div>
+              <motion.button
+                whileHover={{ scale: 1.02, y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={nextPhase}
+                className="w-full md:w-auto px-12 py-4 bg-blue-600 text-white rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-blue-500 transition-colors shadow-xl shadow-blue-900/40"
+              >
+                {meeting.currentPhase === MeetingPhase.DISCUSSION && 'Начать оценку →'}
+                {meeting.currentPhase === MeetingPhase.EVALUATION && 'Перейти к итогам →'}
+                {meeting.currentPhase === MeetingPhase.SUMMARY && 'Завершить встречу ✔'}
+              </motion.button>
             </div>
-            <button 
-              onClick={nextPhase}
-              className="flex-1 md:flex-none px-12 py-4 bg-blue-600 text-white rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-blue-500 hover:-translate-y-1 active:translate-y-0 transition-all shadow-xl shadow-blue-900/40"
-            >
-              {meeting.currentPhase === MeetingPhase.DISCUSSION && 'Начать оценку →'}
-              {meeting.currentPhase === MeetingPhase.EVALUATION && 'Перейти к итогам →'}
-              {meeting.currentPhase === MeetingPhase.SUMMARY && 'Завершить встречу ✔'}
-            </button>
           </div>
-        </div>
+        </motion.div>
       )}
-    </div>
+    </motion.div>
   );
 };

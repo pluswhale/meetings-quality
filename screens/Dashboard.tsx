@@ -94,12 +94,12 @@ export const Dashboard: React.FC = () => {
           </div>
 
           {tab === 'MEETINGS' && (
-            <div className="mb-8 flex p-1 bg-slate-200/50 rounded-xl w-fit">
+            <div className="mb-8 flex p-1 bg-slate-200/50 rounded-xl w-fit gap-1">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setFilter('CURRENT')}
-                className={filter === 'CURRENT' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'}
+                className={filter === 'CURRENT' ? 'bg-white text-slate-900 shadow-md font-bold' : 'text-slate-500 hover:text-slate-700'}
               >
                 Активные
               </Button>
@@ -107,7 +107,7 @@ export const Dashboard: React.FC = () => {
                 variant="ghost"
                 size="sm"
                 onClick={() => setFilter('PAST')}
-                className={filter === 'PAST' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'}
+                className={filter === 'PAST' ? 'bg-white text-slate-900 shadow-md font-bold' : 'text-slate-500 hover:text-slate-700'}
               >
                 Завершенные
               </Button>
