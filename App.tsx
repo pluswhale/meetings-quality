@@ -23,7 +23,7 @@ const AuthRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
 const App: React.FC = () => {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/meetings-quality">
       <div className="min-h-screen bg-slate-50 selection:bg-blue-100 selection:text-blue-700">
         <Routes>
           {/* Public Auth Routes */}
