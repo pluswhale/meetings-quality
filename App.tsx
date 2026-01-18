@@ -7,11 +7,12 @@ import { Dashboard } from './screens/Dashboard';
 import { MeetingDetail } from './screens/MeetingDetail';
 import { CreateMeeting } from './screens/CreateMeeting';
 import { TaskDetail } from './screens/TaskDetail';
+import { Layout } from './components/Layout';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const currentUser = useStore(state => state.currentUser);
   if (!currentUser) return <Navigate to="/login" replace />;
-  return <>{children}</>;
+  return <Layout>{children}</Layout>;
 };
 
 const AuthRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
