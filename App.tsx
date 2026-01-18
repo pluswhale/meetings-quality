@@ -21,6 +21,11 @@ const AuthRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return <>{children}</>;
 };
 
+const RootRedirect: React.FC = () => {
+  const currentUser = useStore(state => state.currentUser);
+  return <Navigate to={currentUser ? "/dashboard" : "/login"} replace />;
+};
+
 const App: React.FC = () => {
   return (
     <BrowserRouter basename="/meetings-quality">
@@ -37,7 +42,7 @@ const App: React.FC = () => {
           <Route path="/task/:id" element={<ProtectedRoute><TaskDetail /></ProtectedRoute>} />
 
           {/* Fallbacks */}
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/" element={<RootRedirect />} />
           <Route path="*" element={<div className="p-20 text-center font-black text-slate-400">404 — Страница не найдена</div>} />
         </Routes>
       </div>
