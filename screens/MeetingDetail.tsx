@@ -265,7 +265,10 @@ export const MeetingDetail: React.FC = () => {
                     </span>
                   )}
                   <span className="inline-flex items-center gap-1.5 bg-slate-50 text-slate-600 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border border-slate-100">
-                    Эмоциональная оценка: {Math.round(stat.averageEmotionalScale)}
+                    Эмоциональная оценка:{' '}
+                    {typeof stat.averageEmotionalScale === 'number'
+                      ? Math.round(stat.averageEmotionalScale)
+                      : '—'}
                   </span>
                 </div>
               </div>
@@ -484,7 +487,7 @@ export const MeetingDetail: React.FC = () => {
         )}
         
         {/* Debug info for creator */}
-        {process.env.NODE_ENV === 'development' && (
+        {/* {process.env.NODE_ENV === 'development' && (
           <div className="mt-8 p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-xs">
             <p><strong>Debug Info:</strong></p>
             <p>Meeting Creator: {meeting.creatorId}</p>
@@ -493,7 +496,7 @@ export const MeetingDetail: React.FC = () => {
             <p>Current Phase: {meeting.currentPhase}</p>
             <p>Show Button: {isCreator && meeting.currentPhase !== 'finished' ? 'Yes' : 'No'}</p>
           </div>
-        )}
+        )} */}
       </motion.div>
     </motion.div>
   );
