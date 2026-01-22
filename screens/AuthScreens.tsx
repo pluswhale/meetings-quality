@@ -2,21 +2,35 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useStore } from '../store';
-import { Input, Button, Heading, Text, Avatar } from '../components/ui';
+import { Input, Button, Heading, Text } from '../components/ui';
+import { useAuthControllerLogin, useAuthControllerRegister } from '../src/api/generated/hooks';
 
 export const LoginScreen: React.FC = () => {
-  const login = useStore(state => state.login);
+  const setAuth = useStore(state => state.setAuth);
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+
+  const { mutate: login, isPending } = useAuthControllerLogin();
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (login(email)) {
-      navigate('/dashboard');
-    } else {
-      alert('Пользователь не найден. Попробуйте другой email.');
-    }
+    setError('');
+    
+    login(
+      { data: { email, password } },
+      {
+        onSuccess: (data) => {
+          setAuth(data.user, data.access_token);
+          navigate('/dashboard');
+        },
+        onError: (err: any) => {
+          const message = err?.response?.data?.message || 'Неверный email или пароль';
+          setError(message);
+        },
+      }
+    );
   };
 
   return (
@@ -33,6 +47,13 @@ export const LoginScreen: React.FC = () => {
             Вернем эффективность совещаниям
           </Text>
         </div>
+        
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl">
+            <Text variant="small" className="text-red-600">{error}</Text>
+          </div>
+        )}
+        
         <form className="space-y-6" onSubmit={handleLogin}>
           <Input
             type="email"
@@ -42,6 +63,7 @@ export const LoginScreen: React.FC = () => {
             onChange={(e) => setEmail(e.target.value)}
             required
             fullWidth
+            disabled={isPending}
           />
           <Input
             type="password"
@@ -51,14 +73,16 @@ export const LoginScreen: React.FC = () => {
             onChange={(e) => setPassword(e.target.value)}
             required
             fullWidth
+            disabled={isPending}
           />
           <Button
             type="submit"
             variant="secondary"
             size="lg"
             fullWidth
+            disabled={isPending}
           >
-            Войти
+            {isPending ? 'Вход...' : 'Войти'}
           </Button>
         </form>
         <div className="mt-8 text-center">
@@ -72,16 +96,32 @@ export const LoginScreen: React.FC = () => {
 };
 
 export const RegisterScreen: React.FC = () => {
-  const register = useStore(state => state.register);
+  const setAuth = useStore(state => state.setAuth);
   const navigate = useNavigate();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+
+  const { mutate: register, isPending } = useAuthControllerRegister();
 
   const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
-    register(name, email);
-    navigate('/dashboard');
+    setError('');
+    
+    register(
+      { data: { fullName: name, email, password } },
+      {
+        onSuccess: (data) => {
+          setAuth(data.user, data.access_token);
+          navigate('/dashboard');
+        },
+        onError: (err: any) => {
+          const message = err?.response?.data?.message || 'Ошибка регистрации. Попробуйте другой email.';
+          setError(message);
+        },
+      }
+    );
   };
 
   return (
@@ -98,6 +138,13 @@ export const RegisterScreen: React.FC = () => {
             Начните оценивать качество встреч
           </Text>
         </div>
+        
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl">
+            <Text variant="small" className="text-red-600">{error}</Text>
+          </div>
+        )}
+        
         <form className="space-y-6" onSubmit={handleRegister}>
           <Input
             type="text"
@@ -107,6 +154,7 @@ export const RegisterScreen: React.FC = () => {
             onChange={(e) => setName(e.target.value)}
             required
             fullWidth
+            disabled={isPending}
           />
           <Input
             type="email"
@@ -116,23 +164,27 @@ export const RegisterScreen: React.FC = () => {
             onChange={(e) => setEmail(e.target.value)}
             required
             fullWidth
+            disabled={isPending}
           />
           <Input
             type="password"
             label="Пароль"
-            placeholder="Введите пароль..."
+            placeholder="Введите пароль (минимум 6 символов)..."
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            minLength={6}
             fullWidth
+            disabled={isPending}
           />
           <Button
             type="submit"
             variant="secondary"
             size="lg"
             fullWidth
+            disabled={isPending}
           >
-            Создать аккаунт
+            {isPending ? 'Создание...' : 'Создать аккаунт'}
           </Button>
         </form>
         <div className="mt-8 text-center">

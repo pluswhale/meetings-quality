@@ -1,26 +1,29 @@
 
 import React, { useState } from 'react';
-import { useNavigate, Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useStore } from '../store';
-import { MeetingPhase } from '../types';
 import { Button, Card, CardHeader, CardFooter, Badge, AvatarGroup, Heading, Text } from '../components/ui';
+import { useMeetingsControllerFindAll, useTasksControllerFindAll } from '../src/api/generated/hooks';
 
 export const Dashboard: React.FC = () => {
-  const navigate = useNavigate();
-  const { currentUser, meetings, tasks, logout } = useStore();
+  const { currentUser, logout } = useStore();
   const [searchParams, setSearchParams] = useSearchParams();
   const tab = (searchParams.get('tab') as 'MEETINGS' | 'TASKS') || 'MEETINGS';
   const [filter, setFilter] = useState<'CURRENT' | 'PAST'>('CURRENT');
+  
+  // Fetch meetings and tasks with React Query
+  const { data: meetings = [], isLoading: meetingsLoading, error: meetingsError } = useMeetingsControllerFindAll();
+  const { data: tasks = [], isLoading: tasksLoading, error: tasksError } = useTasksControllerFindAll();
   
   const setTab = (newTab: 'MEETINGS' | 'TASKS') => {
     setSearchParams({ tab: newTab });
   };
 
   const filteredMeetings = meetings.filter(m => 
-    filter === 'CURRENT' ? m.currentPhase !== MeetingPhase.FINISHED : m.currentPhase === MeetingPhase.FINISHED
+    filter === 'CURRENT' ? m.currentPhase !== 'finished' : m.currentPhase === 'finished'
   );
 
-  const filteredTasks = tasks.filter(t => t.authorId === currentUser?.id);
+  const filteredTasks = tasks.filter(t => t.authorId === currentUser?._id);
 
   return (
     <div className="flex flex-col md:flex-row h-screen bg-slate-50">
@@ -114,101 +117,128 @@ export const Dashboard: React.FC = () => {
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-            {tab === 'MEETINGS' ? (
-              filteredMeetings.length > 0 ? (
-                filteredMeetings.map(m => (
-                  <Link to={`/meeting/${m.id}`} key={m.id} className="group">
-                    <Card
-                      variant="interactive"
-                      className={m.currentPhase === MeetingPhase.FINISHED ? 'grayscale-[0.5] hover:grayscale-0' : ''}
-                    >
-                      <CardHeader
-                        icon={
-                          <svg 
-                            className={`w-6 h-6 ${m.currentPhase === MeetingPhase.FINISHED ? 'text-slate-400' : 'text-blue-600'}`} 
-                            fill="none" 
-                            stroke="currentColor" 
-                            viewBox="0 0 24 24"
-                          >
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                          </svg>
-                        }
-                        title={m.title}
-                        subtitle={m.question}
-                        action={
-                          <Badge
-                            variant={m.currentPhase === MeetingPhase.FINISHED ? 'secondary' : 'success'}
-                            size="sm"
-                          >
-                            {m.currentPhase === MeetingPhase.DISCUSSION && 'Обсуждение'}
-                            {m.currentPhase === MeetingPhase.EVALUATION && 'Оценка'}
-                            {m.currentPhase === MeetingPhase.SUMMARY && 'Итоги'}
-                            {m.currentPhase === MeetingPhase.FINISHED && 'Завершена'}
-                          </Badge>
-                        }
-                      />
-                      <CardFooter className="flex items-center justify-between">
-                        <AvatarGroup
-                          avatars={[
-                            { name: 'User 1' },
-                            { name: 'User 2' },
-                            { name: 'User 3' }
-                          ]}
-                          size="sm"
+          {/* Loading States */}
+          {tab === 'MEETINGS' && meetingsLoading && (
+            <div className="col-span-full py-20 text-center">
+              <div className="animate-spin w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+              <Text variant="body" color="muted">Загрузка встреч...</Text>
+            </div>
+          )}
+          
+          {tab === 'TASKS' && tasksLoading && (
+            <div className="col-span-full py-20 text-center">
+              <div className="animate-spin w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+              <Text variant="body" color="muted">Загрузка задач...</Text>
+            </div>
+          )}
+          
+          {/* Error States */}
+          {tab === 'MEETINGS' && meetingsError && (
+            <div className="col-span-full py-20 text-center bg-red-50 rounded-3xl border-2 border-red-200">
+              <Text variant="body" className="text-red-600">Ошибка загрузки встреч: {meetingsError.message}</Text>
+            </div>
+          )}
+          
+          {tab === 'TASKS' && tasksError && (
+            <div className="col-span-full py-20 text-center bg-red-50 rounded-3xl border-2 border-red-200">
+              <Text variant="body" className="text-red-600">Ошибка загрузки задач: {tasksError.message}</Text>
+            </div>
+          )}
+
+          {/* Content */}
+          {!meetingsLoading && !tasksLoading && !meetingsError && !tasksError && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+              {tab === 'MEETINGS' ? (
+                filteredMeetings.length > 0 ? (
+                  filteredMeetings.map(m => (
+                    <Link to={`/meeting/${m._id}`} key={m._id} className="group">
+                      <Card
+                        variant="interactive"
+                        className={m.currentPhase === 'finished' ? 'grayscale-[0.5] hover:grayscale-0' : ''}
+                      >
+                        <CardHeader
+                          icon={
+                            <svg 
+                              className={`w-6 h-6 ${m.currentPhase === 'finished' ? 'text-slate-400' : 'text-blue-600'}`} 
+                              fill="none" 
+                              stroke="currentColor" 
+                              viewBox="0 0 24 24"
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                          }
+                          title={m.title}
+                          subtitle={m.question}
+                          action={
+                            <Badge
+                              variant={m.currentPhase === 'finished' ? 'secondary' : 'success'}
+                              size="sm"
+                            >
+                              {m.currentPhase === 'discussion' && 'Обсуждение'}
+                              {m.currentPhase === 'evaluation' && 'Оценка'}
+                              {m.currentPhase === 'summary' && 'Итоги'}
+                              {m.currentPhase === 'finished' && 'Завершена'}
+                            </Badge>
+                          }
                         />
-                        <Text variant="caption" color="muted" weight="medium">
-                          {new Date(m.createdAt).toLocaleDateString()}
-                        </Text>
-                      </CardFooter>
-                    </Card>
-                  </Link>
-                ))
-              ) : (
-                <div className="col-span-full py-20 text-center bg-slate-100/50 rounded-3xl border-2 border-dashed border-slate-200">
-                  <p className="text-slate-400 font-medium">Нет встреч в этой категории</p>
-                </div>
-              )
-            ) : (
-              filteredTasks.length > 0 ? (
-                filteredTasks.map(t => (
-                  <Link to={`/task/${t.id}`} key={t.id} className="group">
-                    <Card variant="interactive">
-                      <CardHeader
-                        icon={
-                          <svg className="w-5 h-5 text-blue-600 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                          </svg>
-                        }
-                        title={t.description}
-                      />
-                      <div className="flex items-center justify-between text-xs mt-6">
-                        <div className="flex items-center gap-2 text-slate-500 bg-slate-100 px-3 py-1.5 rounded-lg">
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                          </svg>
-                          <Text variant="caption" color="muted">{t.deadline}</Text>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Text variant="overline" color="muted">Важность</Text>
-                          <div className="w-16 h-2 bg-slate-100 rounded-full overflow-hidden">
-                            <div className="h-full bg-blue-500" style={{ width: `${t.contributionImportance}%` }}></div>
-                          </div>
-                          <Text variant="caption" weight="black" color="primary" className="text-blue-600">
-                            {t.contributionImportance}%
+                        <CardFooter className="flex items-center justify-between">
+                          <AvatarGroup
+                            avatars={m.participantIds.map((id, idx) => ({ name: `User ${idx + 1}` }))}
+                            size="sm"
+                          />
+                          <Text variant="caption" color="muted" weight="medium">
+                            {new Date(m.createdAt).toLocaleDateString('ru-RU')}
                           </Text>
-                        </div>
-                      </div>
-                    </Card>
-                  </Link>
-                ))
+                        </CardFooter>
+                      </Card>
+                    </Link>
+                  ))
+                ) : (
+                  <div className="col-span-full py-20 text-center bg-slate-100/50 rounded-3xl border-2 border-dashed border-slate-200">
+                    <p className="text-slate-400 font-medium">Нет встреч в этой категории</p>
+                  </div>
+                )
               ) : (
-                <div className="col-span-full py-20 text-center bg-slate-100/50 rounded-3xl border-2 border-dashed border-slate-200">
-                  <p className="text-slate-400 font-medium">У вас пока нет активных задач</p>
-                </div>
-              )
-            )}
-          </div>
+                filteredTasks.length > 0 ? (
+                  filteredTasks.map(t => (
+                    <Link to={`/task/${t._id}`} key={t._id} className="group">
+                      <Card variant="interactive">
+                        <CardHeader
+                          icon={
+                            <svg className="w-5 h-5 text-blue-600 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                          }
+                          title={t.description}
+                        />
+                        <div className="flex items-center justify-between text-xs mt-6">
+                          <div className="flex items-center gap-2 text-slate-500 bg-slate-100 px-3 py-1.5 rounded-lg">
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            <Text variant="caption" color="muted">{new Date(t.deadline).toLocaleDateString('ru-RU')}</Text>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Text variant="overline" color="muted">Важность</Text>
+                            <div className="w-16 h-2 bg-slate-100 rounded-full overflow-hidden">
+                              <div className="h-full bg-blue-500" style={{ width: `${t.contributionImportance}%` }}></div>
+                            </div>
+                            <Text variant="caption" weight="black" color="primary" className="text-blue-600">
+                              {t.contributionImportance}%
+                            </Text>
+                          </div>
+                        </div>
+                      </Card>
+                    </Link>
+                  ))
+                ) : (
+                  <div className="col-span-full py-20 text-center bg-slate-100/50 rounded-3xl border-2 border-dashed border-slate-200">
+                    <p className="text-slate-400 font-medium">У вас пока нет активных задач</p>
+                  </div>
+                )
+              )}
+            </div>
+          )}
         </div>
       </main>
     </div>

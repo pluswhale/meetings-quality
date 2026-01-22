@@ -1,6 +1,7 @@
 
-import React, { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { QueryProvider } from './src/providers/QueryProvider';
 import { useStore } from './store';
 import { LoginScreen, RegisterScreen } from './screens/AuthScreens';
 import { Dashboard } from './screens/Dashboard';
@@ -23,25 +24,27 @@ const AuthRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
 const App: React.FC = () => {
   return (
-    <BrowserRouter>
-      <div className="min-h-screen bg-slate-50 selection:bg-blue-100 selection:text-blue-700">
-        <Routes>
-          {/* Public Auth Routes */}
-          <Route path="/login" element={<AuthRoute><LoginScreen /></AuthRoute>} />
-          <Route path="/register" element={<AuthRoute><RegisterScreen /></AuthRoute>} />
+    <QueryProvider>
+      <BrowserRouter>
+        <div className="min-h-screen bg-slate-50 selection:bg-blue-100 selection:text-blue-700">
+          <Routes>
+            {/* Public Auth Routes */}
+            <Route path="/login" element={<AuthRoute><LoginScreen /></AuthRoute>} />
+            <Route path="/register" element={<AuthRoute><RegisterScreen /></AuthRoute>} />
 
-          {/* Protected Main Routes */}
-          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-          <Route path="/meeting/create" element={<ProtectedRoute><CreateMeeting /></ProtectedRoute>} />
-          <Route path="/meeting/:id" element={<ProtectedRoute><MeetingDetail /></ProtectedRoute>} />
-          <Route path="/task/:id" element={<ProtectedRoute><TaskDetail /></ProtectedRoute>} />
+            {/* Protected Main Routes */}
+            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/meeting/create" element={<ProtectedRoute><CreateMeeting /></ProtectedRoute>} />
+            <Route path="/meeting/:id" element={<ProtectedRoute><MeetingDetail /></ProtectedRoute>} />
+            <Route path="/task/:id" element={<ProtectedRoute><TaskDetail /></ProtectedRoute>} />
 
-          {/* Fallbacks */}
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="*" element={<div className="p-20 text-center font-black text-slate-400">404 — Страница не найдена</div>} />
-        </Routes>
-      </div>
-    </BrowserRouter>
+            {/* Fallbacks */}
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="*" element={<div className="p-20 text-center font-black text-slate-400">404 — Страница не найдена</div>} />
+          </Routes>
+        </div>
+      </BrowserRouter>
+    </QueryProvider>
   );
 };
 

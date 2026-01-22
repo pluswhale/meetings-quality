@@ -1,25 +1,65 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
+import { useTasksControllerFindOne, useTasksControllerUpdate } from '../src/api/generated/hooks';
+import { queryClient } from '../src/providers/QueryProvider';
 
 export const TaskDetail: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { tasks, currentUser, updateTask } = useStore();
-  const task = tasks.find(t => t.id === id);
+  const { currentUser } = useStore();
+  
+  const { data: task, isLoading, error } = useTasksControllerFindOne(id || '');
+  const { mutate: updateTask, isPending: isUpdating } = useTasksControllerUpdate();
 
-  const [desc, setDesc] = useState(task?.description || '');
-  const [deadline, setDeadline] = useState(task?.deadline || '');
+  const [desc, setDesc] = useState('');
+  const [deadline, setDeadline] = useState('');
 
-  if (!task) return <div className="p-20 text-center text-slate-500 font-bold">Задача не найдена</div>;
+  useEffect(() => {
+    if (task) {
+      setDesc(task.description);
+      setDeadline(new Date(task.deadline).toISOString().split('T')[0]);
+    }
+  }, [task]);
 
-  const isAuthor = task.authorId === currentUser?.id;
+  if (isLoading) {
+    return (
+      <div className="p-20 text-center">
+        <div className="animate-spin w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+        <p className="text-slate-500 font-bold">Загрузка задачи...</p>
+      </div>
+    );
+  }
+
+  if (error || !task) {
+    return <div className="p-20 text-center text-slate-500 font-bold">Задача не найдена</div>;
+  }
+
+  const isAuthor = task.authorId === currentUser?._id;
 
   const handleSave = () => {
     if (!id) return;
-    updateTask(id, desc, deadline);
-    alert('Изменения сохранены');
+    
+    updateTask(
+      { 
+        id, 
+        data: { 
+          description: desc, 
+          deadline: new Date(deadline).toISOString()
+        } 
+      },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ['tasks', id] });
+          queryClient.invalidateQueries({ queryKey: ['tasks'] });
+          alert('Изменения сохранены');
+        },
+        onError: (err: any) => {
+          alert(`Ошибка: ${err?.response?.data?.message || 'Не удалось сохранить изменения'}`);
+        },
+      }
+    );
   };
 
   return (
@@ -62,7 +102,9 @@ export const TaskDetail: React.FC = () => {
                 onChange={e => setDeadline(e.target.value)}
               />
             ) : (
-              <p className="px-8 py-5 bg-slate-50 rounded-[20px] text-lg text-slate-900 font-black tracking-tight">{task.deadline}</p>
+              <p className="px-8 py-5 bg-slate-50 rounded-[20px] text-lg text-slate-900 font-black tracking-tight">
+                {new Date(task.deadline).toLocaleDateString('ru-RU')}
+              </p>
             )}
           </div>
           <div className="space-y-4">
@@ -91,9 +133,10 @@ export const TaskDetail: React.FC = () => {
         {isAuthor && (
           <button 
             onClick={handleSave}
-            className="w-full py-6 bg-slate-900 text-white rounded-[24px] font-black uppercase tracking-[0.2em] text-sm shadow-2xl hover:bg-black hover:-translate-y-1 transition-all"
+            disabled={isUpdating}
+            className="w-full py-6 bg-slate-900 text-white rounded-[24px] font-black uppercase tracking-[0.2em] text-sm shadow-2xl hover:bg-black hover:-translate-y-1 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Сохранить изменения
+            {isUpdating ? 'Сохранение...' : 'Сохранить изменения'}
           </button>
         )}
       </div>

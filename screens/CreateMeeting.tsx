@@ -2,20 +2,37 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { useStore } from '../store';
-import { Button, Input, TextArea, Heading, Text, IconButton } from '../components/ui';
+import { Button, Input, TextArea, Heading, Text } from '../components/ui';
+import { useMeetingsControllerCreate } from '../src/api/generated/hooks';
+import { queryClient } from '../src/providers/QueryProvider';
 
 export const CreateMeeting: React.FC = () => {
   const navigate = useNavigate();
-  const createMeeting = useStore(state => state.createMeeting);
   const [title, setTitle] = useState('');
   const [question, setQuestion] = useState('');
+  const [error, setError] = useState('');
+
+  const { mutate: createMeeting, isPending } = useMeetingsControllerCreate();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
+    
     if (title && question) {
-      const id = createMeeting(title, question);
-      navigate(`/meeting/${id}`);
+      createMeeting(
+        { data: { title, question, participantIds: [] } },
+        {
+          onSuccess: (data) => {
+            // Invalidate meetings query to refetch the list
+            queryClient.invalidateQueries({ queryKey: ['meetings'] });
+            navigate(`/meeting/${data._id}`);
+          },
+          onError: (err: any) => {
+            const message = err?.response?.data?.message || 'Ошибка создания встречи';
+            setError(message);
+          },
+        }
+      );
     }
   };
 
@@ -59,6 +76,16 @@ export const CreateMeeting: React.FC = () => {
         </Text>
       </motion.header>
       
+      {error && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl"
+        >
+          <Text variant="small" className="text-red-600">{error}</Text>
+        </motion.div>
+      )}
+      
       <motion.form
         onSubmit={handleSubmit}
         initial={{ opacity: 0 }}
@@ -80,6 +107,7 @@ export const CreateMeeting: React.FC = () => {
             required
             fullWidth
             inputSize="lg"
+            disabled={isPending}
           />
         </motion.div>
         
@@ -96,6 +124,7 @@ export const CreateMeeting: React.FC = () => {
             onChange={(e) => setQuestion(e.target.value)}
             required
             fullWidth
+            disabled={isPending}
           />
         </motion.div>
         
@@ -110,8 +139,9 @@ export const CreateMeeting: React.FC = () => {
             size="lg"
             fullWidth
             className="uppercase tracking-[0.2em]"
+            disabled={isPending}
           >
-            Запустить процесс
+            {isPending ? 'Создание...' : 'Запустить процесс'}
           </Button>
         </motion.div>
       </motion.form>
