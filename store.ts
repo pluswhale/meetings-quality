@@ -4,7 +4,6 @@
  */
 
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 
 export interface User {
   _id: string;
@@ -22,42 +21,31 @@ interface AuthState {
   updateUser: (user: User) => void;
 }
 
-export const useStore = create<AuthState>()(
-  persist(
-    (set) => ({
-      currentUser: null,
-      token: null,
+export const useStore = create<AuthState>()((set) => ({
+  currentUser: null,
+  token: null,
 
-      setAuth: (user: User, token: string) => {
-        // Save to localStorage for axios interceptor
-        localStorage.setItem('auth_token', token);
-        localStorage.setItem('current_user', JSON.stringify(user));
-        
-        set({ currentUser: user, token });
-      },
+  setAuth: (user: User, token: string) => {
+    // Save to localStorage for axios interceptor
+    localStorage.setItem('auth_token', token);
+    localStorage.setItem('current_user', JSON.stringify(user));
+    
+    set({ currentUser: user, token });
+  },
 
-      logout: () => {
-        // Clear localStorage
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('current_user');
-        
-        set({ currentUser: null, token: null });
-      },
+  logout: () => {
+    // Clear localStorage
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('current_user');
+    
+    set({ currentUser: null, token: null });
+  },
 
-      updateUser: (user: User) => {
-        localStorage.setItem('current_user', JSON.stringify(user));
-        set({ currentUser: user });
-      },
-    }),
-    {
-      name: 'auth-storage',
-      partialize: (state) => ({
-        currentUser: state.currentUser,
-        token: state.token,
-      }),
-    }
-  )
-);
+  updateUser: (user: User) => {
+    localStorage.setItem('current_user', JSON.stringify(user));
+    set({ currentUser: user });
+  },
+}));
 
 // Initialize from localStorage on app start (in case of page refresh)
 if (typeof window !== 'undefined') {
