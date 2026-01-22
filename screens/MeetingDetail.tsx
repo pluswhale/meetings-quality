@@ -49,6 +49,12 @@ export const MeetingDetail: React.FC = () => {
   }
 
   const isCreator = meeting.creatorId === currentUser?._id;
+  
+  // Debug logging
+  console.log('Meeting Creator ID:', meeting.creatorId);
+  console.log('Current User ID:', currentUser?._id);
+  console.log('Is Creator:', isCreator);
+  console.log('Current Phase:', meeting.currentPhase);
 
   const phases = [
     { key: 'discussion' as MeetingPhase, label: 'Обсуждение' },
@@ -462,7 +468,7 @@ export const MeetingDetail: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6 }}
-            className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50"
+            className="mt-12 flex justify-center"
           >
             <button
               onClick={handleNextPhase}
@@ -475,6 +481,18 @@ export const MeetingDetail: React.FC = () => {
               </svg>
             </button>
           </motion.div>
+        )}
+        
+        {/* Debug info for creator */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="mt-8 p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-xs">
+            <p><strong>Debug Info:</strong></p>
+            <p>Meeting Creator: {meeting.creatorId}</p>
+            <p>Current User: {currentUser?._id}</p>
+            <p>Is Creator: {isCreator ? 'Yes' : 'No'}</p>
+            <p>Current Phase: {meeting.currentPhase}</p>
+            <p>Show Button: {isCreator && meeting.currentPhase !== 'finished' ? 'Yes' : 'No'}</p>
+          </div>
         )}
       </motion.div>
     </motion.div>

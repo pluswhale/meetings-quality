@@ -5,8 +5,9 @@ import react from '@vitejs/plugin-react';
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
     
-    // Use base path for GitHub Pages, or root for Docker/local dev
-    const base = process.env.DOCKER_ENV === 'true' ? '/' : '/meetings-quality/';
+    // Use root path for local development (Docker or local)
+    // Use /meetings-quality/ only for GitHub Pages deployment
+    const base = mode === 'production' && !process.env.DOCKER_ENV ? '/meetings-quality/' : '/';
     
     return {
       base: base,
