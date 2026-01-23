@@ -15,10 +15,6 @@ RUN npm install
 # Copy source code
 COPY . .
 
-# Copy wait script
-COPY wait-for-openapi.sh /app/wait-for-openapi.sh
-RUN chmod +x /app/wait-for-openapi.sh
-
 # Expose the port
 EXPOSE 3000
 
