@@ -1,0 +1,8 @@
+# Docker Environment Variables
+# Create a .env file in the same directory as docker-compose.yml
+# Copy these contents and update with your values
+
+JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+
+# Optional: If using MongoDB Atlas instead of local MongoDB
+# MONGODB_URI=mongodb+srv://user:password@cluster.mongodb.net/meetings-quality

@@ -22,15 +22,19 @@ const AuthRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return <>{children}</>;
 };
 
+const RootRedirect: React.FC = () => {
+  const currentUser = useStore(state => state.currentUser);
+  return <Navigate to={currentUser ? "/dashboard" : "/login"} replace />;
+};
+
 const App: React.FC = () => {
   return (
-    <QueryProvider>
-      <BrowserRouter>
-        <div className="min-h-screen bg-slate-50 selection:bg-blue-100 selection:text-blue-700">
-          <Routes>
-            {/* Public Auth Routes */}
-            <Route path="/login" element={<AuthRoute><LoginScreen /></AuthRoute>} />
-            <Route path="/register" element={<AuthRoute><RegisterScreen /></AuthRoute>} />
+    <BrowserRouter basename="/meetings-quality">
+      <div className="min-h-screen bg-slate-50 selection:bg-blue-100 selection:text-blue-700">
+        <Routes>
+          {/* Public Auth Routes */}
+          <Route path="/login" element={<AuthRoute><LoginScreen /></AuthRoute>} />
+          <Route path="/register" element={<AuthRoute><RegisterScreen /></AuthRoute>} />
 
             {/* Protected Main Routes */}
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
@@ -38,13 +42,12 @@ const App: React.FC = () => {
             <Route path="/meeting/:id" element={<ProtectedRoute><MeetingDetail /></ProtectedRoute>} />
             <Route path="/task/:id" element={<ProtectedRoute><TaskDetail /></ProtectedRoute>} />
 
-            {/* Fallbacks */}
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="*" element={<div className="p-20 text-center font-black text-slate-400">404 — Страница не найдена</div>} />
-          </Routes>
-        </div>
-      </BrowserRouter>
-    </QueryProvider>
+          {/* Fallbacks */}
+          <Route path="/" element={<RootRedirect />} />
+          <Route path="*" element={<div className="p-20 text-center font-black text-slate-400">404 — Страница не найдена</div>} />
+        </Routes>
+      </div>
+    </BrowserRouter>
   );
 };
 

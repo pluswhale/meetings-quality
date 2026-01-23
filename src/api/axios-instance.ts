@@ -1,20 +1,19 @@
 import Axios, { AxiosRequestConfig, AxiosError } from 'axios';
 
-// Get API URL from environment variable
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+const BACKEND_URL = import.meta.env.VITE_API_URL || 'https://meetings-quality-api.onrender.com/api';
 
-// Create axios instance
-export const axiosInstance = Axios.create({
-  baseURL: API_BASE_URL,
+export const axios = Axios.create({
+  baseURL: BACKEND_URL,
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true, // Important for cookies/sessions
 });
 
-// Request interceptor to add auth token
-axiosInstance.interceptors.request.use(
+// Request interceptor - Add auth token
+axios.interceptors.request.use(
   (config) => {
-    // Get token from localStorage
+    // Get token from localStorage (if your backend uses JWT in localStorage)
     const token = localStorage.getItem('auth_token');
     
     if (token) {
@@ -28,20 +27,28 @@ axiosInstance.interceptors.request.use(
   }
 );
 
-// Response interceptor to handle errors
-axiosInstance.interceptors.response.use(
+// Response interceptor - Handle errors globally
+axios.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
-    // Handle 401 Unauthorized - clear token and redirect to login
+    // Handle 401 Unauthorized
     if (error.response?.status === 401) {
+      // Clear auth data
       localStorage.removeItem('auth_token');
-      localStorage.removeItem('current_user');
+      localStorage.removeItem('mq_user');
       
-      // Only redirect if not already on auth pages
-      if (!window.location.pathname.includes('/login') && 
-          !window.location.pathname.includes('/register')) {
-        window.location.href = '/login';
-      }
+      // Redirect to login
+      window.location.href = '/login';
+    }
+    
+    // Handle 403 Forbidden
+    if (error.response?.status === 403) {
+      console.error('Access forbidden');
+    }
+    
+    // Handle 500 Server Error
+    if (error.response?.status === 500) {
+      console.error('Server error:', error.response.data);
     }
     
     return Promise.reject(error);
@@ -49,10 +56,10 @@ axiosInstance.interceptors.response.use(
 );
 
 // Custom instance for Orval
-export const customAxiosInstance = <T>(config: AxiosRequestConfig): Promise<T> => {
+export const customInstance = <T>(config: AxiosRequestConfig): Promise<T> => {
   const source = Axios.CancelToken.source();
   
-  const promise = axiosInstance({
+  const promise = axios({
     ...config,
     cancelToken: source.token,
   }).then(({ data }) => data);
@@ -65,4 +72,4 @@ export const customAxiosInstance = <T>(config: AxiosRequestConfig): Promise<T> =
   return promise;
 };
 
-export default customAxiosInstance;
+export default customInstance;
