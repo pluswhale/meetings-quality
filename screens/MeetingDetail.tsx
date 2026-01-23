@@ -3,15 +3,10 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useStore } from '../store';
-import { 
-  useMeetingsControllerFindOne, 
-  useMeetingsControllerChangePhase,
-  useMeetingsControllerSubmitEvaluation,
-  useMeetingsControllerSubmitSummary,
-  useMeetingsControllerGetStatistics
-} from '../src/api/generated/hooks';
+
 import { queryClient } from '../src/providers/QueryProvider';
-import type { MeetingPhase } from '../src/api/generated/models';
+import { useMeetingsControllerFindOne, useMeetingsControllerGetStatistics, useMeetingsControllerChangePhase, useMeetingsControllerSubmitEvaluation, useMeetingsControllerSubmitSummary } from '@/src/api/generated/meetings/meetings';
+import { MeetingResponseDtoCurrentPhase, ChangePhaseDtoPhase } from '@/src/api/generated/models';
 
 export const MeetingDetail: React.FC = () => {
   const { id } = useParams();
@@ -21,7 +16,9 @@ export const MeetingDetail: React.FC = () => {
   // Fetch meeting data
   const { data: meeting, isLoading, error } = useMeetingsControllerFindOne(id || '');
   const { data: statistics } = useMeetingsControllerGetStatistics(id || '', {
-    enabled: meeting?.currentPhase === 'finished',
+    query: {
+      enabled: meeting?.currentPhase === 'finished',
+    },
   });
 
   // Mutations
@@ -44,7 +41,7 @@ export const MeetingDetail: React.FC = () => {
     );
   }
 
-  if (error || !meeting) {
+  if (!meeting) {
     return <div className="p-20 text-center text-slate-500 font-bold">Встреча не найдена</div>;
   }
 
@@ -57,9 +54,9 @@ export const MeetingDetail: React.FC = () => {
   console.log('Current Phase:', meeting.currentPhase);
 
   const phases = [
-    { key: 'discussion' as MeetingPhase, label: 'Обсуждение' },
-    { key: 'evaluation' as MeetingPhase, label: 'Оценка' },
-    { key: 'summary' as MeetingPhase, label: 'Итоги' }
+    { key: 'discussion' as MeetingResponseDtoCurrentPhase, label: 'Обсуждение' },
+    { key: 'evaluation' as MeetingResponseDtoCurrentPhase, label: 'Оценка' },
+    { key: 'summary' as MeetingResponseDtoCurrentPhase, label: 'Итоги' }
   ];
 
   const currentPhaseIndex = phases.findIndex(p => p.key === meeting.currentPhase);
@@ -67,7 +64,7 @@ export const MeetingDetail: React.FC = () => {
   const handleNextPhase = () => {
     if (!id) return;
     
-    let nextPhase: MeetingPhase;
+    let nextPhase: ChangePhaseDtoPhase;
     if (meeting.currentPhase === 'discussion') nextPhase = 'evaluation';
     else if (meeting.currentPhase === 'evaluation') nextPhase = 'summary';
     else if (meeting.currentPhase === 'summary') nextPhase = 'finished';

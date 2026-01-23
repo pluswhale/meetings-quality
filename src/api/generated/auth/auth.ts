@@ -26,9 +26,9 @@ import type {
   CreateUserDto,
   LoginDto,
   UserResponseDto,
-} from ".././models";
+} from "../meetingsQualityAPI.schemas";
 
-import { customAxiosInstance } from "../../axios-instance";
+import { customInstance } from "../../axios-instance";
 
 /**
  * @summary Регистрация нового пользователя
@@ -37,8 +37,8 @@ export const authControllerRegister = (
   createUserDto: CreateUserDto,
   signal?: AbortSignal
 ) => {
-  return customAxiosInstance<AuthResponseDto>({
-    url: `/auth/register`,
+  return customInstance<AuthResponseDto>({
+    url: `https://meetings-quality-api.onrender.com/auth/register`,
     method: "POST",
     headers: { "Content-Type": "application/json" },
     data: createUserDto,
@@ -119,8 +119,8 @@ export const authControllerLogin = (
   loginDto: LoginDto,
   signal?: AbortSignal
 ) => {
-  return customAxiosInstance<AuthResponseDto>({
-    url: `/auth/login`,
+  return customInstance<AuthResponseDto>({
+    url: `https://meetings-quality-api.onrender.com/auth/login`,
     method: "POST",
     headers: { "Content-Type": "application/json" },
     data: loginDto,
@@ -198,15 +198,15 @@ export const useAuthControllerLogin = <TError = void, TContext = unknown>(
  * @summary Получить информацию о текущем пользователе
  */
 export const authControllerGetProfile = (signal?: AbortSignal) => {
-  return customAxiosInstance<UserResponseDto>({
-    url: `/auth/me`,
+  return customInstance<UserResponseDto>({
+    url: `https://meetings-quality-api.onrender.com/auth/me`,
     method: "GET",
     signal,
   });
 };
 
 export const getAuthControllerGetProfileQueryKey = () => {
-  return [`/auth/me`] as const;
+  return [`https://meetings-quality-api.onrender.com/auth/me`] as const;
 };
 
 export const getAuthControllerGetProfileQueryOptions = <

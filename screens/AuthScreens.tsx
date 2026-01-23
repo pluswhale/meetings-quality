@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useStore } from '../store';
 import { Input, Button, Heading, Text } from '../components/ui';
-import { useAuthControllerLogin, useAuthControllerRegister } from '../src/api/generated/hooks';
+import { useAuthControllerLogin, useAuthControllerRegister } from '@/src/api/generated/auth/auth';
 
 export const LoginScreen: React.FC = () => {
   const setAuth = useStore(state => state.setAuth);

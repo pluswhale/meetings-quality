@@ -2,8 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
-import { useTasksControllerFindOne, useTasksControllerUpdate } from '../src/api/generated/hooks';
 import { queryClient } from '../src/providers/QueryProvider';
+import { useTasksControllerFindOne, useTasksControllerUpdate } from '@/src/api/generated/tasks/tasks';
 
 export const TaskDetail: React.FC = () => {
   const { id } = useParams();
@@ -32,7 +32,7 @@ export const TaskDetail: React.FC = () => {
     );
   }
 
-  if (error || !task) {
+  if (!task) {
     return <div className="p-20 text-center text-slate-500 font-bold">Задача не найдена</div>;
   }
 

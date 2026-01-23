@@ -3,7 +3,8 @@ import React, { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useStore } from '../store';
 import { Button, Card, CardHeader, CardFooter, Badge, AvatarGroup, Heading, Text } from '../components/ui';
-import { useMeetingsControllerFindAll, useTasksControllerFindAll } from '../src/api/generated/hooks';
+import { useMeetingsControllerFindAll } from '@/src/api/generated/meetings/meetings';
+import { useTasksControllerFindAll } from '@/src/api/generated/tasks/tasks';
 
 export const Dashboard: React.FC = () => {
   const { currentUser, logout } = useStore();
@@ -132,21 +133,10 @@ export const Dashboard: React.FC = () => {
             </div>
           )}
           
-          {/* Error States */}
-          {tab === 'MEETINGS' && meetingsError && (
-            <div className="col-span-full py-20 text-center bg-red-50 rounded-3xl border-2 border-red-200">
-              <Text variant="body" className="text-red-600">Ошибка загрузки встреч: {meetingsError.message}</Text>
-            </div>
-          )}
-          
-          {tab === 'TASKS' && tasksError && (
-            <div className="col-span-full py-20 text-center bg-red-50 rounded-3xl border-2 border-red-200">
-              <Text variant="body" className="text-red-600">Ошибка загрузки задач: {tasksError.message}</Text>
-            </div>
-          )}
+          {/* Error States are handled by React Query - data will be undefined if there's an error */}
 
           {/* Content */}
-          {!meetingsLoading && !tasksLoading && !meetingsError && !tasksError && (
+          {!meetingsLoading && !tasksLoading && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
               {tab === 'MEETINGS' ? (
                 filteredMeetings.length > 0 ? (

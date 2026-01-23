@@ -30,9 +30,9 @@ import type {
   SubmitEvaluationDto,
   SubmitSummaryDto,
   UpdateMeetingDto,
-} from ".././models";
+} from "../meetingsQualityAPI.schemas";
 
-import { customAxiosInstance } from "../../axios-instance";
+import { customInstance } from "../../axios-instance";
 
 /**
  * @summary Создать новую встречу
@@ -41,8 +41,8 @@ export const meetingsControllerCreate = (
   createMeetingDto: CreateMeetingDto,
   signal?: AbortSignal
 ) => {
-  return customAxiosInstance<MeetingResponseDto>({
-    url: `/meetings`,
+  return customInstance<MeetingResponseDto>({
+    url: `https://meetings-quality-api.onrender.com/meetings`,
     method: "POST",
     headers: { "Content-Type": "application/json" },
     data: createMeetingDto,
@@ -123,8 +123,8 @@ export const meetingsControllerFindAll = (
   params?: MeetingsControllerFindAllParams,
   signal?: AbortSignal
 ) => {
-  return customAxiosInstance<MeetingResponseDto[]>({
-    url: `/meetings`,
+  return customInstance<MeetingResponseDto[]>({
+    url: `https://meetings-quality-api.onrender.com/meetings`,
     method: "GET",
     params,
     signal,
@@ -134,7 +134,10 @@ export const meetingsControllerFindAll = (
 export const getMeetingsControllerFindAllQueryKey = (
   params?: MeetingsControllerFindAllParams
 ) => {
-  return [`/meetings`, ...(params ? [params] : [])] as const;
+  return [
+    `https://meetings-quality-api.onrender.com/meetings`,
+    ...(params ? [params] : []),
+  ] as const;
 };
 
 export const getMeetingsControllerFindAllQueryOptions = <
@@ -284,15 +287,15 @@ export function useMeetingsControllerFindAll<
  * @summary Получить встречу по ID
  */
 export const meetingsControllerFindOne = (id: string, signal?: AbortSignal) => {
-  return customAxiosInstance<MeetingResponseDto>({
-    url: `/meetings/${id}`,
+  return customInstance<MeetingResponseDto>({
+    url: `https://meetings-quality-api.onrender.com/meetings/${id}`,
     method: "GET",
     signal,
   });
 };
 
 export const getMeetingsControllerFindOneQueryKey = (id?: string) => {
-  return [`/meetings/${id}`] as const;
+  return [`https://meetings-quality-api.onrender.com/meetings/${id}`] as const;
 };
 
 export const getMeetingsControllerFindOneQueryOptions = <
@@ -447,8 +450,8 @@ export const meetingsControllerUpdate = (
   id: string,
   updateMeetingDto: UpdateMeetingDto
 ) => {
-  return customAxiosInstance<MeetingResponseDto>({
-    url: `/meetings/${id}`,
+  return customInstance<MeetingResponseDto>({
+    url: `https://meetings-quality-api.onrender.com/meetings/${id}`,
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     data: updateMeetingDto,
@@ -528,8 +531,8 @@ export const useMeetingsControllerUpdate = <
  * @summary Удалить встречу (только создатель)
  */
 export const meetingsControllerRemove = (id: string) => {
-  return customAxiosInstance<void>({
-    url: `/meetings/${id}`,
+  return customInstance<void>({
+    url: `https://meetings-quality-api.onrender.com/meetings/${id}`,
     method: "DELETE",
   });
 };
@@ -610,8 +613,8 @@ export const meetingsControllerChangePhase = (
   id: string,
   changePhaseDto: ChangePhaseDto
 ) => {
-  return customAxiosInstance<MeetingResponseDto>({
-    url: `/meetings/${id}/phase`,
+  return customInstance<MeetingResponseDto>({
+    url: `https://meetings-quality-api.onrender.com/meetings/${id}/phase`,
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     data: changePhaseDto,
@@ -696,8 +699,8 @@ export const meetingsControllerSubmitEvaluation = (
   submitEvaluationDto: SubmitEvaluationDto,
   signal?: AbortSignal
 ) => {
-  return customAxiosInstance<MeetingResponseDto>({
-    url: `/meetings/${id}/evaluations`,
+  return customInstance<MeetingResponseDto>({
+    url: `https://meetings-quality-api.onrender.com/meetings/${id}/evaluations`,
     method: "POST",
     headers: { "Content-Type": "application/json" },
     data: submitEvaluationDto,
@@ -784,8 +787,8 @@ export const meetingsControllerSubmitSummary = (
   submitSummaryDto: SubmitSummaryDto,
   signal?: AbortSignal
 ) => {
-  return customAxiosInstance<MeetingResponseDto>({
-    url: `/meetings/${id}/summaries`,
+  return customInstance<MeetingResponseDto>({
+    url: `https://meetings-quality-api.onrender.com/meetings/${id}/summaries`,
     method: "POST",
     headers: { "Content-Type": "application/json" },
     data: submitSummaryDto,
@@ -870,15 +873,17 @@ export const meetingsControllerGetStatistics = (
   id: string,
   signal?: AbortSignal
 ) => {
-  return customAxiosInstance<StatisticsResponseDto>({
-    url: `/meetings/${id}/statistics`,
+  return customInstance<StatisticsResponseDto>({
+    url: `https://meetings-quality-api.onrender.com/meetings/${id}/statistics`,
     method: "GET",
     signal,
   });
 };
 
 export const getMeetingsControllerGetStatisticsQueryKey = (id?: string) => {
-  return [`/meetings/${id}/statistics`] as const;
+  return [
+    `https://meetings-quality-api.onrender.com/meetings/${id}/statistics`,
+  ] as const;
 };
 
 export const getMeetingsControllerGetStatisticsQueryOptions = <

@@ -18,23 +18,23 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query";
 
-import type { UserResponseDto } from ".././models";
+import type { UserResponseDto } from "../meetingsQualityAPI.schemas";
 
-import { customAxiosInstance } from "../../axios-instance";
+import { customInstance } from "../../axios-instance";
 
 /**
  * @summary Получить список всех пользователей
  */
 export const usersControllerFindAll = (signal?: AbortSignal) => {
-  return customAxiosInstance<UserResponseDto[]>({
-    url: `/users`,
+  return customInstance<UserResponseDto[]>({
+    url: `https://meetings-quality-api.onrender.com/users`,
     method: "GET",
     signal,
   });
 };
 
 export const getUsersControllerFindAllQueryKey = () => {
-  return [`/users`] as const;
+  return [`https://meetings-quality-api.onrender.com/users`] as const;
 };
 
 export const getUsersControllerFindAllQueryOptions = <

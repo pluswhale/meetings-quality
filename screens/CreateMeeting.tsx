@@ -3,8 +3,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Button, Input, TextArea, Heading, Text } from '../components/ui';
-import { useMeetingsControllerCreate } from '../src/api/generated/hooks';
 import { queryClient } from '../src/providers/QueryProvider';
+import { useMeetingsControllerCreate } from '@/src/api/generated/meetings/meetings';
 
 export const CreateMeeting: React.FC = () => {
   const navigate = useNavigate();

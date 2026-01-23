@@ -3,10 +3,8 @@ import { defineConfig } from 'orval';
 export default defineConfig({
   api: {
     input: {
-      target: 'https://meetings-quality-api.onrender.com/generated/openapi.json',
-      
-      // Or use local file if backend is in same monorepo:
-      // target: '../meetings-quality-api/generated/openapi.json',
+    
+       target: './openapi.json',
     },
     output: {
       mode: 'tags-split',

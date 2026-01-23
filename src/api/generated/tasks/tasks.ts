@@ -26,9 +26,9 @@ import type {
   TaskResponseDto,
   TasksControllerFindAllParams,
   UpdateTaskDto,
-} from ".././models";
+} from "../meetingsQualityAPI.schemas";
 
-import { customAxiosInstance } from "../../axios-instance";
+import { customInstance } from "../../axios-instance";
 
 /**
  * @summary Создать новую задачу
@@ -37,8 +37,8 @@ export const tasksControllerCreate = (
   createTaskDto: CreateTaskDto,
   signal?: AbortSignal
 ) => {
-  return customAxiosInstance<TaskResponseDto>({
-    url: `/tasks`,
+  return customInstance<TaskResponseDto>({
+    url: `https://meetings-quality-api.onrender.com/tasks`,
     method: "POST",
     headers: { "Content-Type": "application/json" },
     data: createTaskDto,
@@ -122,8 +122,8 @@ export const tasksControllerFindAll = (
   params?: TasksControllerFindAllParams,
   signal?: AbortSignal
 ) => {
-  return customAxiosInstance<TaskResponseDto[]>({
-    url: `/tasks`,
+  return customInstance<TaskResponseDto[]>({
+    url: `https://meetings-quality-api.onrender.com/tasks`,
     method: "GET",
     params,
     signal,
@@ -133,7 +133,10 @@ export const tasksControllerFindAll = (
 export const getTasksControllerFindAllQueryKey = (
   params?: TasksControllerFindAllParams
 ) => {
-  return [`/tasks`, ...(params ? [params] : [])] as const;
+  return [
+    `https://meetings-quality-api.onrender.com/tasks`,
+    ...(params ? [params] : []),
+  ] as const;
 };
 
 export const getTasksControllerFindAllQueryOptions = <
@@ -283,15 +286,17 @@ export const tasksControllerFindByMeeting = (
   meetingId: string,
   signal?: AbortSignal
 ) => {
-  return customAxiosInstance<TaskResponseDto[]>({
-    url: `/tasks/meeting/${meetingId}`,
+  return customInstance<TaskResponseDto[]>({
+    url: `https://meetings-quality-api.onrender.com/tasks/meeting/${meetingId}`,
     method: "GET",
     signal,
   });
 };
 
 export const getTasksControllerFindByMeetingQueryKey = (meetingId?: string) => {
-  return [`/tasks/meeting/${meetingId}`] as const;
+  return [
+    `https://meetings-quality-api.onrender.com/tasks/meeting/${meetingId}`,
+  ] as const;
 };
 
 export const getTasksControllerFindByMeetingQueryOptions = <
@@ -447,15 +452,15 @@ export function useTasksControllerFindByMeeting<
  * @summary Получить задачу по ID
  */
 export const tasksControllerFindOne = (id: string, signal?: AbortSignal) => {
-  return customAxiosInstance<TaskResponseDto>({
-    url: `/tasks/${id}`,
+  return customInstance<TaskResponseDto>({
+    url: `https://meetings-quality-api.onrender.com/tasks/${id}`,
     method: "GET",
     signal,
   });
 };
 
 export const getTasksControllerFindOneQueryKey = (id?: string) => {
-  return [`/tasks/${id}`] as const;
+  return [`https://meetings-quality-api.onrender.com/tasks/${id}`] as const;
 };
 
 export const getTasksControllerFindOneQueryOptions = <
@@ -610,8 +615,8 @@ export const tasksControllerUpdate = (
   id: string,
   updateTaskDto: UpdateTaskDto
 ) => {
-  return customAxiosInstance<TaskResponseDto>({
-    url: `/tasks/${id}`,
+  return customInstance<TaskResponseDto>({
+    url: `https://meetings-quality-api.onrender.com/tasks/${id}`,
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     data: updateTaskDto,
@@ -691,7 +696,10 @@ export const useTasksControllerUpdate = <
  * @summary Удалить задачу (только автор)
  */
 export const tasksControllerRemove = (id: string) => {
-  return customAxiosInstance<void>({ url: `/tasks/${id}`, method: "DELETE" });
+  return customInstance<void>({
+    url: `https://meetings-quality-api.onrender.com/tasks/${id}`,
+    method: "DELETE",
+  });
 };
 
 export const getTasksControllerRemoveMutationOptions = <
