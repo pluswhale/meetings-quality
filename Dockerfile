@@ -19,5 +19,5 @@ COPY . .
 EXPOSE 3000
 
 # Install dependencies again in case package.json changed (for dev with volumes)
-# Wait for backend OpenAPI and generate API client before starting
-CMD ["sh", "-c", "npm install"]
+# Start Vite dev server
+CMD ["sh", "-c", "npm install && npm run dev"]
