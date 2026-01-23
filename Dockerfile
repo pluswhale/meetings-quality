@@ -24,4 +24,4 @@ EXPOSE 3000
 
 # Install dependencies again in case package.json changed (for dev with volumes)
 # Wait for backend OpenAPI and generate API client before starting
-CMD ["sh", "-c", "npm install && /app/wait-for-openapi.sh"]
+CMD ["sh", "-c", "npm install"]
