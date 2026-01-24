@@ -1,6 +1,9 @@
 import Axios, { AxiosRequestConfig, AxiosError } from 'axios';
 
-const BACKEND_URL = import.meta.env.VITE_API_URL || 'https://meetings-quality-api.onrender.com/api';
+const BACKEND_URL = import.meta.env.VITE_API_URL || 'https://meetings-quality-api.onrender.com';
+
+
+
 
 export const axios = Axios.create({
   baseURL: BACKEND_URL,

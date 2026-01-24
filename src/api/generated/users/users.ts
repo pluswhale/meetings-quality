@@ -27,14 +27,14 @@ import { customInstance } from "../../axios-instance";
  */
 export const usersControllerFindAll = (signal?: AbortSignal) => {
   return customInstance<UserResponseDto[]>({
-    url: `https://meetings-quality-api.onrender.com/users`,
+    url: `/users`,
     method: "GET",
     signal,
   });
 };
 
 export const getUsersControllerFindAllQueryKey = () => {
-  return [`https://meetings-quality-api.onrender.com/users`] as const;
+  return [`/users`] as const;
 };
 
 export const getUsersControllerFindAllQueryOptions = <

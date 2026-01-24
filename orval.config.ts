@@ -3,14 +3,14 @@ import { defineConfig } from 'orval';
 export default defineConfig({
   api: {
     input: {
-    
-       target: './openapi.json',
+      target: './openapi.json',
     },
     output: {
       mode: 'tags-split',
       target: './src/api/generated',
       client: 'react-query',
-      baseUrl: 'https://meetings-quality-api.onrender.com',
+      // Don't set baseUrl - let axios-instance.ts handle it
+      // This will generate relative paths like /meetings, /auth/login
       override: {
         mutator: {
           path: './src/api/axios-instance.ts',

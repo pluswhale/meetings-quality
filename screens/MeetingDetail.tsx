@@ -13,11 +13,18 @@ export const MeetingDetail: React.FC = () => {
   const navigate = useNavigate();
   const { currentUser } = useStore();
 
-  // Fetch meeting data
-  const { data: meeting, isLoading, error } = useMeetingsControllerFindOne(id || '');
+  // Fetch meeting data with polling every 2 seconds
+  const { data: meeting, isLoading, error } = useMeetingsControllerFindOne(id || '', {
+    query: {
+      refetchInterval: 2000, // Опрашивать каждые 2 секунды
+      refetchIntervalInBackground: false, // Останавливать при неактивной вкладке
+    },
+  });
+  
   const { data: statistics } = useMeetingsControllerGetStatistics(id || '', {
     query: {
       enabled: meeting?.currentPhase === 'finished',
+      refetchInterval: meeting?.currentPhase === 'finished' ? 2000 : false,
     },
   });
 
@@ -45,7 +52,7 @@ export const MeetingDetail: React.FC = () => {
     return <div className="p-20 text-center text-slate-500 font-bold">Встреча не найдена</div>;
   }
 
-  const isCreator = meeting.creatorId === currentUser?._id;
+  const isCreator = meeting.creatorId._id === currentUser?._id;
   
   // Debug logging
   console.log('Meeting Creator ID:', meeting.creatorId);

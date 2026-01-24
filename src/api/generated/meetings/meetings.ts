@@ -42,7 +42,7 @@ export const meetingsControllerCreate = (
   signal?: AbortSignal
 ) => {
   return customInstance<MeetingResponseDto>({
-    url: `https://meetings-quality-api.onrender.com/meetings`,
+    url: `/meetings`,
     method: "POST",
     headers: { "Content-Type": "application/json" },
     data: createMeetingDto,
@@ -124,7 +124,7 @@ export const meetingsControllerFindAll = (
   signal?: AbortSignal
 ) => {
   return customInstance<MeetingResponseDto[]>({
-    url: `https://meetings-quality-api.onrender.com/meetings`,
+    url: `/meetings`,
     method: "GET",
     params,
     signal,
@@ -134,10 +134,7 @@ export const meetingsControllerFindAll = (
 export const getMeetingsControllerFindAllQueryKey = (
   params?: MeetingsControllerFindAllParams
 ) => {
-  return [
-    `https://meetings-quality-api.onrender.com/meetings`,
-    ...(params ? [params] : []),
-  ] as const;
+  return [`/meetings`, ...(params ? [params] : [])] as const;
 };
 
 export const getMeetingsControllerFindAllQueryOptions = <
@@ -288,14 +285,14 @@ export function useMeetingsControllerFindAll<
  */
 export const meetingsControllerFindOne = (id: string, signal?: AbortSignal) => {
   return customInstance<MeetingResponseDto>({
-    url: `https://meetings-quality-api.onrender.com/meetings/${id}`,
+    url: `/meetings/${id}`,
     method: "GET",
     signal,
   });
 };
 
 export const getMeetingsControllerFindOneQueryKey = (id?: string) => {
-  return [`https://meetings-quality-api.onrender.com/meetings/${id}`] as const;
+  return [`/meetings/${id}`] as const;
 };
 
 export const getMeetingsControllerFindOneQueryOptions = <
@@ -451,7 +448,7 @@ export const meetingsControllerUpdate = (
   updateMeetingDto: UpdateMeetingDto
 ) => {
   return customInstance<MeetingResponseDto>({
-    url: `https://meetings-quality-api.onrender.com/meetings/${id}`,
+    url: `/meetings/${id}`,
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     data: updateMeetingDto,
@@ -531,10 +528,7 @@ export const useMeetingsControllerUpdate = <
  * @summary Удалить встречу (только создатель)
  */
 export const meetingsControllerRemove = (id: string) => {
-  return customInstance<void>({
-    url: `https://meetings-quality-api.onrender.com/meetings/${id}`,
-    method: "DELETE",
-  });
+  return customInstance<void>({ url: `/meetings/${id}`, method: "DELETE" });
 };
 
 export const getMeetingsControllerRemoveMutationOptions = <
@@ -614,7 +608,7 @@ export const meetingsControllerChangePhase = (
   changePhaseDto: ChangePhaseDto
 ) => {
   return customInstance<MeetingResponseDto>({
-    url: `https://meetings-quality-api.onrender.com/meetings/${id}/phase`,
+    url: `/meetings/${id}/phase`,
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     data: changePhaseDto,
@@ -700,7 +694,7 @@ export const meetingsControllerSubmitEvaluation = (
   signal?: AbortSignal
 ) => {
   return customInstance<MeetingResponseDto>({
-    url: `https://meetings-quality-api.onrender.com/meetings/${id}/evaluations`,
+    url: `/meetings/${id}/evaluations`,
     method: "POST",
     headers: { "Content-Type": "application/json" },
     data: submitEvaluationDto,
@@ -788,7 +782,7 @@ export const meetingsControllerSubmitSummary = (
   signal?: AbortSignal
 ) => {
   return customInstance<MeetingResponseDto>({
-    url: `https://meetings-quality-api.onrender.com/meetings/${id}/summaries`,
+    url: `/meetings/${id}/summaries`,
     method: "POST",
     headers: { "Content-Type": "application/json" },
     data: submitSummaryDto,
@@ -874,16 +868,14 @@ export const meetingsControllerGetStatistics = (
   signal?: AbortSignal
 ) => {
   return customInstance<StatisticsResponseDto>({
-    url: `https://meetings-quality-api.onrender.com/meetings/${id}/statistics`,
+    url: `/meetings/${id}/statistics`,
     method: "GET",
     signal,
   });
 };
 
 export const getMeetingsControllerGetStatisticsQueryKey = (id?: string) => {
-  return [
-    `https://meetings-quality-api.onrender.com/meetings/${id}/statistics`,
-  ] as const;
+  return [`/meetings/${id}/statistics`] as const;
 };
 
 export const getMeetingsControllerGetStatisticsQueryOptions = <

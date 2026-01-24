@@ -38,7 +38,7 @@ export const tasksControllerCreate = (
   signal?: AbortSignal
 ) => {
   return customInstance<TaskResponseDto>({
-    url: `https://meetings-quality-api.onrender.com/tasks`,
+    url: `/tasks`,
     method: "POST",
     headers: { "Content-Type": "application/json" },
     data: createTaskDto,
@@ -123,7 +123,7 @@ export const tasksControllerFindAll = (
   signal?: AbortSignal
 ) => {
   return customInstance<TaskResponseDto[]>({
-    url: `https://meetings-quality-api.onrender.com/tasks`,
+    url: `/tasks`,
     method: "GET",
     params,
     signal,
@@ -133,10 +133,7 @@ export const tasksControllerFindAll = (
 export const getTasksControllerFindAllQueryKey = (
   params?: TasksControllerFindAllParams
 ) => {
-  return [
-    `https://meetings-quality-api.onrender.com/tasks`,
-    ...(params ? [params] : []),
-  ] as const;
+  return [`/tasks`, ...(params ? [params] : [])] as const;
 };
 
 export const getTasksControllerFindAllQueryOptions = <
@@ -287,16 +284,14 @@ export const tasksControllerFindByMeeting = (
   signal?: AbortSignal
 ) => {
   return customInstance<TaskResponseDto[]>({
-    url: `https://meetings-quality-api.onrender.com/tasks/meeting/${meetingId}`,
+    url: `/tasks/meeting/${meetingId}`,
     method: "GET",
     signal,
   });
 };
 
 export const getTasksControllerFindByMeetingQueryKey = (meetingId?: string) => {
-  return [
-    `https://meetings-quality-api.onrender.com/tasks/meeting/${meetingId}`,
-  ] as const;
+  return [`/tasks/meeting/${meetingId}`] as const;
 };
 
 export const getTasksControllerFindByMeetingQueryOptions = <
@@ -453,14 +448,14 @@ export function useTasksControllerFindByMeeting<
  */
 export const tasksControllerFindOne = (id: string, signal?: AbortSignal) => {
   return customInstance<TaskResponseDto>({
-    url: `https://meetings-quality-api.onrender.com/tasks/${id}`,
+    url: `/tasks/${id}`,
     method: "GET",
     signal,
   });
 };
 
 export const getTasksControllerFindOneQueryKey = (id?: string) => {
-  return [`https://meetings-quality-api.onrender.com/tasks/${id}`] as const;
+  return [`/tasks/${id}`] as const;
 };
 
 export const getTasksControllerFindOneQueryOptions = <
@@ -616,7 +611,7 @@ export const tasksControllerUpdate = (
   updateTaskDto: UpdateTaskDto
 ) => {
   return customInstance<TaskResponseDto>({
-    url: `https://meetings-quality-api.onrender.com/tasks/${id}`,
+    url: `/tasks/${id}`,
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     data: updateTaskDto,
@@ -696,10 +691,7 @@ export const useTasksControllerUpdate = <
  * @summary Удалить задачу (только автор)
  */
 export const tasksControllerRemove = (id: string) => {
-  return customInstance<void>({
-    url: `https://meetings-quality-api.onrender.com/tasks/${id}`,
-    method: "DELETE",
-  });
+  return customInstance<void>({ url: `/tasks/${id}`, method: "DELETE" });
 };
 
 export const getTasksControllerRemoveMutationOptions = <

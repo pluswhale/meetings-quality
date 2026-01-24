@@ -38,7 +38,7 @@ export const authControllerRegister = (
   signal?: AbortSignal
 ) => {
   return customInstance<AuthResponseDto>({
-    url: `https://meetings-quality-api.onrender.com/auth/register`,
+    url: `/auth/register`,
     method: "POST",
     headers: { "Content-Type": "application/json" },
     data: createUserDto,
@@ -120,7 +120,7 @@ export const authControllerLogin = (
   signal?: AbortSignal
 ) => {
   return customInstance<AuthResponseDto>({
-    url: `https://meetings-quality-api.onrender.com/auth/login`,
+    url: `/auth/login`,
     method: "POST",
     headers: { "Content-Type": "application/json" },
     data: loginDto,
@@ -199,14 +199,14 @@ export const useAuthControllerLogin = <TError = void, TContext = unknown>(
  */
 export const authControllerGetProfile = (signal?: AbortSignal) => {
   return customInstance<UserResponseDto>({
-    url: `https://meetings-quality-api.onrender.com/auth/me`,
+    url: `/auth/me`,
     method: "GET",
     signal,
   });
 };
 
 export const getAuthControllerGetProfileQueryKey = () => {
-  return [`https://meetings-quality-api.onrender.com/auth/me`] as const;
+  return [`/auth/me`] as const;
 };
 
 export const getAuthControllerGetProfileQueryOptions = <
