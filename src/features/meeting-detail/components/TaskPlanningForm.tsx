@@ -3,6 +3,11 @@
  */
 
 import React from 'react';
+import DatePicker, { registerLocale } from 'react-datepicker';
+import { ru } from 'date-fns/locale';
+import { Slider } from '@/src/shared/ui';
+
+registerLocale('ru', ru);
 
 interface TaskPlanningFormProps {
   taskDescription: string;
@@ -49,11 +54,19 @@ export const TaskPlanningForm: React.FC<TaskPlanningFormProps> = ({
             <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">
               Дедлайн
             </label>
-            <input
-              type="date"
-              value={deadline}
-              onChange={(e) => onDeadlineChange(e.target.value)}
+            <DatePicker
+              selected={deadline ? new Date(deadline) : null}
+              onChange={(date: Date | null) => {
+                if (date) {
+                  onDeadlineChange(date.toISOString().split('T')[0]);
+                }
+              }}
+              dateFormat="dd.MM.yyyy"
               className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:ring-4 focus:ring-blue-100 focus:border-blue-400 focus:bg-white text-slate-900 font-bold transition-all outline-none"
+              calendarClassName="!font-bold"
+              locale="ru"
+              placeholderText="Выберите дату"
+              minDate={new Date()}
             />
           </div>
           <div>
@@ -61,15 +74,12 @@ export const TaskPlanningForm: React.FC<TaskPlanningFormProps> = ({
               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
                 Ожидаемый процент вклада
               </label>
-              <span className="text-2xl font-black text-blue-600">{expectedContribution}%</span>
+              <span className="text-2xl font-black text-purple-600">{expectedContribution}%</span>
             </div>
-            <input
-              type="range"
-              min="0"
-              max="100"
+            <Slider
               value={expectedContribution}
-              onChange={(e) => onExpectedContributionChange(Number(e.target.value))}
-              className="w-full h-3 bg-slate-100 rounded-full appearance-none cursor-pointer accent-blue-600"
+              onChange={onExpectedContributionChange}
+              variant="importance"
             />
           </div>
         </div>

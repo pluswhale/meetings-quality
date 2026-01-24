@@ -5,6 +5,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { useAuthStore } from '@/src/shared/store/auth.store';
 import { queryClient } from '@/src/app/providers/QueryProvider';
 import {
@@ -62,10 +63,10 @@ export const useTaskDetailViewModel = (taskId: string): TaskDetailViewModel => {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: ['tasks', taskId] });
           queryClient.invalidateQueries({ queryKey: ['tasks'] });
-          alert('Изменения сохранены');
+          toast.success('Изменения сохранены');
         },
         onError: (err: any) => {
-          alert(`Ошибка: ${err?.response?.data?.message || 'Не удалось сохранить изменения'}`);
+          toast.error(`Ошибка: ${err?.response?.data?.message || 'Не удалось сохранить изменения'}`);
         },
       }
     );

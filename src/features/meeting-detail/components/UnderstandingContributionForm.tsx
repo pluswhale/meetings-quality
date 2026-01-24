@@ -6,6 +6,7 @@ import React from 'react';
 import { UserResponseDto } from '@/src/shared/api/generated/meetingsQualityAPI.schemas';
 import { ContributionsMap } from '../types';
 import { VALIDATION } from '@/src/shared/constants';
+import { Slider } from '@/src/shared/ui';
 
 interface UnderstandingContributionFormProps {
   participants: UserResponseDto[];
@@ -44,17 +45,14 @@ export const UnderstandingContributionForm: React.FC<UnderstandingContributionFo
             <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px]">
               Уровень понимания задачи
             </p>
-            <span className="text-5xl font-black text-blue-600 tabular-nums">
+            <span className="text-5xl font-black text-green-600 tabular-nums">
               {understandingScore}%
             </span>
           </div>
-          <input
-            type="range"
-            min="0"
-            max="100"
+          <Slider
             value={understandingScore}
-            onChange={(e) => onUnderstandingScoreChange(Number(e.target.value))}
-            className="w-full h-3 bg-slate-100 rounded-full appearance-none cursor-pointer accent-blue-600"
+            onChange={onUnderstandingScoreChange}
+            variant="green"
           />
         </div>
       </section>
@@ -90,13 +88,9 @@ export const UnderstandingContributionForm: React.FC<UnderstandingContributionFo
                     {contribution}%
                   </span>
                 </div>
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
+                <Slider
                   value={contribution}
-                  onChange={(e) => onContributionChange(participant._id, Number(e.target.value))}
-                  className="w-full h-2 bg-slate-100 rounded-full appearance-none cursor-pointer accent-blue-600"
+                  onChange={(value) => onContributionChange(participant._id, value)}
                 />
               </div>
             );

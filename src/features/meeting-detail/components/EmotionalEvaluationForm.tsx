@@ -5,6 +5,7 @@
 import React from 'react';
 import { UserResponseDto } from '@/src/shared/api/generated/meetingsQualityAPI.schemas';
 import { EmotionalEvaluationsMap } from '../types';
+import { Slider } from '@/src/shared/ui';
 
 interface EmotionalEvaluationFormProps {
   participants: UserResponseDto[];
@@ -80,21 +81,21 @@ export const EmotionalEvaluationForm: React.FC<EmotionalEvaluationFormProps> = (
                     {evaluation.emotionalScale}
                   </span>
                 </div>
-                <input
-                  type="range"
-                  min="-100"
-                  max="100"
+                <Slider
                   value={evaluation.emotionalScale}
-                  onChange={(e) =>
+                  min={-100}
+                  max={100}
+                  onChange={(value) =>
                     onUpdateEvaluation(participant._id, {
-                      emotionalScale: Number(e.target.value),
+                      emotionalScale: value,
                     })
                   }
-                  className="w-full h-3 bg-slate-100 rounded-full appearance-none cursor-pointer accent-blue-600"
+                  variant="emotional"
+                  showProgress={false}
                 />
-                <div className="flex justify-between text-xs font-bold text-slate-400 mt-2">
-                  <span>-100 (негативная)</span>
-                  <span>+100 (позитивная)</span>
+                <div className="flex justify-between text-xs font-bold text-slate-400 mt-3">
+                  <span className="text-red-500">-100 (негативная)</span>
+                  <span className="text-green-500">+100 (позитивная)</span>
                 </div>
               </div>
             );

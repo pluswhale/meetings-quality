@@ -5,6 +5,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { useAuthStore } from '@/src/shared/store/auth.store';
 import { queryClient } from '@/src/app/providers/QueryProvider';
 import {
@@ -24,7 +25,7 @@ import {
   ParticipantEmotionalEvaluationDto,
   ContributionInfluenceDto,
 } from '@/src/shared/api/generated/meetingsQualityAPI.schemas';
-import { POLLING_INTERVALS } from '@/src/shared/constants';
+import { POLLING_INTERVALS, PHASE_LABELS, PHASE_ORDER } from '@/src/shared/constants';
 import { isUserCreator, getNextPhase } from './lib';
 import { 
   MeetingDetailViewModel, 
@@ -125,6 +126,10 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
   const [deadline, setDeadline] = useState('');
   const [expectedContribution, setExpectedContribution] = useState(50);
 
+  // Client-side phase viewing for participants (to view/edit previous phases)
+  const [viewedPhase, setViewedPhase] = useState<MeetingResponseDtoCurrentPhase | null>(null);
+  const activePhase = viewedPhase || meeting?.currentPhase;
+
   // Mutations
   const { mutate: changePhase, isPending: isChangingPhase } =
     useMeetingsControllerChangePhase();
@@ -165,10 +170,46 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
           queryClient.invalidateQueries({ queryKey: ['/meetings', meetingId] });
         },
         onError: (err: any) => {
-          alert(`Ошибка: ${err?.response?.data?.message || 'Не удалось изменить фазу'}`);
+          toast.error(`Ошибка: ${err?.response?.data?.message || 'Не удалось изменить фазу'}`);
         },
       }
     );
+  };
+
+  const handleChangeToPhase = (targetPhase: MeetingResponseDtoCurrentPhase) => {
+    if (!meetingId || !meeting) return;
+
+    const currentPhaseIndex = PHASE_ORDER.indexOf(meeting.currentPhase);
+    const targetPhaseIndex = PHASE_ORDER.indexOf(targetPhase);
+
+    // Creators can change the actual meeting phase
+    if (isCreator) {
+      changePhase(
+        { id: meetingId, data: { phase: targetPhase as ChangePhaseDtoPhase } },
+        {
+          onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['/meetings', meetingId] });
+            toast.success(`Фаза изменена на: ${PHASE_LABELS[targetPhase]}`);
+          },
+          onError: (err: any) => {
+            toast.error(`Ошибка: ${err?.response?.data?.message || 'Не удалось изменить фазу'}`);
+          },
+        }
+      );
+    } else {
+      // Participants can only view previous phases (client-side only)
+      if (targetPhaseIndex >= currentPhaseIndex) {
+        toast.error('Вы можете вернуться только к предыдущим этапам');
+        return;
+      }
+      setViewedPhase(targetPhase);
+      toast.success(`Просмотр этапа: ${PHASE_LABELS[targetPhase]}`);
+    }
+  };
+
+  const handleReturnToCurrentPhase = () => {
+    setViewedPhase(null);
+    toast.success('Возврат к текущему этапу');
   };
 
   const handleSubmitEmotionalEvaluation = () => {
@@ -183,7 +224,7 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
     }));
 
     if (evaluations.length === 0) {
-      alert('Пожалуйста, оцените хотя бы одного участника');
+      toast.error('Пожалуйста, оцените хотя бы одного участника');
       return;
     }
 
@@ -192,10 +233,10 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: ['/meetings', meetingId] });
-          alert('✅ Эмоциональная оценка сохранена!');
+          toast.success('Эмоциональная оценка сохранена!');
         },
         onError: (err: any) => {
-          alert(`Ошибка: ${err?.response?.data?.message || 'Не удалось сохранить оценку'}`);
+          toast.error(`Ошибка: ${err?.response?.data?.message || 'Не удалось сохранить оценку'}`);
         },
       }
     );
@@ -212,13 +253,13 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
     );
 
     if (contributionList.length === 0) {
-      alert('Пожалуйста, распределите вклад участников');
+      toast.error('Пожалуйста, распределите вклад участников');
       return;
     }
 
     const total = contributionList.reduce((sum, c) => sum + c.contributionPercentage, 0);
     if (Math.abs(total - 100) > 0.1) {
-      alert(`Общий вклад должен быть равен 100%. Сейчас: ${total.toFixed(1)}%`);
+      toast.error(`Общий вклад должен быть равен 100%. Сейчас: ${total.toFixed(1)}%`);
       return;
     }
 
@@ -227,10 +268,10 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: ['/meetings', meetingId] });
-          alert('✅ Понимание и вклад сохранены!');
+          toast.success('Понимание и вклад сохранены!');
         },
         onError: (err: any) => {
-          alert(`Ошибка: ${err?.response?.data?.message || 'Не удалось сохранить данные'}`);
+          toast.error(`Ошибка: ${err?.response?.data?.message || 'Не удалось сохранить данные'}`);
         },
       }
     );
@@ -238,7 +279,7 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
 
   const handleSubmitTaskPlanning = () => {
     if (!meetingId || !taskDescription || !deadline) {
-      alert('Заполните описание задачи и дедлайн');
+      toast.error('Заполните описание задачи и дедлайн');
       return;
     }
 
@@ -268,15 +309,15 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
               onSuccess: () => {
                 queryClient.invalidateQueries({ queryKey: ['/meetings', meetingId] });
                 queryClient.invalidateQueries({ queryKey: ['/tasks'] });
-                alert('✅ Задача создана и добавлена в ваш список!');
+                toast.success('Задача создана и добавлена в ваш список!');
                 setTaskDescription('');
                 setDeadline('');
                 setExpectedContribution(50);
               },
               onError: (taskErr: any) => {
                 console.error('Task creation failed:', taskErr);
-                alert(
-                  `⚠️ План сохранен, но задача не создана: ${
+                toast.error(
+                  `План сохранен, но задача не создана: ${
                     taskErr?.response?.data?.message || 'Ошибка'
                   }`
                 );
@@ -285,7 +326,7 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
           );
         },
         onError: (err: any) => {
-          alert(`Ошибка: ${err?.response?.data?.message || 'Не удалось сохранить план'}`);
+          toast.error(`Ошибка: ${err?.response?.data?.message || 'Не удалось сохранить план'}`);
         },
       }
     );
@@ -303,6 +344,8 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
     // State
     isLoading,
     isCreator,
+    activePhase,
+    viewedPhase,
 
     // Phase 2 state
     emotionalEvaluations,
@@ -332,6 +375,8 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
 
     // Handlers
     handleNextPhase,
+    handleChangeToPhase,
+    handleReturnToCurrentPhase,
     handleSubmitEmotionalEvaluation,
     handleSubmitUnderstandingContribution,
     handleSubmitTaskPlanning,

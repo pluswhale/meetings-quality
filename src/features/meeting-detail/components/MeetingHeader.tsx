@@ -12,7 +12,10 @@ interface MeetingHeaderProps {
   title: string;
   createdAt: string;
   currentPhase: MeetingResponseDtoCurrentPhase;
+  actualCurrentPhase?: MeetingResponseDtoCurrentPhase; // For showing actual phase when participant views previous
   onBack: () => void;
+  isCreator?: boolean;
+  onPhaseClick: (phase: MeetingResponseDtoCurrentPhase) => void;
 }
 
 export const MeetingHeader: React.FC<MeetingHeaderProps> = ({
@@ -20,7 +23,10 @@ export const MeetingHeader: React.FC<MeetingHeaderProps> = ({
   title,
   createdAt,
   currentPhase,
+  actualCurrentPhase,
   onBack,
+  isCreator = false,
+  onPhaseClick,
 }) => {
   return (
     <motion.div
@@ -66,7 +72,12 @@ export const MeetingHeader: React.FC<MeetingHeaderProps> = ({
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: 0.3 }}
       >
-        <PhaseIndicator currentPhase={currentPhase} />
+        <PhaseIndicator 
+          currentPhase={actualCurrentPhase || currentPhase}
+          viewedPhase={actualCurrentPhase ? currentPhase : undefined}
+          isCreator={isCreator}
+          onPhaseClick={onPhaseClick}
+        />
       </motion.div>
     </motion.div>
   );

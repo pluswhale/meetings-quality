@@ -17,7 +17,7 @@ interface PhaseContentProps {
 }
 
 export const PhaseContent: React.FC<PhaseContentProps> = ({ vm }) => {
-  const { meeting, isCreator } = vm;
+  const { meeting, isCreator, activePhase } = vm;
 
   const renderDiscussionPhase = () => (
     <div className="bg-slate-50 p-8 border-t border-slate-100 flex items-center gap-4 text-slate-500 font-bold text-sm">
@@ -133,20 +133,20 @@ export const PhaseContent: React.FC<PhaseContentProps> = ({ vm }) => {
             {meeting.question}
           </p>
         </div>
-        {meeting.currentPhase === MeetingResponseDtoCurrentPhase.discussion &&
+        {activePhase === MeetingResponseDtoCurrentPhase.discussion &&
           renderDiscussionPhase()}
       </div>
 
       {/* Phase-specific content */}
-      {meeting.currentPhase === MeetingResponseDtoCurrentPhase.emotional_evaluation &&
+      {activePhase === MeetingResponseDtoCurrentPhase.emotional_evaluation &&
         renderEmotionalEvaluationPhase()}
-      {meeting.currentPhase === MeetingResponseDtoCurrentPhase.understanding_contribution &&
+      {activePhase === MeetingResponseDtoCurrentPhase.understanding_contribution &&
         renderUnderstandingContributionPhase()}
-      {meeting.currentPhase === MeetingResponseDtoCurrentPhase.task_planning &&
+      {activePhase === MeetingResponseDtoCurrentPhase.task_planning &&
         renderTaskPlanningPhase()}
 
       {/* Creator Controls */}
-      {isCreator && meeting.currentPhase !== MeetingResponseDtoCurrentPhase.finished && (
+      {isCreator && activePhase !== MeetingResponseDtoCurrentPhase.finished && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

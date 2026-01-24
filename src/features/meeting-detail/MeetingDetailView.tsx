@@ -59,9 +59,45 @@ export const MeetingDetailView: React.FC = () => {
         meetingId={id || ''}
         title={vm.meeting.title}
         createdAt={vm.meeting.createdAt}
-        currentPhase={vm.meeting.currentPhase}
+        currentPhase={vm.activePhase}
+        actualCurrentPhase={vm.meeting.currentPhase}
         onBack={vm.handleNavigateBack}
+        isCreator={vm.isCreator}
+        onPhaseClick={vm.handleChangeToPhase}
       />
+
+      {/* Banner for participants viewing previous phase */}
+      {!vm.isCreator && vm.viewedPhase && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 rounded-[32px] p-6 shadow-lg mb-12"
+        >
+          <div className="flex items-center justify-between gap-4 ">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-amber-400 rounded-full flex items-center justify-center flex-shrink-0">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="font-black text-amber-900 text-lg">
+                  Вы просматриваете предыдущий этап
+                </h3>
+                <p className="text-sm font-bold text-amber-700 mt-1">
+                  Вы можете изменить свой ответ. Изменения сохранятся при отправке.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={vm.handleReturnToCurrentPhase}
+              className="px-6 py-3 bg-amber-400 hover:bg-amber-500 text-white font-black rounded-2xl transition-all hover:scale-105 whitespace-nowrap shadow-lg"
+            >
+              Вернуться к текущему
+            </button>
+          </div>
+        </motion.div>
+      )}
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}

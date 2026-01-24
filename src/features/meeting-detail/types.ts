@@ -45,6 +45,8 @@ export interface MeetingDetailViewModel {
   // State
   isLoading: boolean;
   isCreator: boolean;
+  activePhase: any; // The phase currently being viewed (could be previous for participants)
+  viewedPhase: any | null; // For participants viewing previous phases
   
   // Phase 2 state
   emotionalEvaluations: EmotionalEvaluationsMap;
@@ -74,6 +76,8 @@ export interface MeetingDetailViewModel {
   
   // Handlers
   handleNextPhase: () => void;
+  handleChangeToPhase: (phase: any) => void;
+  handleReturnToCurrentPhase: () => void;
   handleSubmitEmotionalEvaluation: () => void;
   handleSubmitUnderstandingContribution: () => void;
   handleSubmitTaskPlanning: () => void;
