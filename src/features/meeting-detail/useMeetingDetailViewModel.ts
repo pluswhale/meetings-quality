@@ -33,7 +33,7 @@ import {
   ContributionsMap 
 } from './types';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://meetings-quality-backend-production.up.railway.app';
+const API_URL = import.meta.env.VITE_API_URL || 'https://meetings-quality-api.onrender.com';
 
 export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewModel => {
   const navigate = useNavigate();

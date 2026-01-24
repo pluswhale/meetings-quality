@@ -1,9 +1,9 @@
 import Axios, { AxiosRequestConfig, AxiosError } from 'axios';
 
-const BACKEND_URL = 'https://meetings-quality-api.onrender.com';
+// Use environment variable with fallback to production URL
+const BACKEND_URL = import.meta.env.VITE_API_URL || 'https://meetings-quality-api.onrender.com';
 
-
-
+console.log('API Backend URL:', BACKEND_URL);
 
 export const axios = Axios.create({
   baseURL: BACKEND_URL,

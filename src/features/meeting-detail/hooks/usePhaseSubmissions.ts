@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react';
 import { POLLING_INTERVALS } from '@/src/shared/constants';
 
 const API_URL =
-  import.meta.env.VITE_API_URL || 'https://meetings-quality-backend-production.up.railway.app';
+  import.meta.env.VITE_API_URL || 'https://meetings-quality-api.onrender.com';
 
 export const usePhaseSubmissions = (meetingId: string, isCreator: boolean) => {
   const [phaseSubmissions, setPhaseSubmissions] = useState<any>(null);
