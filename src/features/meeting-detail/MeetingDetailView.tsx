@@ -11,6 +11,7 @@ import { useMeetingDetailViewModel } from './useMeetingDetailViewModel';
 import { MeetingHeader } from './components/MeetingHeader';
 import { FinishedPhaseView } from './components/FinishedPhaseView';
 import { PhaseContent } from './components/PhaseContent';
+import { CreatorSubmissionsPanel } from './components/CreatorSubmissionsPanel';
 
 export const MeetingDetailView: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -53,7 +54,7 @@ export const MeetingDetailView: React.FC = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="max-w-5xl mx-auto p-6 md:p-12 pb-40"
+      className="max-w-7xl mx-auto p-6 md:p-12 pb-40"
     >
       <MeetingHeader
         meetingId={id || ''}
@@ -105,6 +106,15 @@ export const MeetingDetailView: React.FC = () => {
         transition={{ delay: 0.4 }}
         className="space-y-12"
       >
+        {/* Creator Submissions Panel - Only visible for creators */}
+        {vm.isCreator && vm.meeting.currentPhase !== MeetingResponseDtoCurrentPhase.finished && (
+          <CreatorSubmissionsPanel
+            submissions={vm.phaseSubmissions}
+            participants={vm.meetingParticipants}
+            isLoading={!vm.phaseSubmissions}
+          />
+        )}
+
         <PhaseContent vm={vm} />
       </motion.div>
     </motion.div>

@@ -14,19 +14,19 @@ export { MeetingResponseDtoCurrentPhase, MeetingResponseDtoStatus, MeetingsContr
 
 // Phase display names
 export const PHASE_LABELS: Record<MeetingResponseDtoCurrentPhase, string> = {
-  [MeetingResponseDtoCurrentPhase.discussion]: 'Обсуждение',
   [MeetingResponseDtoCurrentPhase.emotional_evaluation]: 'Эмоции',
   [MeetingResponseDtoCurrentPhase.understanding_contribution]: 'Вклад',
   [MeetingResponseDtoCurrentPhase.task_planning]: 'Задачи',
+  [MeetingResponseDtoCurrentPhase.task_evaluation]: 'Оценка задач',
   [MeetingResponseDtoCurrentPhase.finished]: 'Завершено',
 } as const;
 
 // Phase order for navigation
 export const PHASE_ORDER: MeetingResponseDtoCurrentPhase[] = [
-  MeetingResponseDtoCurrentPhase.discussion,
   MeetingResponseDtoCurrentPhase.emotional_evaluation,
   MeetingResponseDtoCurrentPhase.understanding_contribution,
   MeetingResponseDtoCurrentPhase.task_planning,
+  MeetingResponseDtoCurrentPhase.task_evaluation,
   MeetingResponseDtoCurrentPhase.finished,
 ] as const;
 

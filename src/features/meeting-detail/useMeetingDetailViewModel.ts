@@ -32,8 +32,17 @@ import {
   EmotionalEvaluationsMap, 
   ContributionsMap 
 } from './types';
-
-const API_URL = import.meta.env.VITE_API_URL || 'https://meetings-quality-api.onrender.com';
+import {
+  joinMeeting,
+  leaveMeeting,
+  getAllSubmissions,
+  getActiveParticipants,
+  ActiveParticipantsResponse,
+} from './api/meeting-room.api';
+import {
+  submitTaskEvaluation,
+  TaskImportanceEvaluationItem,
+} from './api/task-evaluation.api';
 
 export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewModel => {
   const navigate = useNavigate();
@@ -78,32 +87,114 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
     },
   }) as { data: any };
 
-  // Fetch phase submissions for creator
+  // Join/Leave meeting room on mount/unmount
+  useEffect(() => {
+    if (!meetingId || !meeting || isCreator) return;
+
+    let hasJoined = false;
+
+    const join = async () => {
+      try {
+        await joinMeeting(meetingId);
+        hasJoined = true;
+        console.log('✅ Joined meeting room:', meetingId);
+      } catch (error) {
+        console.error('Failed to join meeting:', error);
+      }
+    };
+
+    const leave = async () => {
+      if (!hasJoined) return;
+      try {
+        await leaveMeeting(meetingId);
+        console.log('👋 Left meeting room:', meetingId);
+      } catch (error) {
+        console.error('Failed to leave meeting:', error);
+      }
+    };
+
+    join();
+
+    // Leave on unmount or page unload
+    window.addEventListener('beforeunload', leave);
+    return () => {
+      leave();
+      window.removeEventListener('beforeunload', leave);
+    };
+  }, [meetingId, meeting, isCreator]);
+
+  // Fetch all submissions for creator (replaces phase-submissions)
   const [phaseSubmissions, setPhaseSubmissions] = useState<any>(null);
 
   useEffect(() => {
     if (!isCreator || !meetingId) return;
 
-    const fetchPhaseSubmissions = async () => {
+    const fetchAllSubmissions = async () => {
       try {
-        const response = await fetch(`${API_URL}/meetings/${meetingId}/phase-submissions`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-          },
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setPhaseSubmissions(data);
+        const response: any = await getAllSubmissions(meetingId);
+        const data = response;
+        
+        // Validate response structure
+        if (!data || typeof data !== 'object') {
+          console.error('Invalid response from getAllSubmissions:', data);
+          return;
         }
-      } catch (error) {
-        console.error('Failed to fetch phase submissions:', error);
+
+        // Check if submissions field exists
+        if (!data.submissions) {
+          console.warn('⚠️ Backend response missing "submissions" field. Expected format: { meetingId, submissions: {...} }');
+          console.warn('Received:', data);
+          // Set empty submissions to prevent errors in UI
+          setPhaseSubmissions({
+            emotional_evaluation: {},
+            understanding_contribution: {},
+            task_planning: {},
+          });
+          return;
+        }
+
+        setPhaseSubmissions(data.submissions);
+      } catch (error: any) {
+        console.error('Failed to fetch submissions:', error);
+        
+        // If 404, endpoint might not be implemented yet
+        if (error?.response?.status === 404) {
+          console.warn('⚠️ Endpoint /all-submissions not found. Backend needs to implement it.');
+        }
+        
+        // Set empty submissions to prevent UI crashes
+        setPhaseSubmissions({
+          emotional_evaluation: {},
+          understanding_contribution: {},
+          task_planning: {},
+        });
       }
     };
 
-    fetchPhaseSubmissions();
-    const interval = setInterval(fetchPhaseSubmissions, POLLING_INTERVALS.PHASE_SUBMISSIONS);
+    fetchAllSubmissions();
+    const interval = setInterval(fetchAllSubmissions, POLLING_INTERVALS.PHASE_SUBMISSIONS);
     return () => clearInterval(interval);
   }, [isCreator, meetingId]);
+
+  // Fetch active participants (optional - for display)
+  const [activeParticipants, setActiveParticipants] = useState<ActiveParticipantsResponse | null>(null);
+
+  useEffect(() => {
+    if (!meetingId || !meeting) return;
+
+    const fetchActiveParticipants = async () => {
+      try {
+        const response: any = await getActiveParticipants(meetingId);
+        setActiveParticipants(response);
+      } catch (error) {
+        console.error('Failed to fetch active participants:', error);
+      }
+    };
+
+    fetchActiveParticipants();
+    const interval = setInterval(fetchActiveParticipants, POLLING_INTERVALS.VOTING_INFO);
+    return () => clearInterval(interval);
+  }, [meetingId, meeting]);
 
   // Phase 2: Emotional Evaluation state
   const [emotionalEvaluations, setEmotionalEvaluations] = useState<EmotionalEvaluationsMap>({});
@@ -123,8 +214,13 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
 
   // Phase 4: Task Planning state
   const [taskDescription, setTaskDescription] = useState('');
+  const [commonQuestion, setCommonQuestion] = useState('');
   const [deadline, setDeadline] = useState('');
   const [expectedContribution, setExpectedContribution] = useState(50);
+
+  // Phase 5: Task Evaluation state (evaluating others' tasks)
+  const [taskEvaluations, setTaskEvaluations] = useState<Record<string, number>>({});
+  const [isSubmittingTaskEvaluation, setIsSubmittingTaskEvaluation] = useState(false);
 
   // Client-side phase viewing for participants (to view/edit previous phases)
   const [viewedPhase, setViewedPhase] = useState<MeetingResponseDtoCurrentPhase | null>(null);
@@ -290,6 +386,7 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
         id: meetingId,
         data: {
           taskDescription,
+          commonQuestion,
           deadline: deadlineISO,
           expectedContributionPercentage: expectedContribution,
         },
@@ -299,6 +396,7 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
           createTask(
             {
               data: {
+                commonQuestion,
                 description: taskDescription,
                 meetingId,
                 deadline: deadlineISO,
@@ -311,6 +409,7 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
                 queryClient.invalidateQueries({ queryKey: ['/tasks'] });
                 toast.success('Задача создана и добавлена в ваш список!');
                 setTaskDescription('');
+                setCommonQuestion('');
                 setDeadline('');
                 setExpectedContribution(50);
               },
@@ -332,6 +431,36 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
     );
   };
 
+  const handleSubmitTaskEvaluation = async (evaluations: Record<string, number>) => {
+    if (!meetingId) return;
+
+    const evaluationList: TaskImportanceEvaluationItem[] = Object.entries(evaluations).map(
+      ([authorId, score]) => ({
+        taskAuthorId: authorId,
+        importanceScore: score,
+      })
+    );
+
+    if (evaluationList.length === 0) {
+      toast.error('Нет задач для оценки');
+      return;
+    }
+
+    setIsSubmittingTaskEvaluation(true);
+
+    try {
+      await submitTaskEvaluation(meetingId, { evaluations: evaluationList });
+      queryClient.invalidateQueries({ queryKey: ['/meetings', meetingId] });
+      toast.success('Оценки важности задач сохранены!');
+      setTaskEvaluations(evaluations);
+    } catch (err: any) {
+      console.error('Task evaluation submission failed:', err);
+      toast.error(`Ошибка: ${err?.response?.data?.message || 'Не удалось сохранить оценки'}`);
+    } finally {
+      setIsSubmittingTaskEvaluation(false);
+    }
+  };
+
   return {
     // Data
     meeting,
@@ -340,6 +469,7 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
     meetingParticipants,
     votingInfo,
     phaseSubmissions,
+    activeParticipants,
 
     // State
     isLoading,
@@ -361,15 +491,22 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
     // Phase 4 state
     taskDescription,
     setTaskDescription,
+    commonQuestion,
+    setCommonQuestion,
     deadline,
     setDeadline,
     expectedContribution,
     setExpectedContribution,
 
+    // Phase 5 state
+    taskEvaluations,
+    setTaskEvaluations,
+
     // Mutations
     isSubmittingEmotional,
     isSubmittingUnderstanding,
     isSubmittingTask,
+    isSubmittingTaskEvaluation,
     isCreatingTask,
     isChangingPhase,
 
@@ -380,6 +517,7 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
     handleSubmitEmotionalEvaluation,
     handleSubmitUnderstandingContribution,
     handleSubmitTaskPlanning,
+    handleSubmitTaskEvaluation,
     handleNavigateBack,
   };
 };

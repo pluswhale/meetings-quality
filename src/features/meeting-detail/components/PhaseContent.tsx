@@ -6,9 +6,11 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { MeetingResponseDtoCurrentPhase } from '@/src/shared/api/generated/meetingsQualityAPI.schemas';
 import { CreatorWarningBanner } from '@/src/shared/components';
-import { EmotionalEvaluationForm } from './EmotionalEvaluationForm';
-import { UnderstandingContributionForm } from './UnderstandingContributionForm';
+import { EmotionalEvaluationTable } from './EmotionalEvaluationTable';
+import { UnderstandingScorePanel } from './UnderstandingScorePanel';
+import { ContributionDistributionPanel } from './ContributionDistributionPanel';
 import { TaskPlanningForm } from './TaskPlanningForm';
+import { TaskEvaluationForm } from './TaskEvaluationForm';
 import { CreatorStatsPanels } from './CreatorStatsPanels';
 import { MeetingDetailViewModel } from '../types';
 
@@ -40,7 +42,7 @@ export const PhaseContent: React.FC<PhaseContentProps> = ({ vm }) => {
   const renderEmotionalEvaluationPhase = () => (
     <div className="space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-700">
       {!isCreator ? (
-        <EmotionalEvaluationForm
+        <EmotionalEvaluationTable
           participants={vm.meetingParticipants}
           evaluations={vm.emotionalEvaluations}
           onUpdateEvaluation={(id, update) =>
@@ -55,71 +57,81 @@ export const PhaseContent: React.FC<PhaseContentProps> = ({ vm }) => {
       ) : (
         <CreatorWarningBanner />
       )}
-
-      {isCreator && (
-        <CreatorStatsPanels
-          votingInfo={vm.votingInfo}
-          phaseSubmissions={vm.phaseSubmissions}
-          currentPhase={meeting.currentPhase}
-          participants={vm.meetingParticipants}
-        />
-      )}
     </div>
   );
 
   const renderUnderstandingContributionPhase = () => (
-    <div className="space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-700">
+    <div className="space-y-8 md:space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-700">
       {!isCreator ? (
-        <UnderstandingContributionForm
-          participants={vm.meetingParticipants}
-          understandingScore={vm.understandingScore}
-          onUnderstandingScoreChange={vm.setUnderstandingScore}
-          contributions={vm.contributions}
-          onContributionChange={(id, value) =>
-            vm.setContributions((prev) => ({ ...prev, [id]: value }))
-          }
-          totalContribution={vm.totalContribution}
-          onSubmit={vm.handleSubmitUnderstandingContribution}
-          isSubmitting={vm.isSubmittingUnderstanding}
-        />
+        <>
+          <ContributionDistributionPanel
+            participants={vm.meetingParticipants}
+            contributions={vm.contributions}
+            onContributionChange={(id, value) =>
+              vm.setContributions((prev) => ({ ...prev, [id]: value }))
+            }
+            totalContribution={vm.totalContribution}
+          />
+          <button
+            onClick={vm.handleSubmitUnderstandingContribution}
+            disabled={vm.isSubmittingUnderstanding}
+            className="w-full py-4 md:py-6 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-[16px] md:rounded-[24px] font-black uppercase tracking-[0.2em] text-xs md:text-sm shadow-2xl hover:shadow-blue-500/50 hover:-translate-y-1 transition-all disabled:opacity-50"
+          >
+            {vm.isSubmittingUnderstanding ? 'Сохранение...' : 'Сохранить оценку понимания и вклада'}
+          </button>
+        </>
       ) : (
         <CreatorWarningBanner />
-      )}
-
-      {isCreator && (
-        <CreatorStatsPanels
-          votingInfo={vm.votingInfo}
-          phaseSubmissions={vm.phaseSubmissions}
-          currentPhase={meeting.currentPhase}
-          participants={vm.meetingParticipants}
-        />
       )}
     </div>
   );
 
   const renderTaskPlanningPhase = () => (
     <div className="space-y-12">
-      <TaskPlanningForm
-        taskDescription={vm.taskDescription}
-        onTaskDescriptionChange={vm.setTaskDescription}
-        deadline={vm.deadline}
-        onDeadlineChange={vm.setDeadline}
-        expectedContribution={vm.expectedContribution}
-        onExpectedContributionChange={vm.setExpectedContribution}
-        onSubmit={vm.handleSubmitTaskPlanning}
-        isSubmitting={vm.isSubmittingTask || vm.isCreatingTask}
-      />
-
-      {isCreator && (
-        <CreatorStatsPanels
-          votingInfo={vm.votingInfo}
-          phaseSubmissions={vm.phaseSubmissions}
-          currentPhase={meeting.currentPhase}
-          participants={vm.meetingParticipants}
+      {!isCreator ? (
+        <TaskPlanningForm
+          commonQuestion={vm.commonQuestion}
+          onCommonQuestionChange={vm.setCommonQuestion}
+          taskDescription={vm.taskDescription}
+          onTaskDescriptionChange={vm.setTaskDescription}
+          deadline={vm.deadline}
+          onDeadlineChange={vm.setDeadline}
+          expectedContribution={vm.expectedContribution}
+          onExpectedContributionChange={vm.setExpectedContribution}
+          onSubmit={vm.handleSubmitTaskPlanning}
+          isSubmitting={vm.isSubmittingTask || vm.isCreatingTask}
         />
+      ) : (
+        <CreatorWarningBanner />
       )}
     </div>
   );
+
+  const renderTaskEvaluationPhase = () => {
+    // Collect all tasks from taskPlannings with author information
+    const tasksToEvaluate = meeting?.taskPlannings?.map((taskPlanning: any) => {
+      const author = vm.allUsers.find((u) => u._id === taskPlanning.participantId);
+      return {
+        authorId: taskPlanning.participantId,
+        author: author || null,
+        taskDescription: taskPlanning.taskDescription,
+        commonQuestion: taskPlanning.commonQuestion || meeting.question,
+        deadline: taskPlanning.deadline,
+        originalContribution: taskPlanning.expectedContributionPercentage,
+      };
+    }) || [];
+
+    return (
+      <div className="space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-700">
+        <TaskEvaluationForm
+          tasks={tasksToEvaluate}
+          onSubmit={vm.handleSubmitTaskEvaluation}
+          isSubmitting={vm.isSubmittingTaskEvaluation}
+          existingEvaluation={vm.taskEvaluations}
+        />
+      </div>
+    );
+  };
 
   return (
     <>
@@ -133,9 +145,16 @@ export const PhaseContent: React.FC<PhaseContentProps> = ({ vm }) => {
             {meeting.question}
           </p>
         </div>
-        {activePhase === MeetingResponseDtoCurrentPhase.discussion &&
-          renderDiscussionPhase()}
+       
       </div>
+
+      {/* Understanding Score Panel - Always visible for participants (except finished) */}
+      {!isCreator && activePhase !== MeetingResponseDtoCurrentPhase.finished && (
+        <UnderstandingScorePanel
+          understandingScore={vm.understandingScore}
+          onUnderstandingScoreChange={vm.setUnderstandingScore}
+        />
+      )}
 
       {/* Phase-specific content */}
       {activePhase === MeetingResponseDtoCurrentPhase.emotional_evaluation &&
@@ -144,6 +163,8 @@ export const PhaseContent: React.FC<PhaseContentProps> = ({ vm }) => {
         renderUnderstandingContributionPhase()}
       {activePhase === MeetingResponseDtoCurrentPhase.task_planning &&
         renderTaskPlanningPhase()}
+      {activePhase === MeetingResponseDtoCurrentPhase.task_evaluation &&
+        renderTaskEvaluationPhase()}
 
       {/* Creator Controls */}
       {isCreator && activePhase !== MeetingResponseDtoCurrentPhase.finished && (

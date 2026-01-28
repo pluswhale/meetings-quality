@@ -41,7 +41,7 @@ export const UnderstandingContributionForm: React.FC<UnderstandingContributionFo
           <div className="flex-1 h-px bg-slate-200" />
         </h2>
         <div className="p-10 bg-white border border-slate-200 rounded-[40px] shadow-lg shadow-slate-100">
-          <div className="flex justify-between items-center mb-10">
+          <div className="flex justify-between items-center mb-8">
             <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px]">
               Уровень понимания задачи
             </p>
@@ -49,11 +49,13 @@ export const UnderstandingContributionForm: React.FC<UnderstandingContributionFo
               {understandingScore}%
             </span>
           </div>
-          <Slider
-            value={understandingScore}
-            onChange={onUnderstandingScoreChange}
-            variant="green"
-          />
+          <div className="mt-4">
+            <Slider
+              value={understandingScore}
+              onChange={onUnderstandingScoreChange}
+              variant="green"
+            />
+          </div>
         </div>
       </section>
 
@@ -79,7 +81,7 @@ export const UnderstandingContributionForm: React.FC<UnderstandingContributionFo
             const contribution = Number(contributions[participant._id] || 0);
             return (
               <div key={participant._id}>
-                <div className="flex justify-between items-center mb-4">
+                <div className="flex justify-between items-center mb-3">
                   <div>
                     <h4 className="font-black text-slate-900">{participant.fullName}</h4>
                     <p className="text-xs text-slate-400 font-bold">{participant.email}</p>
@@ -88,10 +90,12 @@ export const UnderstandingContributionForm: React.FC<UnderstandingContributionFo
                     {contribution}%
                   </span>
                 </div>
-                <Slider
-                  value={contribution}
-                  onChange={(value) => onContributionChange(participant._id, value)}
-                />
+                <div className="mt-2">
+                  <Slider
+                    value={contribution}
+                    onChange={(value) => onContributionChange(participant._id, value)}
+                  />
+                </div>
               </div>
             );
           })}

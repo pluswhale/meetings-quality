@@ -50,11 +50,7 @@ export const useDashboardViewModel = (): DashboardViewModel => {
     [meetings, filter]
   );
 
-  // Filter tasks (author's tasks only)
-  const filteredTasks = useMemo(
-    () => tasks.filter((t) => t.authorId === currentUser?._id),
-    [tasks, currentUser]
-  );
+
 
   // Handlers
   const handleLogout = () => {
@@ -70,7 +66,6 @@ export const useDashboardViewModel = (): DashboardViewModel => {
     meetings,
     tasks,
     filteredMeetings,
-    filteredTasks,
     meetingsLoading,
     tasksLoading,
     handleLogout,

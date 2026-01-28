@@ -13,7 +13,7 @@ export default defineConfig({
       // This will generate relative paths like /meetings, /auth/login
       override: {
         mutator: {
-          path: './src/api/axios-instance.ts',
+          path: './src/shared/api/axios-instance.ts',
           name: 'customInstance',
         },
         query: {

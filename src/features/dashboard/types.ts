@@ -29,7 +29,6 @@ export interface DashboardViewModel {
   meetings: MeetingResponseDto[];
   tasks: TaskResponseDto[];
   filteredMeetings: MeetingResponseDto[];
-  filteredTasks: TaskResponseDto[];
   
   // Loading state
   meetingsLoading: boolean;

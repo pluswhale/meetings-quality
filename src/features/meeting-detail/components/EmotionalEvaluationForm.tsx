@@ -64,7 +64,7 @@ export const EmotionalEvaluationForm: React.FC<EmotionalEvaluationFormProps> = (
                     </span>
                   </label>
                 </div>
-                <div className="flex justify-between items-center mb-4">
+                <div className="flex justify-between items-center mb-3">
                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
                     Эмоциональная оценка
                   </span>
@@ -81,19 +81,21 @@ export const EmotionalEvaluationForm: React.FC<EmotionalEvaluationFormProps> = (
                     {evaluation.emotionalScale}
                   </span>
                 </div>
-                <Slider
-                  value={evaluation.emotionalScale}
-                  min={-100}
-                  max={100}
-                  onChange={(value) =>
-                    onUpdateEvaluation(participant._id, {
-                      emotionalScale: value,
-                    })
-                  }
-                  variant="emotional"
-                  showProgress={false}
-                />
-                <div className="flex justify-between text-xs font-bold text-slate-400 mt-3">
+                <div className="my-4">
+                  <Slider
+                    value={evaluation.emotionalScale}
+                    min={-100}
+                    max={100}
+                    onChange={(value) =>
+                      onUpdateEvaluation(participant._id, {
+                        emotionalScale: value,
+                      })
+                    }
+                    variant="emotional"
+                    showProgress={false}
+                  />
+                </div>
+                <div className="flex justify-between text-xs font-bold text-slate-400 mt-2">
                   <span className="text-red-500">-100 (негативная)</span>
                   <span className="text-green-500">+100 (позитивная)</span>
                 </div>

@@ -3,16 +3,30 @@
  * Modern, beautiful range input styling with gradients and animations
  */
 
+/* Hide scrollbar utility */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
+}
+
 /* Base slider styles */
 input[type="range"] {
   -webkit-appearance: none;
   appearance: none;
   width: 100%;
-  height: 12px;
+  height: 28px;
   background: transparent;
   outline: none;
   cursor: pointer;
   position: relative;
+  z-index: 1;
+  display: block;
+  margin: 0;
+  padding: 8px 0;
 }
 
 /* Track styles */
@@ -56,7 +70,7 @@ input[type="range"]::-webkit-slider-thumb {
               0 2px 4px rgba(0, 0, 0, 0.1);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
-  margin-top: -8px;
+  margin-top: 0;
 }
 
 input[type="range"]::-webkit-slider-thumb:hover {
@@ -100,6 +114,10 @@ input[type="range"]:active::-moz-range-thumb {
 .slider-wrapper {
   position: relative;
   width: 100%;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
 }
 
 .slider-progress {
@@ -108,8 +126,10 @@ input[type="range"]:active::-moz-range-thumb {
   background: linear-gradient(90deg, #0ea5e9 0%, #06b6d4 100%);
   border-radius: 999px;
   pointer-events: none;
-  top: 0;
+  top: 50%;
   left: 0;
+  transform: translateY(-50%);
+  z-index: 0;
   transition: width 0.2s ease;
   box-shadow: 0 2px 8px rgba(14, 165, 233, 0.3);
 }
@@ -155,12 +175,17 @@ input[type="range"].slider-emotional::-moz-range-track {
   height: 14px;
 }
 
+input[type="range"].slider-emotional {
+  height: 32px;
+  padding: 9px 0;
+}
+
 input[type="range"].slider-emotional::-webkit-slider-thumb {
   background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
   border: 5px solid #0ea5e9;
   width: 32px;
   height: 32px;
-  margin-top: -9px;
+  margin-top: 0;
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
 }
 

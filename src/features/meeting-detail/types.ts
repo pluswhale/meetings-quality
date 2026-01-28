@@ -3,6 +3,7 @@
  */
 
 import { UserResponseDto } from '@/src/shared/api/generated/meetingsQualityAPI.schemas';
+import { ActiveParticipantsResponse } from './api/meeting-room.api';
 
 export interface EmotionalEvaluationState {
   emotionalScale: number;
@@ -41,6 +42,7 @@ export interface MeetingDetailViewModel {
   meetingParticipants: UserResponseDto[];
   votingInfo: VotingInfo | null;
   phaseSubmissions: PhaseSubmissions | null;
+  activeParticipants: ActiveParticipantsResponse | null;
   
   // State
   isLoading: boolean;
@@ -61,16 +63,23 @@ export interface MeetingDetailViewModel {
   
   // Phase 4 state
   taskDescription: string;
+  commonQuestion: string;
+  setCommonQuestion: React.Dispatch<React.SetStateAction<string>>;
   setTaskDescription: React.Dispatch<React.SetStateAction<string>>;
   deadline: string;
   setDeadline: React.Dispatch<React.SetStateAction<string>>;
   expectedContribution: number;
   setExpectedContribution: React.Dispatch<React.SetStateAction<number>>;
   
+  // Phase 5 state (task evaluation)
+  taskEvaluations: Record<string, number>;
+  setTaskEvaluations: React.Dispatch<React.SetStateAction<Record<string, number>>>;
+  
   // Mutations
   isSubmittingEmotional: boolean;
   isSubmittingUnderstanding: boolean;
   isSubmittingTask: boolean;
+  isSubmittingTaskEvaluation: boolean;
   isCreatingTask: boolean;
   isChangingPhase: boolean;
   
@@ -81,5 +90,6 @@ export interface MeetingDetailViewModel {
   handleSubmitEmotionalEvaluation: () => void;
   handleSubmitUnderstandingContribution: () => void;
   handleSubmitTaskPlanning: () => void;
+  handleSubmitTaskEvaluation: (evaluations: Record<string, number>) => Promise<void>;
   handleNavigateBack: () => void;
 }

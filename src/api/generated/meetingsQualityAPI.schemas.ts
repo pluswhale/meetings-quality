@@ -97,6 +97,8 @@ export interface TaskPlanningDto {
   participantId: string;
   /** Описание задачи */
   taskDescription: string;
+  /** Общий вопрос задачи */
+  commonQuestion: string;
   /** Дедлайн */
   deadline: string;
   /**
@@ -105,6 +107,26 @@ export interface TaskPlanningDto {
    * @maximum 100
    */
   expectedContributionPercentage: number;
+  /** Дата отправки */
+  submittedAt: string;
+}
+
+export interface TaskImportanceEvaluationItemDto {
+  /** ID автора задачи */
+  taskAuthorId: string;
+  /**
+   * Оценка важности задачи
+   * @minimum 0
+   * @maximum 100
+   */
+  importanceScore: number;
+}
+
+export interface TaskEvaluationDto {
+  /** ID участника, отправившего оценки */
+  participantId: string;
+  /** Массив оценок важности задач */
+  evaluations: TaskImportanceEvaluationItemDto[];
   /** Дата отправки */
   submittedAt: string;
 }
@@ -139,6 +161,8 @@ export interface MeetingResponseDto {
   creatorId: string;
   /** Массив ID участников (строки) */
   participantIds: string[];
+  /** Массив ID активных участников, которые сейчас в комнате встречи */
+  activeParticipantIds: string[];
   currentPhase: MeetingResponseDtoCurrentPhase;
   status: MeetingResponseDtoStatus;
   /** Эмоциональные оценки участников */
@@ -147,6 +171,8 @@ export interface MeetingResponseDto {
   understandingContributions: UnderstandingContributionDto[];
   /** Планирование задач участников */
   taskPlannings: TaskPlanningDto[];
+  /** Оценки важности задач участниками */
+  taskEvaluations: TaskEvaluationDto[];
   createdAt: string;
   updatedAt: string;
 }
@@ -168,10 +194,10 @@ export type ChangePhaseDtoPhase =
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ChangePhaseDtoPhase = {
-  discussion: "discussion",
   emotional_evaluation: "emotional_evaluation",
   understanding_contribution: "understanding_contribution",
   task_planning: "task_planning",
+  task_evaluation: "task_evaluation",
   finished: "finished",
 } as const;
 
@@ -221,10 +247,10 @@ export interface SubmitUnderstandingContributionDto {
 }
 
 export interface SubmitTaskPlanningDto {
-  /** Глобальное понимание задачи */
-  commonQuestion: string;
   /** Описание задачи */
   taskDescription: string;
+  /** Общий вопрос задачи */
+  commonQuestion: string;
   /** Дедлайн задачи (ISO формат) */
   deadline: string;
   /**
@@ -233,6 +259,22 @@ export interface SubmitTaskPlanningDto {
    * @maximum 100
    */
   expectedContributionPercentage: number;
+}
+
+export interface TaskImportanceEvaluationDto {
+  /** ID автора задачи, которую оценивают */
+  taskAuthorId: string;
+  /**
+   * Оценка важности задачи (0-100)
+   * @minimum 0
+   * @maximum 100
+   */
+  importanceScore: number;
+}
+
+export interface SubmitTaskEvaluationDto {
+  /** Массив оценок важности задач */
+  evaluations: TaskImportanceEvaluationDto[];
 }
 
 export type StatisticsResponseDtoParticipantStatsItemParticipant = {
@@ -255,10 +297,10 @@ export interface StatisticsResponseDto {
 }
 
 export interface CreateTaskDto {
-  /** Глобальное понимание задачи */
-  commonQuestion: string;
   /** Описание задачи */
   description: string;
+  /** Описание общего вопроса */
+  commonQuestion: string;
   /** ID встречи, из которой создана задача */
   meetingId: string;
   /** Дедлайн задачи (ISO формат) */
