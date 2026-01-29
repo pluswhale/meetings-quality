@@ -88,7 +88,9 @@ export interface MeetingDetailViewModel {
   handleChangeToPhase: (phase: any) => void;
   handleReturnToCurrentPhase: () => void;
   handleSubmitEmotionalEvaluation: () => void;
+  handleAutoSaveEmotionalEvaluation: () => void;
   handleSubmitUnderstandingContribution: () => void;
+  handleAutoSaveUnderstandingContribution: () => void;
   handleSubmitTaskPlanning: () => void;
   handleSubmitTaskEvaluation: (evaluations: Record<string, number>) => Promise<void>;
   handleNavigateBack: () => void;

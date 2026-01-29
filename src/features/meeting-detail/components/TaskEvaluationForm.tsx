@@ -18,15 +18,13 @@ interface TaskWithAuthor {
 
 interface TaskEvaluationFormProps {
   tasks: TaskWithAuthor[];
-  onSubmit: (evaluations: Record<string, number>) => void;
-  isSubmitting: boolean;
+  onEvaluationChange: (evaluations: Record<string, number>) => Promise<void>;
   existingEvaluation?: Record<string, number>;
 }
 
 export const TaskEvaluationForm: React.FC<TaskEvaluationFormProps> = ({
   tasks,
-  onSubmit,
-  isSubmitting,
+  onEvaluationChange,
   existingEvaluation,
 }) => {
   const [evaluations, setEvaluations] = useState<Record<string, number>>(
@@ -43,14 +41,16 @@ export const TaskEvaluationForm: React.FC<TaskEvaluationFormProps> = ({
   }, [tasks, existingEvaluation]);
 
   const handleScoreChange = (authorId: string, score: number) => {
-    setEvaluations((prev) => ({
-      ...prev,
+    const newEvaluations = {
+      ...evaluations,
       [authorId]: score,
-    }));
+    };
+    setEvaluations(newEvaluations);
   };
 
-  const handleSubmit = () => {
-    onSubmit(evaluations);
+  const handleScoreChangeEnd = () => {
+    // Auto-save when slider is released
+    onEvaluationChange(evaluations);
   };
 
   const averageScore = Object.values(evaluations).length > 0
@@ -91,6 +91,9 @@ export const TaskEvaluationForm: React.FC<TaskEvaluationFormProps> = ({
             <h2 className="text-xl md:text-2xl font-black mb-2 flex items-center gap-2 md:gap-3">
               <span className="text-2xl md:text-3xl">📊</span>
               Оцените важность задач
+              <span className="text-xs font-bold px-2 py-1 bg-green-100 text-green-700 rounded-full whitespace-nowrap">
+                ✓ Автосохранение
+              </span>
             </h2>
             <p className="text-xs md:text-sm text-slate-500 font-bold">
               Оцените объективную важность каждой задачи от 0 до 100
@@ -211,6 +214,7 @@ export const TaskEvaluationForm: React.FC<TaskEvaluationFormProps> = ({
                   <Slider
                     value={score}
                     onChange={(value) => handleScoreChange(task.authorId, value)}
+                    onChangeEnd={handleScoreChangeEnd}
                     variant={
                       score >= 75
                         ? 'green'
@@ -234,49 +238,18 @@ export const TaskEvaluationForm: React.FC<TaskEvaluationFormProps> = ({
         </div>
       </section>
 
-      {/* Submit Button */}
-      <button
-        onClick={handleSubmit}
-        disabled={isSubmitting}
-        className="w-full py-4 md:py-6 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-[16px] md:rounded-[24px] font-black uppercase tracking-[0.2em] text-xs md:text-sm shadow-2xl hover:shadow-blue-500/50 hover:-translate-y-1 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        {isSubmitting ? (
-          <span className="flex items-center justify-center gap-2">
-            <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              />
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              />
-            </svg>
-            Сохранение...
-          </span>
-        ) : (
-          'Отправить оценки'
-        )}
-      </button>
-
       {/* Help Text */}
-      <div className="mt-4 md:mt-6 p-3 md:p-4 bg-blue-50 border-2 border-blue-200 rounded-xl md:rounded-2xl">
-        <p className="text-xs md:text-sm text-blue-700 font-bold flex items-start gap-2">
+      <div className="p-3 md:p-4 bg-green-50 border-2 border-green-200 rounded-xl md:rounded-2xl">
+        <p className="text-xs md:text-sm text-green-700 font-bold flex items-start gap-2">
           <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
             <path
               fillRule="evenodd"
-              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
               clipRule="evenodd"
             />
           </svg>
           <span>
-            Оцените важность каждой задачи объективно. Это поможет команде понять, правильно ли
-            автор оценил свой вклад, или задача важнее/менее важна, чем предполагалось.
+            Ваши оценки автоматически сохраняются при изменении слайдеров. Оцените важность каждой задачи объективно.
           </span>
         </p>
       </div>

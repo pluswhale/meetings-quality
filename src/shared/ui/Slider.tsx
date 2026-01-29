@@ -9,6 +9,7 @@ interface SliderProps {
   min?: number;
   max?: number;
   onChange: (value: number) => void;
+  onChangeEnd?: (value: number) => void; // Triggered when slider is released
   variant?: 'default' | 'green' | 'emotional' | 'importance';
   showProgress?: boolean;
   className?: string;
@@ -19,12 +20,25 @@ export const Slider: React.FC<SliderProps> = ({
   min = 0,
   max = 100,
   onChange,
+  onChangeEnd,
   variant = 'default',
   showProgress = true,
   className = '',
 }) => {
   // Calculate progress percentage
   const percentage = ((value - min) / (max - min)) * 100;
+
+  const handleMouseUp = (e: React.MouseEvent<HTMLInputElement>) => {
+    if (onChangeEnd) {
+      onChangeEnd(Number(e.currentTarget.value));
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent<HTMLInputElement>) => {
+    if (onChangeEnd) {
+      onChangeEnd(Number(e.currentTarget.value));
+    }
+  };
 
   const sliderClasses = [
     variant === 'green' && 'slider-green',
@@ -49,8 +63,11 @@ export const Slider: React.FC<SliderProps> = ({
         type="range"
         min={min}
         max={max}
+        step={10}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
+        onMouseUp={handleMouseUp}
+        onTouchEnd={handleTouchEnd}
         className={`${sliderClasses} ${className}`}
       />
     );
@@ -63,8 +80,11 @@ export const Slider: React.FC<SliderProps> = ({
         type="range"
         min={min}
         max={max}
+        step={10}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
+        onMouseUp={handleMouseUp}
+        onTouchEnd={handleTouchEnd}
         className={`${sliderClasses} ${className}`}
       />
     </div>

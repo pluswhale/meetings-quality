@@ -14,24 +14,24 @@ interface EmotionalEvaluationTableProps {
     participantId: string,
     update: Partial<{ emotionalScale: number; isToxic: boolean }>
   ) => void;
-  onSubmit: () => void;
-  isSubmitting: boolean;
+  onAutoSave: () => void;
 }
 
 export const EmotionalEvaluationTable: React.FC<EmotionalEvaluationTableProps> = ({
   participants,
   evaluations,
   onUpdateEvaluation,
-  onSubmit,
-  isSubmitting,
+  onAutoSave,
 }) => {
   return (
-    <>
-      <section>
-        <h2 className="text-2xl font-black mb-8 flex items-center gap-3">
-          Оцените эмоциональный фон участников
-          <div className="flex-1 h-px bg-slate-200" />
-        </h2>
+    <section>
+      <h2 className="text-2xl font-black mb-8 flex items-center gap-3">
+        Оцените эмоциональный фон участников
+        <div className="flex-1 h-px bg-slate-200" />
+        <span className="text-xs font-bold px-3 py-1 bg-green-100 text-green-700 rounded-full whitespace-nowrap">
+          ✓ Автосохранение
+        </span>
+      </h2>
 
         <div className="bg-white border border-slate-200 rounded-[32px] shadow-lg shadow-slate-100 overflow-hidden">
           {/* Table Header */}
@@ -76,6 +76,7 @@ export const EmotionalEvaluationTable: React.FC<EmotionalEvaluationTableProps> =
                           emotionalScale: value,
                         })
                       }
+                      onChangeEnd={onAutoSave}
                       variant="emotional"
                       showProgress={false}
                     />
@@ -108,9 +109,11 @@ export const EmotionalEvaluationTable: React.FC<EmotionalEvaluationTableProps> =
                       <input
                         type="checkbox"
                         checked={evaluation.isToxic}
-                        onChange={(e) =>
-                          onUpdateEvaluation(participant._id, { isToxic: e.target.checked })
-                        }
+                        onChange={(e) => {
+                          onUpdateEvaluation(participant._id, { isToxic: e.target.checked });
+                          // Auto-save when checkbox changes
+                          setTimeout(onAutoSave, 100);
+                        }}
                         className="w-6 h-6 rounded accent-red-600 cursor-pointer"
                       />
                     </label>
@@ -121,14 +124,5 @@ export const EmotionalEvaluationTable: React.FC<EmotionalEvaluationTableProps> =
           </div>
         </div>
       </section>
-
-      <button
-        onClick={onSubmit}
-        disabled={isSubmitting}
-        className="w-full py-6 bg-blue-600 text-white rounded-[24px] font-black uppercase tracking-[0.2em] text-sm shadow-2xl hover:bg-blue-700 hover:-translate-y-1 transition-all disabled:opacity-50"
-      >
-        {isSubmitting ? 'Сохранение...' : 'Сохранить оценку'}
-      </button>
-    </>
   );
 };
