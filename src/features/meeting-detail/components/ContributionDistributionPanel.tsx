@@ -11,6 +11,7 @@ interface ContributionDistributionPanelProps {
   participants: UserResponseDto[];
   contributions: Record<string, number>;
   onContributionChange: (participantId: string, value: number) => void;
+  onAutoSave?: () => void;
   totalContribution: number;
 }
 
@@ -18,6 +19,7 @@ export const ContributionDistributionPanel: React.FC<ContributionDistributionPan
   participants,
   contributions,
   onContributionChange,
+  onAutoSave,
   totalContribution,
 }) => {
   const isValidTotal = Math.abs(totalContribution - 100) < 0.1;
@@ -34,6 +36,11 @@ export const ContributionDistributionPanel: React.FC<ContributionDistributionPan
           <label className="text-lg md:text-xl font-black text-purple-900">
             Распределение вклада
           </label>
+          {onAutoSave && (
+            <span className="text-xs font-bold px-2 py-1 bg-green-100 text-green-700 rounded-full whitespace-nowrap">
+              ✓ Автосохранение
+            </span>
+          )}
         </div>
         <span
           className={`text-2xl md:text-3xl font-black tabular-nums ${
@@ -70,6 +77,7 @@ export const ContributionDistributionPanel: React.FC<ContributionDistributionPan
                 <Slider
                   value={contribution}
                   onChange={(value) => onContributionChange(participant._id, value)}
+                  onChangeEnd={onAutoSave}
                   variant="default"
                 />
               </div>

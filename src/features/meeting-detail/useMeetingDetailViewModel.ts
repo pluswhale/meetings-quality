@@ -33,12 +33,11 @@ import {
   ContributionsMap 
 } from './types';
 import {
-  joinMeeting,
-  leaveMeeting,
   getAllSubmissions,
   getActiveParticipants,
   ActiveParticipantsResponse,
 } from './api/meeting-room.api';
+import { useSocket } from './hooks';
 import {
   submitTaskEvaluation,
   TaskImportanceEvaluationItem,
@@ -47,6 +46,12 @@ import {
 export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewModel => {
   const navigate = useNavigate();
   const { currentUser } = useAuthStore();
+
+  // Socket.IO for real-time participant presence
+  const { 
+    isConnected: isSocketConnected, 
+    participants: socketParticipants 
+  } = useSocket(meetingId);
 
   // Fetch meeting data with polling
   const { data: meeting, isLoading } = useMeetingsControllerFindOne(meetingId, {
@@ -87,41 +92,8 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
     },
   }) as { data: any };
 
-  // Join/Leave meeting room on mount/unmount
-  useEffect(() => {
-    if (!meetingId || !meeting || isCreator) return;
-
-    let hasJoined = false;
-
-    const join = async () => {
-      try {
-        await joinMeeting(meetingId);
-        hasJoined = true;
-        console.log('✅ Joined meeting room:', meetingId);
-      } catch (error) {
-        console.error('Failed to join meeting:', error);
-      }
-    };
-
-    const leave = async () => {
-      if (!hasJoined) return;
-      try {
-        await leaveMeeting(meetingId);
-        console.log('👋 Left meeting room:', meetingId);
-      } catch (error) {
-        console.error('Failed to leave meeting:', error);
-      }
-    };
-
-    join();
-
-    // Leave on unmount or page unload
-    window.addEventListener('beforeunload', leave);
-    return () => {
-      leave();
-      window.removeEventListener('beforeunload', leave);
-    };
-  }, [meetingId, meeting, isCreator]);
+  // Note: Join/Leave is now handled by useSocket hook via Socket.IO
+  // This provides automatic cleanup on disconnect and real-time updates
 
   // Fetch all submissions for creator (replaces phase-submissions)
   const [phaseSubmissions, setPhaseSubmissions] = useState<any>(null);
@@ -176,25 +148,25 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
     return () => clearInterval(interval);
   }, [isCreator, meetingId]);
 
-  // Fetch active participants (optional - for display)
-  const [activeParticipants, setActiveParticipants] = useState<ActiveParticipantsResponse | null>(null);
+  // Active participants from Socket.IO (real-time)
+  // Build ActiveParticipantsResponse-like structure from socket data
+  const activeParticipants: ActiveParticipantsResponse | null = useMemo(() => {
+    if (!socketParticipants || socketParticipants.length === 0) return null;
 
-  useEffect(() => {
-    if (!meetingId || !meeting) return;
-
-    const fetchActiveParticipants = async () => {
-      try {
-        const response: any = await getActiveParticipants(meetingId);
-        setActiveParticipants(response);
-      } catch (error) {
-        console.error('Failed to fetch active participants:', error);
-      }
+    return {
+      meetingId: meetingId,
+      activeParticipants: socketParticipants.map(p => ({
+        _id: p.userId,
+        fullName: p.fullName || '',
+        email: p.email || '',
+        isActive: true,
+        joinedAt: typeof p.joinedAt === 'string' ? p.joinedAt : new Date(p.joinedAt).toISOString(),
+        lastSeen: p.lastSeen ? (typeof p.lastSeen === 'string' ? p.lastSeen : new Date(p.lastSeen).toISOString()) : undefined,
+      })),
+      totalParticipants: meeting?.participantIds?.length || 0,
+      activeCount: socketParticipants.length,
     };
-
-    fetchActiveParticipants();
-    const interval = setInterval(fetchActiveParticipants, POLLING_INTERVALS.VOTING_INFO);
-    return () => clearInterval(interval);
-  }, [meetingId, meeting]);
+  }, [socketParticipants, meetingId, meeting?.participantIds]);
 
   // Phase 2: Emotional Evaluation state
   const [emotionalEvaluations, setEmotionalEvaluations] = useState<EmotionalEvaluationsMap>({});
@@ -237,16 +209,36 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
     useMeetingsControllerSubmitTaskPlanning();
   const { mutate: createTask, isPending: isCreatingTask } = useTasksControllerCreate();
 
-  // Get meeting participants
+  // Get meeting participants - USE SOCKET.IO REAL-TIME PARTICIPANTS
+  // This ensures voting displays only users who are actively connected via WebSocket
   const meetingParticipants = useMemo(() => {
-    if (!meeting || !allUsers) return [];
+    if (!socketParticipants || !allUsers) {
+      console.log('⚠️ No socket participants or allUsers available');
+      return [];
+    }
 
-    const participantIds: string[] = Array.isArray(meeting.participantIds)
-      ? meeting.participantIds.map((p: any) => (typeof p === 'string' ? p : p._id))
-      : [];
-
-    return allUsers.filter((user) => participantIds.includes(user._id));
-  }, [meeting, allUsers]);
+    // Get list of active participant IDs from Socket.IO
+    const activeParticipantIds = socketParticipants.map((p) => p.userId);
+    
+    // Filter all users to get only those who are connected via socket
+    const activeUsers = allUsers.filter((user) => activeParticipantIds.includes(user._id));
+    
+    // Ensure current user is included if they're in the socket participants list
+    const currentUserId = currentUser?._id;
+    const hasCurrentUser = activeUsers.some((u) => u._id === currentUserId);
+    
+    if (!hasCurrentUser && currentUserId && activeParticipantIds.includes(currentUserId)) {
+      // Current user is active but not in filtered list - add them
+      const currentUserData = allUsers.find((u) => u._id === currentUserId);
+      if (currentUserData) {
+        activeUsers.push(currentUserData);
+      }
+    }
+    
+    console.log('📋 Socket.IO participants for voting:', activeUsers.map(u => u.fullName));
+    console.log('🔌 Socket connected:', isSocketConnected, '| Active count:', activeUsers.length);
+    return activeUsers;
+  }, [socketParticipants, allUsers, currentUser, isSocketConnected]);
 
   // Handlers
   const handleNavigateBack = () => {
@@ -338,6 +330,35 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
     );
   };
 
+  // Auto-save emotional evaluation (live update)
+  const handleAutoSaveEmotionalEvaluation = () => {
+    if (!meetingId) return;
+
+    const evaluations: ParticipantEmotionalEvaluationDto[] = Object.entries(
+      emotionalEvaluations
+    ).map(([participantId, evaluation]) => ({
+      targetParticipantId: participantId,
+      emotionalScale: evaluation.emotionalScale,
+      isToxic: evaluation.isToxic,
+    }));
+
+    if (evaluations.length === 0) return;
+
+    submitEmotionalEvaluation(
+      { id: meetingId, data: { evaluations } },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ['/meetings', meetingId] });
+          // Silent save - no toast
+        },
+        onError: (err: any) => {
+          console.error('Auto-save failed:', err);
+          // Silent fail - no toast
+        },
+      }
+    );
+  };
+
   const handleSubmitUnderstandingContribution = () => {
     if (!meetingId) return;
 
@@ -368,6 +389,40 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
         },
         onError: (err: any) => {
           toast.error(`Ошибка: ${err?.response?.data?.message || 'Не удалось сохранить данные'}`);
+        },
+      }
+    );
+  };
+
+  // Auto-save understanding & contribution (live update)
+  const handleAutoSaveUnderstandingContribution = () => {
+    if (!meetingId) return;
+
+    const contributionList: ContributionInfluenceDto[] = Object.entries(contributions).map(
+      ([participantId, percentage]) => ({
+        participantId,
+        contributionPercentage: Number(percentage),
+      })
+    );
+
+    if (contributionList.length === 0) return;
+
+    const total = contributionList.reduce((sum, c) => sum + c.contributionPercentage, 0);
+    if (Math.abs(total - 100) > 0.1) {
+      // Don't auto-save if total is invalid
+      return;
+    }
+
+    submitUnderstandingContribution(
+      { id: meetingId, data: { understandingScore, contributions: contributionList } },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ['/meetings', meetingId] });
+          // Silent save - no toast
+        },
+        onError: (err: any) => {
+          console.error('Auto-save failed:', err);
+          // Silent fail - no toast
         },
       }
     );
@@ -515,7 +570,9 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
     handleChangeToPhase,
     handleReturnToCurrentPhase,
     handleSubmitEmotionalEvaluation,
+    handleAutoSaveEmotionalEvaluation,
     handleSubmitUnderstandingContribution,
+    handleAutoSaveUnderstandingContribution,
     handleSubmitTaskPlanning,
     handleSubmitTaskEvaluation,
     handleNavigateBack,
