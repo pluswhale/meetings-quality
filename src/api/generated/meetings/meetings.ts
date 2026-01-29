@@ -688,7 +688,17 @@ export const useMeetingsControllerChangePhase = <
   return useMutation(mutationOptions, queryClient);
 };
 /**
- * @summary Присоединиться к встрече (войти в комнату)
+ * 
+      ⚠️ DEPRECATED: Используйте WebSocket event 'join_meeting' вместо этого REST endpoint.
+      
+      Этот endpoint оставлен для обратной совместимости, но не обеспечивает 
+      надежное отслеживание присутствия в реальном времени.
+      
+      Для корректной работы голосования используйте Socket.IO:
+      socket.emit('join_meeting', { meetingId })
+    
+ * @deprecated
+ * @summary [DEPRECATED] Присоединиться к встрече (войти в комнату)
  */
 export const meetingsControllerJoinMeeting = (
   id: string,
@@ -745,7 +755,8 @@ export type MeetingsControllerJoinMeetingMutationResult = NonNullable<
 export type MeetingsControllerJoinMeetingMutationError = void | void;
 
 /**
- * @summary Присоединиться к встрече (войти в комнату)
+ * @deprecated
+ * @summary [DEPRECATED] Присоединиться к встрече (войти в комнату)
  */
 export const useMeetingsControllerJoinMeeting = <
   TError = void | void,
@@ -772,7 +783,14 @@ export const useMeetingsControllerJoinMeeting = <
   return useMutation(mutationOptions, queryClient);
 };
 /**
- * @summary Покинуть встречу (выйти из комнаты)
+ * 
+      ⚠️ DEPRECATED: Используйте WebSocket event 'leave_meeting' вместо этого REST endpoint.
+      
+      Для корректной работы голосования используйте Socket.IO:
+      socket.emit('leave_meeting', { meetingId })
+    
+ * @deprecated
+ * @summary [DEPRECATED] Покинуть встречу (выйти из комнаты)
  */
 export const meetingsControllerLeaveMeeting = (
   id: string,
@@ -829,7 +847,8 @@ export type MeetingsControllerLeaveMeetingMutationResult = NonNullable<
 export type MeetingsControllerLeaveMeetingMutationError = void;
 
 /**
- * @summary Покинуть встречу (выйти из комнаты)
+ * @deprecated
+ * @summary [DEPRECATED] Покинуть встречу (выйти из комнаты)
  */
 export const useMeetingsControllerLeaveMeeting = <
   TError = void,
@@ -856,7 +875,7 @@ export const useMeetingsControllerLeaveMeeting = <
   return useMutation(mutationOptions, queryClient);
 };
 /**
- * @summary Отправить эмоциональную оценку (фаза emotional_evaluation, только участники)
+ * @summary Отправить эмоциональную оценку (фаза emotional_evaluation, все участники включая создателя)
  */
 export const meetingsControllerSubmitEmotionalEvaluation = (
   id: string,
@@ -873,7 +892,7 @@ export const meetingsControllerSubmitEmotionalEvaluation = (
 };
 
 export const getMeetingsControllerSubmitEmotionalEvaluationMutationOptions = <
-  TError = void | void | void,
+  TError = void | void,
   TContext = unknown
 >(options?: {
   mutation?: UseMutationOptions<
@@ -917,14 +936,13 @@ export type MeetingsControllerSubmitEmotionalEvaluationMutationBody =
   SubmitEmotionalEvaluationDto;
 export type MeetingsControllerSubmitEmotionalEvaluationMutationError =
   | void
-  | void
   | void;
 
 /**
- * @summary Отправить эмоциональную оценку (фаза emotional_evaluation, только участники)
+ * @summary Отправить эмоциональную оценку (фаза emotional_evaluation, все участники включая создателя)
  */
 export const useMeetingsControllerSubmitEmotionalEvaluation = <
-  TError = void | void | void,
+  TError = void | void,
   TContext = unknown
 >(
   options?: {
@@ -948,7 +966,7 @@ export const useMeetingsControllerSubmitEmotionalEvaluation = <
   return useMutation(mutationOptions, queryClient);
 };
 /**
- * @summary Отправить понимание и вклад (фаза understanding_contribution, только участники)
+ * @summary Отправить понимание и вклад (фаза understanding_contribution, все участники включая создателя)
  */
 export const meetingsControllerSubmitUnderstandingContribution = (
   id: string,
@@ -965,7 +983,7 @@ export const meetingsControllerSubmitUnderstandingContribution = (
 };
 
 export const getMeetingsControllerSubmitUnderstandingContributionMutationOptions =
-  <TError = void | void | void, TContext = unknown>(options?: {
+  <TError = void | void, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<
       Awaited<
         ReturnType<typeof meetingsControllerSubmitUnderstandingContribution>
@@ -1015,14 +1033,13 @@ export type MeetingsControllerSubmitUnderstandingContributionMutationBody =
   SubmitUnderstandingContributionDto;
 export type MeetingsControllerSubmitUnderstandingContributionMutationError =
   | void
-  | void
   | void;
 
 /**
- * @summary Отправить понимание и вклад (фаза understanding_contribution, только участники)
+ * @summary Отправить понимание и вклад (фаза understanding_contribution, все участники включая создателя)
  */
 export const useMeetingsControllerSubmitUnderstandingContribution = <
-  TError = void | void | void,
+  TError = void | void,
   TContext = unknown
 >(
   options?: {
@@ -1050,7 +1067,7 @@ export const useMeetingsControllerSubmitUnderstandingContribution = <
   return useMutation(mutationOptions, queryClient);
 };
 /**
- * @summary Отправить планирование задачи (фаза task_planning, только участники)
+ * @summary Отправить планирование задачи (фаза task_planning, все участники включая создателя)
  */
 export const meetingsControllerSubmitTaskPlanning = (
   id: string,
@@ -1067,7 +1084,7 @@ export const meetingsControllerSubmitTaskPlanning = (
 };
 
 export const getMeetingsControllerSubmitTaskPlanningMutationOptions = <
-  TError = void | void | void,
+  TError = void | void,
   TContext = unknown
 >(options?: {
   mutation?: UseMutationOptions<
@@ -1108,16 +1125,13 @@ export type MeetingsControllerSubmitTaskPlanningMutationResult = NonNullable<
 >;
 export type MeetingsControllerSubmitTaskPlanningMutationBody =
   SubmitTaskPlanningDto;
-export type MeetingsControllerSubmitTaskPlanningMutationError =
-  | void
-  | void
-  | void;
+export type MeetingsControllerSubmitTaskPlanningMutationError = void | void;
 
 /**
- * @summary Отправить планирование задачи (фаза task_planning, только участники)
+ * @summary Отправить планирование задачи (фаза task_planning, все участники включая создателя)
  */
 export const useMeetingsControllerSubmitTaskPlanning = <
-  TError = void | void | void,
+  TError = void | void,
   TContext = unknown
 >(
   options?: {
@@ -1430,7 +1444,17 @@ export function useMeetingsControllerGetTaskEvaluationAnalytics<
 }
 
 /**
- * @summary Получить информацию о голосовании (только создатель)
+ * 
+      Возвращает список участников голосования и статус отправки.
+      
+      ВАЖНО: Участниками голосования являются только те пользователи, которые:
+      - Вызвали endpoint /meetings/:id/join (присоединились к встрече)
+      - НЕ вызвали endpoint /meetings/:id/leave (не покинули встречу)
+      
+      Создатель встречи включается в список участников ТОЛЬКО если он присоединился к встрече.
+      Нет специальной логики для создателя - он обрабатывается как обычный участник.
+    
+ * @summary Получить информацию о голосовании с активными участниками (только создатель)
  */
 export const meetingsControllerGetVotingInfo = (
   id: string,
@@ -1559,7 +1583,7 @@ export function useMeetingsControllerGetVotingInfo<
   queryKey: DataTag<QueryKey, TData, TError>;
 };
 /**
- * @summary Получить информацию о голосовании (только создатель)
+ * @summary Получить информацию о голосовании с активными участниками (только создатель)
  */
 
 export function useMeetingsControllerGetVotingInfo<
@@ -1596,7 +1620,22 @@ export function useMeetingsControllerGetVotingInfo<
 }
 
 /**
- * @summary Получить список активных участников в комнате встречи
+ * 
+      Возвращает список участников, которые активно подключены через WebSocket.
+      
+      ВАЖНО: Этот endpoint возвращает данные из Socket.IO в реальном времени.
+      Участники отслеживаются через WebSocket соединения:
+      - Добавляются при emit('join_meeting')
+      - Удаляются при emit('leave_meeting') или disconnect
+      
+      Используйте для:
+      - Начальной загрузки списка участников
+      - Проверки статуса подключения
+      
+      Для real-time обновлений подключитесь к Socket.IO и слушайте:
+      socket.on('participants_updated', (data) => { ... })
+    
+ * @summary Получить список активных участников в комнате встречи (Socket.IO-based)
  */
 export const meetingsControllerGetActiveParticipants = (
   id: string,
@@ -1728,7 +1767,7 @@ export function useMeetingsControllerGetActiveParticipants<
   queryKey: DataTag<QueryKey, TData, TError>;
 };
 /**
- * @summary Получить список активных участников в комнате встречи
+ * @summary Получить список активных участников в комнате встречи (Socket.IO-based)
  */
 
 export function useMeetingsControllerGetActiveParticipants<
@@ -2252,6 +2291,181 @@ export function useMeetingsControllerGetStatistics<
   queryKey: DataTag<QueryKey, TData, TError>;
 } {
   const queryOptions = getMeetingsControllerGetStatisticsQueryOptions(
+    id,
+    options
+  );
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+/**
+ * 
+      Возвращает подробную статистику для каждого участника:
+      - Какие оценки участник поставил и кому
+      - Какие задачи участник создал и свой уровень вклада
+      - Какие участники присвоили уровни вклада задачам
+    
+ * @summary Получить финальную статистику встречи со всеми данными участников (только создатель)
+ */
+export const meetingsControllerGetFinalStatistics = (
+  id: string,
+  signal?: AbortSignal
+) => {
+  return customInstance<void>({
+    url: `/meetings/${id}/final-stats`,
+    method: "GET",
+    signal,
+  });
+};
+
+export const getMeetingsControllerGetFinalStatisticsQueryKey = (
+  id?: string
+) => {
+  return [`/meetings/${id}/final-stats`] as const;
+};
+
+export const getMeetingsControllerGetFinalStatisticsQueryOptions = <
+  TData = Awaited<ReturnType<typeof meetingsControllerGetFinalStatistics>>,
+  TError = void | void
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof meetingsControllerGetFinalStatistics>>,
+        TError,
+        TData
+      >
+    >;
+  }
+) => {
+  const { query: queryOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ??
+    getMeetingsControllerGetFinalStatisticsQueryKey(id);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof meetingsControllerGetFinalStatistics>>
+  > = ({ signal }) => meetingsControllerGetFinalStatistics(id, signal);
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof meetingsControllerGetFinalStatistics>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type MeetingsControllerGetFinalStatisticsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof meetingsControllerGetFinalStatistics>>
+>;
+export type MeetingsControllerGetFinalStatisticsQueryError = void | void;
+
+export function useMeetingsControllerGetFinalStatistics<
+  TData = Awaited<ReturnType<typeof meetingsControllerGetFinalStatistics>>,
+  TError = void | void
+>(
+  id: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof meetingsControllerGetFinalStatistics>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof meetingsControllerGetFinalStatistics>>,
+          TError,
+          Awaited<ReturnType<typeof meetingsControllerGetFinalStatistics>>
+        >,
+        "initialData"
+      >;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useMeetingsControllerGetFinalStatistics<
+  TData = Awaited<ReturnType<typeof meetingsControllerGetFinalStatistics>>,
+  TError = void | void
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof meetingsControllerGetFinalStatistics>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof meetingsControllerGetFinalStatistics>>,
+          TError,
+          Awaited<ReturnType<typeof meetingsControllerGetFinalStatistics>>
+        >,
+        "initialData"
+      >;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useMeetingsControllerGetFinalStatistics<
+  TData = Awaited<ReturnType<typeof meetingsControllerGetFinalStatistics>>,
+  TError = void | void
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof meetingsControllerGetFinalStatistics>>,
+        TError,
+        TData
+      >
+    >;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Получить финальную статистику встречи со всеми данными участников (только создатель)
+ */
+
+export function useMeetingsControllerGetFinalStatistics<
+  TData = Awaited<ReturnType<typeof meetingsControllerGetFinalStatistics>>,
+  TError = void | void
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof meetingsControllerGetFinalStatistics>>,
+        TError,
+        TData
+      >
+    >;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getMeetingsControllerGetFinalStatisticsQueryOptions(
     id,
     options
   );
