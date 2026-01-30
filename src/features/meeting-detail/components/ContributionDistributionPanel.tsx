@@ -52,9 +52,7 @@ export const ContributionDistributionPanel: React.FC<ContributionDistributionPan
       </div>
 
       <div className="bg-white rounded-xl md:rounded-2xl p-4 md:p-6">
-        <div className="text-[10px] md:text-xs font-black text-purple-400 mb-4 uppercase tracking-wider">
-          Распределите вклад участников (должно быть 100%)
-        </div>
+
 
         <div className="space-y-3 md:space-y-4">
           {participants.map((participant) => {
@@ -85,23 +83,6 @@ export const ContributionDistributionPanel: React.FC<ContributionDistributionPan
           })}
         </div>
       </div>
-
-      {!isValidTotal && (
-        <div className="mt-4 p-3 md:p-4 bg-red-50 border-2 border-red-200 rounded-xl md:rounded-2xl">
-          <p className="text-xs md:text-sm font-bold text-red-600 flex items-start gap-2">
-            <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                fillRule="evenodd"
-                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                clipRule="evenodd"
-              />
-            </svg>
-            <span>
-              Сумма вкладов должна равняться 100%. Текущая сумма: {totalContribution.toFixed(1)}%
-            </span>
-          </p>
-        </div>
-      )}
     </div>
   );
 };

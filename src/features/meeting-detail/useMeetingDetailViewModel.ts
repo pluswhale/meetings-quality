@@ -405,13 +405,13 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
       })
     );
 
-    if (contributionList.length === 0) return;
+    // if (contributionList.length === 0) return;
 
     const total = contributionList.reduce((sum, c) => sum + c.contributionPercentage, 0);
-    if (Math.abs(total - 100) > 0.1) {
-      // Don't auto-save if total is invalid
-      return;
-    }
+    // if (Math.abs(total - 100) > 0.1) {
+    //   // Don't auto-save if total is invalid
+    //   return;
+    // }
 
     submitUnderstandingContribution(
       { id: meetingId, data: { understandingScore, contributions: contributionList } },

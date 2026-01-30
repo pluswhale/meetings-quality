@@ -62,9 +62,7 @@ export const UniversalContributionPanel: React.FC<UniversalContributionPanelProp
       {/* Contributions */}
       <div className="bg-white rounded-2xl p-6">
         <div className="flex justify-between items-center pb-4 mb-4 border-b-2 border-slate-100">
-          <label className="text-sm font-black text-slate-600 uppercase tracking-wider">
-            Распределение вклада (должно быть 100%)
-          </label>
+
           <span
             className={`text-3xl font-black tabular-nums ${
               isValidTotal ? 'text-green-600' : 'text-red-600'

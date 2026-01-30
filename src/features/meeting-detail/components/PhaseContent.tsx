@@ -23,23 +23,6 @@ export const PhaseContent: React.FC<PhaseContentProps> = ({ vm }) => {
   const { meeting, isCreator, activePhase } = vm;
   const { currentUser } = useAuthStore();
 
-  const renderDiscussionPhase = () => (
-    <div className="bg-slate-50 p-8 border-t border-slate-100 flex items-center gap-4 text-slate-500 font-bold text-sm">
-      <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 shrink-0">
-        <svg className="w-5 h-5 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-            d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"
-          />
-        </svg>
-      </div>
-      {isCreator
-        ? 'Идет фаза активного обсуждения. Когда вопрос будет разобран, переключите на следующую фазу.'
-        : 'Идет фаза активного обсуждения. Организатор переключит фазу, когда вопрос будет разобран.'}
-    </div>
-  );
 
   const renderEmotionalEvaluationPhase = () => (
     <div className="space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-700">
