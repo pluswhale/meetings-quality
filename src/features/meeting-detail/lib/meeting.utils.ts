@@ -14,7 +14,7 @@ import { PHASE_ORDER } from '@/src/shared/constants/meetings';
  */
 export const isUserCreator = (meeting: MeetingResponseDto | null, userId: string | undefined): boolean => {
   if (!meeting || !userId) return false;
-  return meeting.creatorId === userId;
+  return meeting.creatorId._id === userId;
 };
 
 /**

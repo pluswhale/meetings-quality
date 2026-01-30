@@ -46,7 +46,7 @@ export const UniversalContributionPanel: React.FC<UniversalContributionPanelProp
       <div className="bg-white rounded-2xl p-6 mb-4">
         <div className="flex justify-between items-center mb-4">
           <label className="text-sm font-black text-slate-600 uppercase tracking-wider">
-            Ваше понимание вопроса
+            Ваше понимание вопроса kk
           </label>
           <span className="text-4xl font-black text-green-600 tabular-nums">
             {understandingScore}%

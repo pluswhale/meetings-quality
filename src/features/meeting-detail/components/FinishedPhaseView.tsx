@@ -1,5 +1,6 @@
 /**
- * FinishedPhaseView - Statistics view for completed meetings
+ * FinishedPhaseView – Full Meeting Overview
+ * Displays full finished meeting info in a clean, readable UI
  */
 
 import React from 'react';
@@ -8,154 +9,195 @@ import { formatDate } from '@/src/shared/lib';
 
 interface FinishedPhaseViewProps {
   meeting: any;
-  statistics: any;
   onBack: () => void;
 }
 
-export const FinishedPhaseView: React.FC<FinishedPhaseViewProps> = ({
-  meeting,
-  statistics,
-  onBack,
-}) => {
+export function FinishedPhaseView({ meeting, onBack }: FinishedPhaseViewProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="max-w-5xl mx-auto p-6 md:p-12"
+      className="max-w-6xl mx-auto p-6 md:p-12 space-y-16"
     >
-      <motion.button
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 0.1 }}
-        whileHover={{ x: -5 }}
+      {/* Back */}
+      <button
         onClick={onBack}
-        className="group text-slate-500 mb-8 flex items-center gap-2 font-bold hover:text-slate-900 transition-colors"
+        className="flex items-center gap-2 text-slate-500 font-bold hover:text-slate-900"
       >
-        <svg className="w-5 h-5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-        </svg>
-        Назад к дашборду
-      </motion.button>
+        ← Назад
+      </button>
 
-      <motion.header
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="mb-12"
-      >
-        <div className="flex items-center gap-4 mb-4">
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.3, type: 'spring' }}
-            className="px-4 py-1.5 rounded-full bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest"
-          >
-            Архив
-          </motion.div>
-          <span className="text-slate-400 text-sm font-medium">
-            {formatDate(meeting.createdAt, { day: 'numeric', month: 'long', year: 'numeric' })}
+      {/* Header */}
+      <header className="space-y-3">
+        <div className="flex items-center gap-4">
+          <span className="px-3 py-1 rounded-full bg-slate-900 text-white text-xs font-black uppercase">
+            Завершено
+          </span>
+          <span className="text-slate-400 text-sm">
+            {formatDate(meeting.createdAt)}
           </span>
         </div>
-        <motion.h1
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.4 }}
-          className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight leading-tight"
-        >
-          {meeting.title}
-        </motion.h1>
-      </motion.header>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
-        className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16"
-      >
-        <div className="md:col-span-2 p-10 bg-white rounded-[40px] border border-slate-200 shadow-xl shadow-slate-200/50">
-          <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6">
-            Средний показатель понимания
-          </h3>
-          <div className="flex items-end gap-6">
-            <span className="text-8xl font-black text-slate-900 tabular-nums leading-none">
-              {Math.round(statistics.avgUnderstanding)}%
-            </span>
-            <div className="flex-1 h-4 bg-slate-100 rounded-full overflow-hidden mb-2">
-              <div
-                className="h-full bg-blue-600 rounded-full shadow-[0_0_15px_rgba(37,99,235,0.4)]"
-                style={{ width: `${statistics.avgUnderstanding}%` }}
-              />
+        <h1 className="text-4xl font-black text-slate-900">
+          {meeting.title}
+        </h1>
+
+        <p className="text-lg text-slate-600">
+          {meeting.question}
+        </p>
+      </header>
+
+      {/* Emotional Evaluations */}
+      <section className="space-y-6">
+        <h2 className="text-2xl font-black">Эмоциональные оценки</h2>
+
+        {meeting.emotionalEvaluations.map((ev: any) => (
+          <div
+            key={ev.participant._id}
+            className="p-6 bg-white rounded-3xl border space-y-4"
+          >
+            <div className="text-sm text-slate-500">
+              Оценки от участника
+            </div>
+
+            <UserBadge user={ev.participant} />
+
+            <div className="space-y-2">
+              {ev.evaluations.map((e: any, idx: number) => (
+                <div
+                  key={idx}
+                  className="flex items-center justify-between bg-slate-50 rounded-xl px-4 py-3"
+                >
+                  <span className="text-sm text-slate-700">
+                    → {meeting.participantIds.find(
+                      (p: any) => p._id === e.targetParticipantId
+                    )?.fullName || 'Участник'}
+                  </span>
+
+                  <div className="flex items-center gap-4">
+                    <Score value={e.emotionalScale} />
+                    {e.isToxic && (
+                      <span className="px-2 py-1 text-[10px] font-black uppercase rounded-full bg-red-100 text-red-600">
+                        toxic
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
-        </div>
-        <div className="p-10 bg-blue-600 rounded-[40px] text-white shadow-xl shadow-blue-200">
-          <h3 className="text-[10px] font-black opacity-60 uppercase tracking-[0.2em] mb-6">
-            Участников
-          </h3>
-          <p className="text-7xl font-black">{statistics.participantStats.length}</p>
-          <p className="mt-4 text-blue-100 font-medium">Предоставили данные для анализа</p>
-        </div>
-      </motion.div>
-
-      <motion.h2
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.6 }}
-        className="text-2xl font-black text-slate-900 mb-8 flex items-center gap-3"
-      >
-        Подробный отчет по участникам
-        <div className="flex-1 h-px bg-slate-200" />
-      </motion.h2>
-
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.7 }}
-        className="grid grid-cols-1 md:grid-cols-2 gap-6"
-      >
-        {statistics.participantStats.map((stat: any, index: number) => (
-          <motion.div
-            key={stat.participant._id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8 + index * 0.1 }}
-            whileHover={{ scale: 1.02, y: -4 }}
-            className="group p-8 bg-white border border-slate-200 rounded-[32px] hover:border-blue-300 hover:shadow-2xl transition-all duration-300"
-          >
-            <div className="flex justify-between items-start mb-6">
-              <div>
-                <h4 className="font-black text-slate-900 text-lg">{stat.participant.fullName}</h4>
-                <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mt-1">
-                  {stat.participant.email}
-                </p>
-              </div>
-              <div className="flex items-center gap-2 text-blue-600 font-black text-xl">
-                {Math.round(stat.understandingScore)}%
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <div className="flex flex-wrap gap-2">
-                {stat.toxicityFlags > 0 && (
-                  <span className="inline-flex items-center gap-1.5 bg-red-50 text-red-600 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border border-red-100">
-                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" />
-                    </svg>
-                    Токсичность
-                  </span>
-                )}
-                <span className="inline-flex items-center gap-1.5 bg-slate-50 text-slate-600 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border border-slate-100">
-                  Эмоциональная оценка:{' '}
-                  {typeof stat.averageEmotionalScale === 'number'
-                    ? Math.round(stat.averageEmotionalScale)
-                    : '—'}
-                </span>
-              </div>
-            </div>
-          </motion.div>
         ))}
-      </motion.div>
+      </section>
+
+      {/* Understanding & Contribution */}
+      <section className="space-y-6">
+        <h2 className="text-2xl font-black">Понимание и вклад</h2>
+
+        {meeting.understandingContributions.map((uc: any) => (
+          <div
+            key={uc.participant._id}
+            className="p-6 bg-white rounded-3xl border space-y-4"
+          >
+            <div className="flex items-center justify-between">
+              <UserBadge user={uc.participant} />
+              <span className="text-2xl font-black text-blue-600">
+                {uc.understandingScore}%
+              </span>
+            </div>
+
+            <div className="space-y-2">
+              {uc.contributions.map((c: any, idx: number) => (
+                <div
+                  key={idx}
+                  className="flex justify-between text-sm text-slate-600"
+                >
+                  <span>
+                    {meeting.participantIds.find(
+                      (p: any) => p._id === c.participantId
+                    )?.fullName}
+                  </span>
+                  <span>{c.contributionPercentage}%</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </section>
+
+      {/* Tasks */}
+      <section className="space-y-6">
+        <h2 className="text-2xl font-black">Задачи</h2>
+
+        {meeting.taskPlannings.map((task: any, idx: number) => (
+          <div
+            key={idx}
+            className="p-6 bg-white rounded-3xl border space-y-3"
+          >
+            <UserBadge user={task.participant} />
+
+            <div className="font-semibold text-slate-900">
+              {task.taskDescription}
+            </div>
+
+            <p className="text-sm text-slate-600">
+              {task.commonQuestion}
+            </p>
+
+            <div className="flex justify-between text-xs text-slate-400">
+              <span>Дедлайн: {formatDate(task.deadline)}</span>
+              <span>Ожидание: {task.expectedContributionPercentage}%</span>
+            </div>
+          </div>
+        ))}
+      </section>
+
+      {/* Task Evaluations */}
+      <section className="space-y-6">
+        <h2 className="text-2xl font-black">Оценка задач</h2>
+
+        {meeting.taskEvaluations.map((te: any) => (
+          <div
+            key={te.participant._id}
+            className="p-6 bg-white rounded-3xl border space-y-3"
+          >
+            <UserBadge user={te.participant} />
+
+            {te.evaluations.map((e: any, idx: number) => (
+              <div
+                key={idx}
+                className="flex justify-between text-sm"
+              >
+                <span>
+                  {
+                    meeting.participantIds.find(
+                      (p: any) => p._id === e.taskAuthorId
+                    )?.fullName
+                  }
+                </span>
+                <span className="font-black">{e.importanceScore}%</span>
+              </div>
+            ))}
+          </div>
+        ))}
+      </section>
     </motion.div>
   );
-};
+}
+
+const UserBadge = ({ user }: { user: any }) => (
+  <div className="flex flex-col">
+    <span className="font-semibold text-slate-900">{user.fullName}</span>
+    <span className="text-xs text-slate-400">{user.email}</span>
+  </div>
+);
+
+const Score = ({ value }: { value: number }) => (
+  <span
+    className={`font-black tabular-nums ${
+      value >= 0 ? 'text-green-600' : 'text-red-600'
+    }`}
+  >
+    {value}
+  </span>
+);
+

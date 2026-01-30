@@ -34,13 +34,13 @@ export const ContributionDistributionPanel: React.FC<ContributionDistributionPan
             </svg>
           </div>
           <label className="text-lg md:text-xl font-black text-purple-900">
-            Распределение вклада
+            Вклад участников в ваше понимание вопроса
           </label>
-          {onAutoSave && (
+          {/* {onAutoSave && (
             <span className="text-xs font-bold px-2 py-1 bg-green-100 text-green-700 rounded-full whitespace-nowrap">
               ✓ Автосохранение
             </span>
-          )}
+          )} */}
         </div>
         <span
           className={`text-2xl md:text-3xl font-black tabular-nums ${

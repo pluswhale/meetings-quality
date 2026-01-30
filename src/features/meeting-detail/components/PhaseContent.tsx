@@ -78,9 +78,9 @@ export const PhaseContent: React.FC<PhaseContentProps> = ({ vm }) => {
     const tasksToEvaluate = meeting?.taskPlannings
       ?.filter((taskPlanning: any) => taskPlanning.participantId !== currentUserId)
       .map((taskPlanning: any) => {
-        const author = vm.allUsers.find((u) => u._id === taskPlanning.participantId);
+        const author = vm.allUsers.find((u) => u._id === taskPlanning.participant._id);
         return {
-          authorId: taskPlanning.participantId,
+          authorId: taskPlanning.participant._id,
           author: author || null,
           taskDescription: taskPlanning.taskDescription,
           commonQuestion: taskPlanning.commonQuestion || meeting.question,

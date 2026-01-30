@@ -26,16 +26,16 @@ export const UnderstandingScorePanel: React.FC<UnderstandingScorePanelProps> = (
           </svg>
         </div>
         <h3 className="text-lg md:text-xl font-black text-blue-900 flex-1">
-          Ваше понимание вопроса
+          Ваше понимание вопроса 
         </h3>
-        <span className="text-xs font-bold px-2 py-1 bg-blue-100 text-blue-700 rounded-full whitespace-nowrap">
+        {/* <span className="text-xs font-bold px-2 py-1 bg-blue-100 text-blue-700 rounded-full whitespace-nowrap">
           Доступно всегда
         </span>
         {onAutoSave && (
           <span className="text-xs font-bold px-2 py-1 bg-green-100 text-green-700 rounded-full whitespace-nowrap">
             ✓ Автосохранение
           </span>
-        )}
+        )} */}
       </div>
 
       <div className="bg-white rounded-xl md:rounded-2xl p-4 md:p-6">

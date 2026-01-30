@@ -7,7 +7,7 @@ export { FinishedPhaseView } from './FinishedPhaseView';
 export { PhaseContent } from './PhaseContent';
 export { EmotionalEvaluationForm } from './EmotionalEvaluationForm';
 export { EmotionalEvaluationTable } from './EmotionalEvaluationTable';
-export { UnderstandingContributionForm } from './UnderstandingContributionForm';
+// export { UnderstandingContributionForm } from './UnderstandingContributionForm';
 export { UniversalContributionPanel } from './UniversalContributionPanel';
 export { TaskPlanningForm } from './TaskPlanningForm';
 export { CreatorStatsPanels } from './CreatorStatsPanels';
