@@ -5,7 +5,7 @@
  * API для платформы отслеживания качества встреч
  * OpenAPI spec version: 1.0
  */
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from '@tanstack/react-query';
 import type {
   DataTag,
   DefinedInitialDataOptions,
@@ -19,7 +19,7 @@ import type {
   UseMutationResult,
   UseQueryOptions,
   UseQueryResult,
-} from "@tanstack/react-query";
+} from '@tanstack/react-query';
 
 import type {
   ChangePhaseDto,
@@ -32,21 +32,21 @@ import type {
   SubmitTaskPlanningDto,
   SubmitUnderstandingContributionDto,
   UpdateMeetingDto,
-} from "../meetingsQualityAPI.schemas";
+} from '../meetingsQualityAPI.schemas';
 
-import { customInstance } from "../../../shared/api/axios-instance";
+import { customInstance } from '../../../shared/api/axios-instance';
 
 /**
  * @summary Создать новую встречу
  */
 export const meetingsControllerCreate = (
   createMeetingDto: CreateMeetingDto,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ) => {
   return customInstance<MeetingResponseDto>({
     url: `/meetings`,
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     data: createMeetingDto,
     signal,
   });
@@ -54,7 +54,7 @@ export const meetingsControllerCreate = (
 
 export const getMeetingsControllerCreateMutationOptions = <
   TError = void,
-  TContext = unknown
+  TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof meetingsControllerCreate>>,
@@ -68,11 +68,9 @@ export const getMeetingsControllerCreateMutationOptions = <
   { data: CreateMeetingDto },
   TContext
 > => {
-  const mutationKey = ["meetingsControllerCreate"];
+  const mutationKey = ['meetingsControllerCreate'];
   const { mutation: mutationOptions } = options
-    ? options.mutation &&
-      "mutationKey" in options.mutation &&
-      options.mutation.mutationKey
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey } };
@@ -107,7 +105,7 @@ export const useMeetingsControllerCreate = <TError = void, TContext = unknown>(
       TContext
     >;
   },
-  queryClient?: QueryClient
+  queryClient?: QueryClient,
 ): UseMutationResult<
   Awaited<ReturnType<typeof meetingsControllerCreate>>,
   TError,
@@ -123,45 +121,33 @@ export const useMeetingsControllerCreate = <TError = void, TContext = unknown>(
  */
 export const meetingsControllerFindAll = (
   params?: MeetingsControllerFindAllParams,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ) => {
-  return customInstance<MeetingResponseDto[]>({
-    url: `/meetings`,
-    method: "GET",
-    params,
-    signal,
-  });
+  return customInstance<MeetingResponseDto[]>({ url: `/meetings`, method: 'GET', params, signal });
 };
 
-export const getMeetingsControllerFindAllQueryKey = (
-  params?: MeetingsControllerFindAllParams
-) => {
+export const getMeetingsControllerFindAllQueryKey = (params?: MeetingsControllerFindAllParams) => {
   return [`/meetings`, ...(params ? [params] : [])] as const;
 };
 
 export const getMeetingsControllerFindAllQueryOptions = <
   TData = Awaited<ReturnType<typeof meetingsControllerFindAll>>,
-  TError = void
+  TError = void,
 >(
   params?: MeetingsControllerFindAllParams,
   options?: {
     query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof meetingsControllerFindAll>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof meetingsControllerFindAll>>, TError, TData>
     >;
-  }
+  },
 ) => {
   const { query: queryOptions } = options ?? {};
 
-  const queryKey =
-    queryOptions?.queryKey ?? getMeetingsControllerFindAllQueryKey(params);
+  const queryKey = queryOptions?.queryKey ?? getMeetingsControllerFindAllQueryKey(params);
 
-  const queryFn: QueryFunction<
-    Awaited<ReturnType<typeof meetingsControllerFindAll>>
-  > = ({ signal }) => meetingsControllerFindAll(params, signal);
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof meetingsControllerFindAll>>> = ({
+    signal,
+  }) => meetingsControllerFindAll(params, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof meetingsControllerFindAll>>,
@@ -177,16 +163,12 @@ export type MeetingsControllerFindAllQueryError = void;
 
 export function useMeetingsControllerFindAll<
   TData = Awaited<ReturnType<typeof meetingsControllerFindAll>>,
-  TError = void
+  TError = void,
 >(
   params: undefined | MeetingsControllerFindAllParams,
   options: {
     query: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof meetingsControllerFindAll>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof meetingsControllerFindAll>>, TError, TData>
     > &
       Pick<
         DefinedInitialDataOptions<
@@ -194,25 +176,19 @@ export function useMeetingsControllerFindAll<
           TError,
           Awaited<ReturnType<typeof meetingsControllerFindAll>>
         >,
-        "initialData"
+        'initialData'
       >;
   },
-  queryClient?: QueryClient
-): DefinedUseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 export function useMeetingsControllerFindAll<
   TData = Awaited<ReturnType<typeof meetingsControllerFindAll>>,
-  TError = void
+  TError = void,
 >(
   params?: MeetingsControllerFindAllParams,
   options?: {
     query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof meetingsControllerFindAll>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof meetingsControllerFindAll>>, TError, TData>
     > &
       Pick<
         UndefinedInitialDataOptions<
@@ -220,62 +196,44 @@ export function useMeetingsControllerFindAll<
           TError,
           Awaited<ReturnType<typeof meetingsControllerFindAll>>
         >,
-        "initialData"
+        'initialData'
       >;
   },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 export function useMeetingsControllerFindAll<
   TData = Awaited<ReturnType<typeof meetingsControllerFindAll>>,
-  TError = void
+  TError = void,
 >(
   params?: MeetingsControllerFindAllParams,
   options?: {
     query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof meetingsControllerFindAll>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof meetingsControllerFindAll>>, TError, TData>
     >;
   },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 /**
  * @summary Получить все встречи текущего пользователя
  */
 
 export function useMeetingsControllerFindAll<
   TData = Awaited<ReturnType<typeof meetingsControllerFindAll>>,
-  TError = void
+  TError = void,
 >(
   params?: MeetingsControllerFindAllParams,
   options?: {
     query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof meetingsControllerFindAll>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof meetingsControllerFindAll>>, TError, TData>
     >;
   },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-} {
-  const queryOptions = getMeetingsControllerFindAllQueryOptions(
-    params,
-    options
-  );
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getMeetingsControllerFindAllQueryOptions(params, options);
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
-    TData,
-    TError
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
 
   query.queryKey = queryOptions.queryKey;
 
@@ -286,11 +244,7 @@ export function useMeetingsControllerFindAll<
  * @summary Получить встречу по ID
  */
 export const meetingsControllerFindOne = (id: string, signal?: AbortSignal) => {
-  return customInstance<MeetingResponseDto>({
-    url: `/meetings/${id}`,
-    method: "GET",
-    signal,
-  });
+  return customInstance<MeetingResponseDto>({ url: `/meetings/${id}`, method: 'GET', signal });
 };
 
 export const getMeetingsControllerFindOneQueryKey = (id?: string) => {
@@ -299,34 +253,24 @@ export const getMeetingsControllerFindOneQueryKey = (id?: string) => {
 
 export const getMeetingsControllerFindOneQueryOptions = <
   TData = Awaited<ReturnType<typeof meetingsControllerFindOne>>,
-  TError = void | void | void
+  TError = void | void | void,
 >(
   id: string,
   options?: {
     query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof meetingsControllerFindOne>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof meetingsControllerFindOne>>, TError, TData>
     >;
-  }
+  },
 ) => {
   const { query: queryOptions } = options ?? {};
 
-  const queryKey =
-    queryOptions?.queryKey ?? getMeetingsControllerFindOneQueryKey(id);
+  const queryKey = queryOptions?.queryKey ?? getMeetingsControllerFindOneQueryKey(id);
 
-  const queryFn: QueryFunction<
-    Awaited<ReturnType<typeof meetingsControllerFindOne>>
-  > = ({ signal }) => meetingsControllerFindOne(id, signal);
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof meetingsControllerFindOne>>> = ({
+    signal,
+  }) => meetingsControllerFindOne(id, signal);
 
-  return {
-    queryKey,
-    queryFn,
-    enabled: !!id,
-    ...queryOptions,
-  } as UseQueryOptions<
+  return { queryKey, queryFn, enabled: !!id, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof meetingsControllerFindOne>>,
     TError,
     TData
@@ -340,16 +284,12 @@ export type MeetingsControllerFindOneQueryError = void | void | void;
 
 export function useMeetingsControllerFindOne<
   TData = Awaited<ReturnType<typeof meetingsControllerFindOne>>,
-  TError = void | void | void
+  TError = void | void | void,
 >(
   id: string,
   options: {
     query: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof meetingsControllerFindOne>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof meetingsControllerFindOne>>, TError, TData>
     > &
       Pick<
         DefinedInitialDataOptions<
@@ -357,25 +297,19 @@ export function useMeetingsControllerFindOne<
           TError,
           Awaited<ReturnType<typeof meetingsControllerFindOne>>
         >,
-        "initialData"
+        'initialData'
       >;
   },
-  queryClient?: QueryClient
-): DefinedUseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 export function useMeetingsControllerFindOne<
   TData = Awaited<ReturnType<typeof meetingsControllerFindOne>>,
-  TError = void | void | void
+  TError = void | void | void,
 >(
   id: string,
   options?: {
     query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof meetingsControllerFindOne>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof meetingsControllerFindOne>>, TError, TData>
     > &
       Pick<
         UndefinedInitialDataOptions<
@@ -383,59 +317,44 @@ export function useMeetingsControllerFindOne<
           TError,
           Awaited<ReturnType<typeof meetingsControllerFindOne>>
         >,
-        "initialData"
+        'initialData'
       >;
   },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 export function useMeetingsControllerFindOne<
   TData = Awaited<ReturnType<typeof meetingsControllerFindOne>>,
-  TError = void | void | void
+  TError = void | void | void,
 >(
   id: string,
   options?: {
     query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof meetingsControllerFindOne>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof meetingsControllerFindOne>>, TError, TData>
     >;
   },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 /**
  * @summary Получить встречу по ID
  */
 
 export function useMeetingsControllerFindOne<
   TData = Awaited<ReturnType<typeof meetingsControllerFindOne>>,
-  TError = void | void | void
+  TError = void | void | void,
 >(
   id: string,
   options?: {
     query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof meetingsControllerFindOne>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof meetingsControllerFindOne>>, TError, TData>
     >;
   },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-} {
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getMeetingsControllerFindOneQueryOptions(id, options);
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
-    TData,
-    TError
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
 
   query.queryKey = queryOptions.queryKey;
 
@@ -445,21 +364,18 @@ export function useMeetingsControllerFindOne<
 /**
  * @summary Обновить встречу (только создатель)
  */
-export const meetingsControllerUpdate = (
-  id: string,
-  updateMeetingDto: UpdateMeetingDto
-) => {
+export const meetingsControllerUpdate = (id: string, updateMeetingDto: UpdateMeetingDto) => {
   return customInstance<MeetingResponseDto>({
     url: `/meetings/${id}`,
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
     data: updateMeetingDto,
   });
 };
 
 export const getMeetingsControllerUpdateMutationOptions = <
   TError = void | void,
-  TContext = unknown
+  TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof meetingsControllerUpdate>>,
@@ -473,11 +389,9 @@ export const getMeetingsControllerUpdateMutationOptions = <
   { id: string; data: UpdateMeetingDto },
   TContext
 > => {
-  const mutationKey = ["meetingsControllerUpdate"];
+  const mutationKey = ['meetingsControllerUpdate'];
   const { mutation: mutationOptions } = options
-    ? options.mutation &&
-      "mutationKey" in options.mutation &&
-      options.mutation.mutationKey
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey } };
@@ -503,10 +417,7 @@ export type MeetingsControllerUpdateMutationError = void | void;
 /**
  * @summary Обновить встречу (только создатель)
  */
-export const useMeetingsControllerUpdate = <
-  TError = void | void,
-  TContext = unknown
->(
+export const useMeetingsControllerUpdate = <TError = void | void, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof meetingsControllerUpdate>>,
@@ -515,7 +426,7 @@ export const useMeetingsControllerUpdate = <
       TContext
     >;
   },
-  queryClient?: QueryClient
+  queryClient?: QueryClient,
 ): UseMutationResult<
   Awaited<ReturnType<typeof meetingsControllerUpdate>>,
   TError,
@@ -530,12 +441,12 @@ export const useMeetingsControllerUpdate = <
  * @summary Удалить встречу (только создатель)
  */
 export const meetingsControllerRemove = (id: string) => {
-  return customInstance<void>({ url: `/meetings/${id}`, method: "DELETE" });
+  return customInstance<void>({ url: `/meetings/${id}`, method: 'DELETE' });
 };
 
 export const getMeetingsControllerRemoveMutationOptions = <
   TError = void | void,
-  TContext = unknown
+  TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof meetingsControllerRemove>>,
@@ -549,11 +460,9 @@ export const getMeetingsControllerRemoveMutationOptions = <
   { id: string },
   TContext
 > => {
-  const mutationKey = ["meetingsControllerRemove"];
+  const mutationKey = ['meetingsControllerRemove'];
   const { mutation: mutationOptions } = options
-    ? options.mutation &&
-      "mutationKey" in options.mutation &&
-      options.mutation.mutationKey
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey } };
@@ -579,10 +488,7 @@ export type MeetingsControllerRemoveMutationError = void | void;
 /**
  * @summary Удалить встречу (только создатель)
  */
-export const useMeetingsControllerRemove = <
-  TError = void | void,
-  TContext = unknown
->(
+export const useMeetingsControllerRemove = <TError = void | void, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof meetingsControllerRemove>>,
@@ -591,7 +497,7 @@ export const useMeetingsControllerRemove = <
       TContext
     >;
   },
-  queryClient?: QueryClient
+  queryClient?: QueryClient,
 ): UseMutationResult<
   Awaited<ReturnType<typeof meetingsControllerRemove>>,
   TError,
@@ -605,21 +511,18 @@ export const useMeetingsControllerRemove = <
 /**
  * @summary Изменить фазу встречи (только создатель)
  */
-export const meetingsControllerChangePhase = (
-  id: string,
-  changePhaseDto: ChangePhaseDto
-) => {
+export const meetingsControllerChangePhase = (id: string, changePhaseDto: ChangePhaseDto) => {
   return customInstance<MeetingResponseDto>({
     url: `/meetings/${id}/phase`,
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
     data: changePhaseDto,
   });
 };
 
 export const getMeetingsControllerChangePhaseMutationOptions = <
   TError = void | void,
-  TContext = unknown
+  TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof meetingsControllerChangePhase>>,
@@ -633,11 +536,9 @@ export const getMeetingsControllerChangePhaseMutationOptions = <
   { id: string; data: ChangePhaseDto },
   TContext
 > => {
-  const mutationKey = ["meetingsControllerChangePhase"];
+  const mutationKey = ['meetingsControllerChangePhase'];
   const { mutation: mutationOptions } = options
-    ? options.mutation &&
-      "mutationKey" in options.mutation &&
-      options.mutation.mutationKey
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey } };
@@ -663,10 +564,7 @@ export type MeetingsControllerChangePhaseMutationError = void | void;
 /**
  * @summary Изменить фазу встречи (только создатель)
  */
-export const useMeetingsControllerChangePhase = <
-  TError = void | void,
-  TContext = unknown
->(
+export const useMeetingsControllerChangePhase = <TError = void | void, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof meetingsControllerChangePhase>>,
@@ -675,15 +573,14 @@ export const useMeetingsControllerChangePhase = <
       TContext
     >;
   },
-  queryClient?: QueryClient
+  queryClient?: QueryClient,
 ): UseMutationResult<
   Awaited<ReturnType<typeof meetingsControllerChangePhase>>,
   TError,
   { id: string; data: ChangePhaseDto },
   TContext
 > => {
-  const mutationOptions =
-    getMeetingsControllerChangePhaseMutationOptions(options);
+  const mutationOptions = getMeetingsControllerChangePhaseMutationOptions(options);
 
   return useMutation(mutationOptions, queryClient);
 };
@@ -700,20 +597,17 @@ export const useMeetingsControllerChangePhase = <
  * @deprecated
  * @summary [DEPRECATED] Присоединиться к встрече (войти в комнату)
  */
-export const meetingsControllerJoinMeeting = (
-  id: string,
-  signal?: AbortSignal
-) => {
+export const meetingsControllerJoinMeeting = (id: string, signal?: AbortSignal) => {
   return customInstance<MeetingResponseDto>({
     url: `/meetings/${id}/join`,
-    method: "POST",
+    method: 'POST',
     signal,
   });
 };
 
 export const getMeetingsControllerJoinMeetingMutationOptions = <
   TError = void | void,
-  TContext = unknown
+  TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof meetingsControllerJoinMeeting>>,
@@ -727,11 +621,9 @@ export const getMeetingsControllerJoinMeetingMutationOptions = <
   { id: string },
   TContext
 > => {
-  const mutationKey = ["meetingsControllerJoinMeeting"];
+  const mutationKey = ['meetingsControllerJoinMeeting'];
   const { mutation: mutationOptions } = options
-    ? options.mutation &&
-      "mutationKey" in options.mutation &&
-      options.mutation.mutationKey
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey } };
@@ -758,10 +650,7 @@ export type MeetingsControllerJoinMeetingMutationError = void | void;
  * @deprecated
  * @summary [DEPRECATED] Присоединиться к встрече (войти в комнату)
  */
-export const useMeetingsControllerJoinMeeting = <
-  TError = void | void,
-  TContext = unknown
->(
+export const useMeetingsControllerJoinMeeting = <TError = void | void, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof meetingsControllerJoinMeeting>>,
@@ -770,15 +659,14 @@ export const useMeetingsControllerJoinMeeting = <
       TContext
     >;
   },
-  queryClient?: QueryClient
+  queryClient?: QueryClient,
 ): UseMutationResult<
   Awaited<ReturnType<typeof meetingsControllerJoinMeeting>>,
   TError,
   { id: string },
   TContext
 > => {
-  const mutationOptions =
-    getMeetingsControllerJoinMeetingMutationOptions(options);
+  const mutationOptions = getMeetingsControllerJoinMeetingMutationOptions(options);
 
   return useMutation(mutationOptions, queryClient);
 };
@@ -792,20 +680,17 @@ export const useMeetingsControllerJoinMeeting = <
  * @deprecated
  * @summary [DEPRECATED] Покинуть встречу (выйти из комнаты)
  */
-export const meetingsControllerLeaveMeeting = (
-  id: string,
-  signal?: AbortSignal
-) => {
+export const meetingsControllerLeaveMeeting = (id: string, signal?: AbortSignal) => {
   return customInstance<MeetingResponseDto>({
     url: `/meetings/${id}/leave`,
-    method: "POST",
+    method: 'POST',
     signal,
   });
 };
 
 export const getMeetingsControllerLeaveMeetingMutationOptions = <
   TError = void,
-  TContext = unknown
+  TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof meetingsControllerLeaveMeeting>>,
@@ -819,11 +704,9 @@ export const getMeetingsControllerLeaveMeetingMutationOptions = <
   { id: string },
   TContext
 > => {
-  const mutationKey = ["meetingsControllerLeaveMeeting"];
+  const mutationKey = ['meetingsControllerLeaveMeeting'];
   const { mutation: mutationOptions } = options
-    ? options.mutation &&
-      "mutationKey" in options.mutation &&
-      options.mutation.mutationKey
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey } };
@@ -850,10 +733,7 @@ export type MeetingsControllerLeaveMeetingMutationError = void;
  * @deprecated
  * @summary [DEPRECATED] Покинуть встречу (выйти из комнаты)
  */
-export const useMeetingsControllerLeaveMeeting = <
-  TError = void,
-  TContext = unknown
->(
+export const useMeetingsControllerLeaveMeeting = <TError = void, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof meetingsControllerLeaveMeeting>>,
@@ -862,15 +742,14 @@ export const useMeetingsControllerLeaveMeeting = <
       TContext
     >;
   },
-  queryClient?: QueryClient
+  queryClient?: QueryClient,
 ): UseMutationResult<
   Awaited<ReturnType<typeof meetingsControllerLeaveMeeting>>,
   TError,
   { id: string },
   TContext
 > => {
-  const mutationOptions =
-    getMeetingsControllerLeaveMeetingMutationOptions(options);
+  const mutationOptions = getMeetingsControllerLeaveMeetingMutationOptions(options);
 
   return useMutation(mutationOptions, queryClient);
 };
@@ -880,12 +759,12 @@ export const useMeetingsControllerLeaveMeeting = <
 export const meetingsControllerSubmitEmotionalEvaluation = (
   id: string,
   submitEmotionalEvaluationDto: SubmitEmotionalEvaluationDto,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ) => {
   return customInstance<MeetingResponseDto>({
     url: `/meetings/${id}/emotional-evaluations`,
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     data: submitEmotionalEvaluationDto,
     signal,
   });
@@ -893,7 +772,7 @@ export const meetingsControllerSubmitEmotionalEvaluation = (
 
 export const getMeetingsControllerSubmitEmotionalEvaluationMutationOptions = <
   TError = void | void,
-  TContext = unknown
+  TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof meetingsControllerSubmitEmotionalEvaluation>>,
@@ -907,11 +786,9 @@ export const getMeetingsControllerSubmitEmotionalEvaluationMutationOptions = <
   { id: string; data: SubmitEmotionalEvaluationDto },
   TContext
 > => {
-  const mutationKey = ["meetingsControllerSubmitEmotionalEvaluation"];
+  const mutationKey = ['meetingsControllerSubmitEmotionalEvaluation'];
   const { mutation: mutationOptions } = options
-    ? options.mutation &&
-      "mutationKey" in options.mutation &&
-      options.mutation.mutationKey
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey } };
@@ -928,22 +805,18 @@ export const getMeetingsControllerSubmitEmotionalEvaluationMutationOptions = <
   return { mutationFn, ...mutationOptions };
 };
 
-export type MeetingsControllerSubmitEmotionalEvaluationMutationResult =
-  NonNullable<
-    Awaited<ReturnType<typeof meetingsControllerSubmitEmotionalEvaluation>>
-  >;
-export type MeetingsControllerSubmitEmotionalEvaluationMutationBody =
-  SubmitEmotionalEvaluationDto;
-export type MeetingsControllerSubmitEmotionalEvaluationMutationError =
-  | void
-  | void;
+export type MeetingsControllerSubmitEmotionalEvaluationMutationResult = NonNullable<
+  Awaited<ReturnType<typeof meetingsControllerSubmitEmotionalEvaluation>>
+>;
+export type MeetingsControllerSubmitEmotionalEvaluationMutationBody = SubmitEmotionalEvaluationDto;
+export type MeetingsControllerSubmitEmotionalEvaluationMutationError = void | void;
 
 /**
  * @summary Отправить эмоциональную оценку (фаза emotional_evaluation, все участники включая создателя)
  */
 export const useMeetingsControllerSubmitEmotionalEvaluation = <
   TError = void | void,
-  TContext = unknown
+  TContext = unknown,
 >(
   options?: {
     mutation?: UseMutationOptions<
@@ -953,15 +826,14 @@ export const useMeetingsControllerSubmitEmotionalEvaluation = <
       TContext
     >;
   },
-  queryClient?: QueryClient
+  queryClient?: QueryClient,
 ): UseMutationResult<
   Awaited<ReturnType<typeof meetingsControllerSubmitEmotionalEvaluation>>,
   TError,
   { id: string; data: SubmitEmotionalEvaluationDto },
   TContext
 > => {
-  const mutationOptions =
-    getMeetingsControllerSubmitEmotionalEvaluationMutationOptions(options);
+  const mutationOptions = getMeetingsControllerSubmitEmotionalEvaluationMutationOptions(options);
 
   return useMutation(mutationOptions, queryClient);
 };
@@ -971,88 +843,75 @@ export const useMeetingsControllerSubmitEmotionalEvaluation = <
 export const meetingsControllerSubmitUnderstandingContribution = (
   id: string,
   submitUnderstandingContributionDto: SubmitUnderstandingContributionDto,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ) => {
   return customInstance<MeetingResponseDto>({
     url: `/meetings/${id}/understanding-contributions`,
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     data: submitUnderstandingContributionDto,
     signal,
   });
 };
 
-export const getMeetingsControllerSubmitUnderstandingContributionMutationOptions =
-  <TError = void | void, TContext = unknown>(options?: {
-    mutation?: UseMutationOptions<
-      Awaited<
-        ReturnType<typeof meetingsControllerSubmitUnderstandingContribution>
-      >,
-      TError,
-      { id: string; data: SubmitUnderstandingContributionDto },
-      TContext
-    >;
-  }): UseMutationOptions<
-    Awaited<
-      ReturnType<typeof meetingsControllerSubmitUnderstandingContribution>
-    >,
+export const getMeetingsControllerSubmitUnderstandingContributionMutationOptions = <
+  TError = void | void,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof meetingsControllerSubmitUnderstandingContribution>>,
     TError,
     { id: string; data: SubmitUnderstandingContributionDto },
     TContext
-  > => {
-    const mutationKey = ["meetingsControllerSubmitUnderstandingContribution"];
-    const { mutation: mutationOptions } = options
-      ? options.mutation &&
-        "mutationKey" in options.mutation &&
-        options.mutation.mutationKey
-        ? options
-        : { ...options, mutation: { ...options.mutation, mutationKey } }
-      : { mutation: { mutationKey } };
+  >;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof meetingsControllerSubmitUnderstandingContribution>>,
+  TError,
+  { id: string; data: SubmitUnderstandingContributionDto },
+  TContext
+> => {
+  const mutationKey = ['meetingsControllerSubmitUnderstandingContribution'];
+  const { mutation: mutationOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } };
 
-    const mutationFn: MutationFunction<
-      Awaited<
-        ReturnType<typeof meetingsControllerSubmitUnderstandingContribution>
-      >,
-      { id: string; data: SubmitUnderstandingContributionDto }
-    > = (props) => {
-      const { id, data } = props ?? {};
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof meetingsControllerSubmitUnderstandingContribution>>,
+    { id: string; data: SubmitUnderstandingContributionDto }
+  > = (props) => {
+    const { id, data } = props ?? {};
 
-      return meetingsControllerSubmitUnderstandingContribution(id, data);
-    };
-
-    return { mutationFn, ...mutationOptions };
+    return meetingsControllerSubmitUnderstandingContribution(id, data);
   };
 
-export type MeetingsControllerSubmitUnderstandingContributionMutationResult =
-  NonNullable<
-    Awaited<
-      ReturnType<typeof meetingsControllerSubmitUnderstandingContribution>
-    >
-  >;
+  return { mutationFn, ...mutationOptions };
+};
+
+export type MeetingsControllerSubmitUnderstandingContributionMutationResult = NonNullable<
+  Awaited<ReturnType<typeof meetingsControllerSubmitUnderstandingContribution>>
+>;
 export type MeetingsControllerSubmitUnderstandingContributionMutationBody =
   SubmitUnderstandingContributionDto;
-export type MeetingsControllerSubmitUnderstandingContributionMutationError =
-  | void
-  | void;
+export type MeetingsControllerSubmitUnderstandingContributionMutationError = void | void;
 
 /**
  * @summary Отправить понимание и вклад (фаза understanding_contribution, все участники включая создателя)
  */
 export const useMeetingsControllerSubmitUnderstandingContribution = <
   TError = void | void,
-  TContext = unknown
+  TContext = unknown,
 >(
   options?: {
     mutation?: UseMutationOptions<
-      Awaited<
-        ReturnType<typeof meetingsControllerSubmitUnderstandingContribution>
-      >,
+      Awaited<ReturnType<typeof meetingsControllerSubmitUnderstandingContribution>>,
       TError,
       { id: string; data: SubmitUnderstandingContributionDto },
       TContext
     >;
   },
-  queryClient?: QueryClient
+  queryClient?: QueryClient,
 ): UseMutationResult<
   Awaited<ReturnType<typeof meetingsControllerSubmitUnderstandingContribution>>,
   TError,
@@ -1060,9 +919,7 @@ export const useMeetingsControllerSubmitUnderstandingContribution = <
   TContext
 > => {
   const mutationOptions =
-    getMeetingsControllerSubmitUnderstandingContributionMutationOptions(
-      options
-    );
+    getMeetingsControllerSubmitUnderstandingContributionMutationOptions(options);
 
   return useMutation(mutationOptions, queryClient);
 };
@@ -1072,12 +929,12 @@ export const useMeetingsControllerSubmitUnderstandingContribution = <
 export const meetingsControllerSubmitTaskPlanning = (
   id: string,
   submitTaskPlanningDto: SubmitTaskPlanningDto,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ) => {
   return customInstance<MeetingResponseDto>({
     url: `/meetings/${id}/task-plannings`,
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     data: submitTaskPlanningDto,
     signal,
   });
@@ -1085,7 +942,7 @@ export const meetingsControllerSubmitTaskPlanning = (
 
 export const getMeetingsControllerSubmitTaskPlanningMutationOptions = <
   TError = void | void,
-  TContext = unknown
+  TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof meetingsControllerSubmitTaskPlanning>>,
@@ -1099,11 +956,9 @@ export const getMeetingsControllerSubmitTaskPlanningMutationOptions = <
   { id: string; data: SubmitTaskPlanningDto },
   TContext
 > => {
-  const mutationKey = ["meetingsControllerSubmitTaskPlanning"];
+  const mutationKey = ['meetingsControllerSubmitTaskPlanning'];
   const { mutation: mutationOptions } = options
-    ? options.mutation &&
-      "mutationKey" in options.mutation &&
-      options.mutation.mutationKey
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey } };
@@ -1123,17 +978,13 @@ export const getMeetingsControllerSubmitTaskPlanningMutationOptions = <
 export type MeetingsControllerSubmitTaskPlanningMutationResult = NonNullable<
   Awaited<ReturnType<typeof meetingsControllerSubmitTaskPlanning>>
 >;
-export type MeetingsControllerSubmitTaskPlanningMutationBody =
-  SubmitTaskPlanningDto;
+export type MeetingsControllerSubmitTaskPlanningMutationBody = SubmitTaskPlanningDto;
 export type MeetingsControllerSubmitTaskPlanningMutationError = void | void;
 
 /**
  * @summary Отправить планирование задачи (фаза task_planning, все участники включая создателя)
  */
-export const useMeetingsControllerSubmitTaskPlanning = <
-  TError = void | void,
-  TContext = unknown
->(
+export const useMeetingsControllerSubmitTaskPlanning = <TError = void | void, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof meetingsControllerSubmitTaskPlanning>>,
@@ -1142,15 +993,14 @@ export const useMeetingsControllerSubmitTaskPlanning = <
       TContext
     >;
   },
-  queryClient?: QueryClient
+  queryClient?: QueryClient,
 ): UseMutationResult<
   Awaited<ReturnType<typeof meetingsControllerSubmitTaskPlanning>>,
   TError,
   { id: string; data: SubmitTaskPlanningDto },
   TContext
 > => {
-  const mutationOptions =
-    getMeetingsControllerSubmitTaskPlanningMutationOptions(options);
+  const mutationOptions = getMeetingsControllerSubmitTaskPlanningMutationOptions(options);
 
   return useMutation(mutationOptions, queryClient);
 };
@@ -1160,12 +1010,12 @@ export const useMeetingsControllerSubmitTaskPlanning = <
 export const meetingsControllerSubmitTaskEvaluation = (
   id: string,
   submitTaskEvaluationDto: SubmitTaskEvaluationDto,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ) => {
   return customInstance<MeetingResponseDto>({
     url: `/meetings/${id}/task-evaluations`,
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     data: submitTaskEvaluationDto,
     signal,
   });
@@ -1173,7 +1023,7 @@ export const meetingsControllerSubmitTaskEvaluation = (
 
 export const getMeetingsControllerSubmitTaskEvaluationMutationOptions = <
   TError = void | void | void,
-  TContext = unknown
+  TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof meetingsControllerSubmitTaskEvaluation>>,
@@ -1187,11 +1037,9 @@ export const getMeetingsControllerSubmitTaskEvaluationMutationOptions = <
   { id: string; data: SubmitTaskEvaluationDto },
   TContext
 > => {
-  const mutationKey = ["meetingsControllerSubmitTaskEvaluation"];
+  const mutationKey = ['meetingsControllerSubmitTaskEvaluation'];
   const { mutation: mutationOptions } = options
-    ? options.mutation &&
-      "mutationKey" in options.mutation &&
-      options.mutation.mutationKey
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey } };
@@ -1211,19 +1059,15 @@ export const getMeetingsControllerSubmitTaskEvaluationMutationOptions = <
 export type MeetingsControllerSubmitTaskEvaluationMutationResult = NonNullable<
   Awaited<ReturnType<typeof meetingsControllerSubmitTaskEvaluation>>
 >;
-export type MeetingsControllerSubmitTaskEvaluationMutationBody =
-  SubmitTaskEvaluationDto;
-export type MeetingsControllerSubmitTaskEvaluationMutationError =
-  | void
-  | void
-  | void;
+export type MeetingsControllerSubmitTaskEvaluationMutationBody = SubmitTaskEvaluationDto;
+export type MeetingsControllerSubmitTaskEvaluationMutationError = void | void | void;
 
 /**
  * @summary Отправить оценки важности задач (фаза task_evaluation, все участники включая создателя)
  */
 export const useMeetingsControllerSubmitTaskEvaluation = <
   TError = void | void | void,
-  TContext = unknown
+  TContext = unknown,
 >(
   options?: {
     mutation?: UseMutationOptions<
@@ -1233,210 +1077,157 @@ export const useMeetingsControllerSubmitTaskEvaluation = <
       TContext
     >;
   },
-  queryClient?: QueryClient
+  queryClient?: QueryClient,
 ): UseMutationResult<
   Awaited<ReturnType<typeof meetingsControllerSubmitTaskEvaluation>>,
   TError,
   { id: string; data: SubmitTaskEvaluationDto },
   TContext
 > => {
-  const mutationOptions =
-    getMeetingsControllerSubmitTaskEvaluationMutationOptions(options);
+  const mutationOptions = getMeetingsControllerSubmitTaskEvaluationMutationOptions(options);
 
   return useMutation(mutationOptions, queryClient);
 };
 /**
  * @summary Получить аналитику оценок задач (только создатель)
  */
-export const meetingsControllerGetTaskEvaluationAnalytics = (
-  id: string,
-  signal?: AbortSignal
-) => {
+export const meetingsControllerGetTaskEvaluationAnalytics = (id: string, signal?: AbortSignal) => {
   return customInstance<void>({
     url: `/meetings/${id}/task-evaluation-analytics`,
-    method: "GET",
+    method: 'GET',
     signal,
   });
 };
 
-export const getMeetingsControllerGetTaskEvaluationAnalyticsQueryKey = (
-  id?: string
-) => {
+export const getMeetingsControllerGetTaskEvaluationAnalyticsQueryKey = (id?: string) => {
   return [`/meetings/${id}/task-evaluation-analytics`] as const;
 };
 
 export const getMeetingsControllerGetTaskEvaluationAnalyticsQueryOptions = <
-  TData = Awaited<
-    ReturnType<typeof meetingsControllerGetTaskEvaluationAnalytics>
-  >,
-  TError = void | void
+  TData = Awaited<ReturnType<typeof meetingsControllerGetTaskEvaluationAnalytics>>,
+  TError = void | void,
 >(
   id: string,
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<
-          ReturnType<typeof meetingsControllerGetTaskEvaluationAnalytics>
-        >,
+        Awaited<ReturnType<typeof meetingsControllerGetTaskEvaluationAnalytics>>,
         TError,
         TData
       >
     >;
-  }
+  },
 ) => {
   const { query: queryOptions } = options ?? {};
 
   const queryKey =
-    queryOptions?.queryKey ??
-    getMeetingsControllerGetTaskEvaluationAnalyticsQueryKey(id);
+    queryOptions?.queryKey ?? getMeetingsControllerGetTaskEvaluationAnalyticsQueryKey(id);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof meetingsControllerGetTaskEvaluationAnalytics>>
   > = ({ signal }) => meetingsControllerGetTaskEvaluationAnalytics(id, signal);
 
-  return {
-    queryKey,
-    queryFn,
-    enabled: !!id,
-    ...queryOptions,
-  } as UseQueryOptions<
+  return { queryKey, queryFn, enabled: !!id, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof meetingsControllerGetTaskEvaluationAnalytics>>,
     TError,
     TData
   > & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
-export type MeetingsControllerGetTaskEvaluationAnalyticsQueryResult =
-  NonNullable<
-    Awaited<ReturnType<typeof meetingsControllerGetTaskEvaluationAnalytics>>
-  >;
-export type MeetingsControllerGetTaskEvaluationAnalyticsQueryError =
-  | void
-  | void;
+export type MeetingsControllerGetTaskEvaluationAnalyticsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof meetingsControllerGetTaskEvaluationAnalytics>>
+>;
+export type MeetingsControllerGetTaskEvaluationAnalyticsQueryError = void | void;
 
 export function useMeetingsControllerGetTaskEvaluationAnalytics<
-  TData = Awaited<
-    ReturnType<typeof meetingsControllerGetTaskEvaluationAnalytics>
-  >,
-  TError = void | void
+  TData = Awaited<ReturnType<typeof meetingsControllerGetTaskEvaluationAnalytics>>,
+  TError = void | void,
 >(
   id: string,
   options: {
     query: Partial<
       UseQueryOptions<
-        Awaited<
-          ReturnType<typeof meetingsControllerGetTaskEvaluationAnalytics>
-        >,
+        Awaited<ReturnType<typeof meetingsControllerGetTaskEvaluationAnalytics>>,
         TError,
         TData
       >
     > &
       Pick<
         DefinedInitialDataOptions<
-          Awaited<
-            ReturnType<typeof meetingsControllerGetTaskEvaluationAnalytics>
-          >,
+          Awaited<ReturnType<typeof meetingsControllerGetTaskEvaluationAnalytics>>,
           TError,
-          Awaited<
-            ReturnType<typeof meetingsControllerGetTaskEvaluationAnalytics>
-          >
+          Awaited<ReturnType<typeof meetingsControllerGetTaskEvaluationAnalytics>>
         >,
-        "initialData"
+        'initialData'
       >;
   },
-  queryClient?: QueryClient
-): DefinedUseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 export function useMeetingsControllerGetTaskEvaluationAnalytics<
-  TData = Awaited<
-    ReturnType<typeof meetingsControllerGetTaskEvaluationAnalytics>
-  >,
-  TError = void | void
+  TData = Awaited<ReturnType<typeof meetingsControllerGetTaskEvaluationAnalytics>>,
+  TError = void | void,
 >(
   id: string,
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<
-          ReturnType<typeof meetingsControllerGetTaskEvaluationAnalytics>
-        >,
+        Awaited<ReturnType<typeof meetingsControllerGetTaskEvaluationAnalytics>>,
         TError,
         TData
       >
     > &
       Pick<
         UndefinedInitialDataOptions<
-          Awaited<
-            ReturnType<typeof meetingsControllerGetTaskEvaluationAnalytics>
-          >,
+          Awaited<ReturnType<typeof meetingsControllerGetTaskEvaluationAnalytics>>,
           TError,
-          Awaited<
-            ReturnType<typeof meetingsControllerGetTaskEvaluationAnalytics>
-          >
+          Awaited<ReturnType<typeof meetingsControllerGetTaskEvaluationAnalytics>>
         >,
-        "initialData"
+        'initialData'
       >;
   },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 export function useMeetingsControllerGetTaskEvaluationAnalytics<
-  TData = Awaited<
-    ReturnType<typeof meetingsControllerGetTaskEvaluationAnalytics>
-  >,
-  TError = void | void
+  TData = Awaited<ReturnType<typeof meetingsControllerGetTaskEvaluationAnalytics>>,
+  TError = void | void,
 >(
   id: string,
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<
-          ReturnType<typeof meetingsControllerGetTaskEvaluationAnalytics>
-        >,
+        Awaited<ReturnType<typeof meetingsControllerGetTaskEvaluationAnalytics>>,
         TError,
         TData
       >
     >;
   },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 /**
  * @summary Получить аналитику оценок задач (только создатель)
  */
 
 export function useMeetingsControllerGetTaskEvaluationAnalytics<
-  TData = Awaited<
-    ReturnType<typeof meetingsControllerGetTaskEvaluationAnalytics>
-  >,
-  TError = void | void
+  TData = Awaited<ReturnType<typeof meetingsControllerGetTaskEvaluationAnalytics>>,
+  TError = void | void,
 >(
   id: string,
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<
-          ReturnType<typeof meetingsControllerGetTaskEvaluationAnalytics>
-        >,
+        Awaited<ReturnType<typeof meetingsControllerGetTaskEvaluationAnalytics>>,
         TError,
         TData
       >
     >;
   },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-} {
-  const queryOptions =
-    getMeetingsControllerGetTaskEvaluationAnalyticsQueryOptions(id, options);
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getMeetingsControllerGetTaskEvaluationAnalyticsQueryOptions(id, options);
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
-    TData,
-    TError
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
 
   query.queryKey = queryOptions.queryKey;
 
@@ -1456,15 +1247,8 @@ export function useMeetingsControllerGetTaskEvaluationAnalytics<
     
  * @summary Получить информацию о голосовании с активными участниками (только создатель)
  */
-export const meetingsControllerGetVotingInfo = (
-  id: string,
-  signal?: AbortSignal
-) => {
-  return customInstance<void>({
-    url: `/meetings/${id}/voting-info`,
-    method: "GET",
-    signal,
-  });
+export const meetingsControllerGetVotingInfo = (id: string, signal?: AbortSignal) => {
+  return customInstance<void>({ url: `/meetings/${id}/voting-info`, method: 'GET', signal });
 };
 
 export const getMeetingsControllerGetVotingInfoQueryKey = (id?: string) => {
@@ -1473,34 +1257,24 @@ export const getMeetingsControllerGetVotingInfoQueryKey = (id?: string) => {
 
 export const getMeetingsControllerGetVotingInfoQueryOptions = <
   TData = Awaited<ReturnType<typeof meetingsControllerGetVotingInfo>>,
-  TError = void | void
+  TError = void | void,
 >(
   id: string,
   options?: {
     query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof meetingsControllerGetVotingInfo>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof meetingsControllerGetVotingInfo>>, TError, TData>
     >;
-  }
+  },
 ) => {
   const { query: queryOptions } = options ?? {};
 
-  const queryKey =
-    queryOptions?.queryKey ?? getMeetingsControllerGetVotingInfoQueryKey(id);
+  const queryKey = queryOptions?.queryKey ?? getMeetingsControllerGetVotingInfoQueryKey(id);
 
-  const queryFn: QueryFunction<
-    Awaited<ReturnType<typeof meetingsControllerGetVotingInfo>>
-  > = ({ signal }) => meetingsControllerGetVotingInfo(id, signal);
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof meetingsControllerGetVotingInfo>>> = ({
+    signal,
+  }) => meetingsControllerGetVotingInfo(id, signal);
 
-  return {
-    queryKey,
-    queryFn,
-    enabled: !!id,
-    ...queryOptions,
-  } as UseQueryOptions<
+  return { queryKey, queryFn, enabled: !!id, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof meetingsControllerGetVotingInfo>>,
     TError,
     TData
@@ -1514,16 +1288,12 @@ export type MeetingsControllerGetVotingInfoQueryError = void | void;
 
 export function useMeetingsControllerGetVotingInfo<
   TData = Awaited<ReturnType<typeof meetingsControllerGetVotingInfo>>,
-  TError = void | void
+  TError = void | void,
 >(
   id: string,
   options: {
     query: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof meetingsControllerGetVotingInfo>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof meetingsControllerGetVotingInfo>>, TError, TData>
     > &
       Pick<
         DefinedInitialDataOptions<
@@ -1531,25 +1301,19 @@ export function useMeetingsControllerGetVotingInfo<
           TError,
           Awaited<ReturnType<typeof meetingsControllerGetVotingInfo>>
         >,
-        "initialData"
+        'initialData'
       >;
   },
-  queryClient?: QueryClient
-): DefinedUseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 export function useMeetingsControllerGetVotingInfo<
   TData = Awaited<ReturnType<typeof meetingsControllerGetVotingInfo>>,
-  TError = void | void
+  TError = void | void,
 >(
   id: string,
   options?: {
     query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof meetingsControllerGetVotingInfo>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof meetingsControllerGetVotingInfo>>, TError, TData>
     > &
       Pick<
         UndefinedInitialDataOptions<
@@ -1557,62 +1321,44 @@ export function useMeetingsControllerGetVotingInfo<
           TError,
           Awaited<ReturnType<typeof meetingsControllerGetVotingInfo>>
         >,
-        "initialData"
+        'initialData'
       >;
   },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 export function useMeetingsControllerGetVotingInfo<
   TData = Awaited<ReturnType<typeof meetingsControllerGetVotingInfo>>,
-  TError = void | void
+  TError = void | void,
 >(
   id: string,
   options?: {
     query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof meetingsControllerGetVotingInfo>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof meetingsControllerGetVotingInfo>>, TError, TData>
     >;
   },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 /**
  * @summary Получить информацию о голосовании с активными участниками (только создатель)
  */
 
 export function useMeetingsControllerGetVotingInfo<
   TData = Awaited<ReturnType<typeof meetingsControllerGetVotingInfo>>,
-  TError = void | void
+  TError = void | void,
 >(
   id: string,
   options?: {
     query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof meetingsControllerGetVotingInfo>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof meetingsControllerGetVotingInfo>>, TError, TData>
     >;
   },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-} {
-  const queryOptions = getMeetingsControllerGetVotingInfoQueryOptions(
-    id,
-    options
-  );
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getMeetingsControllerGetVotingInfoQueryOptions(id, options);
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
-    TData,
-    TError
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
 
   query.queryKey = queryOptions.queryKey;
 
@@ -1637,26 +1383,21 @@ export function useMeetingsControllerGetVotingInfo<
     
  * @summary Получить список активных участников в комнате встречи (Socket.IO-based)
  */
-export const meetingsControllerGetActiveParticipants = (
-  id: string,
-  signal?: AbortSignal
-) => {
+export const meetingsControllerGetActiveParticipants = (id: string, signal?: AbortSignal) => {
   return customInstance<void>({
     url: `/meetings/${id}/active-participants`,
-    method: "GET",
+    method: 'GET',
     signal,
   });
 };
 
-export const getMeetingsControllerGetActiveParticipantsQueryKey = (
-  id?: string
-) => {
+export const getMeetingsControllerGetActiveParticipantsQueryKey = (id?: string) => {
   return [`/meetings/${id}/active-participants`] as const;
 };
 
 export const getMeetingsControllerGetActiveParticipantsQueryOptions = <
   TData = Awaited<ReturnType<typeof meetingsControllerGetActiveParticipants>>,
-  TError = void
+  TError = void,
 >(
   id: string,
   options?: {
@@ -1667,24 +1408,17 @@ export const getMeetingsControllerGetActiveParticipantsQueryOptions = <
         TData
       >
     >;
-  }
+  },
 ) => {
   const { query: queryOptions } = options ?? {};
 
-  const queryKey =
-    queryOptions?.queryKey ??
-    getMeetingsControllerGetActiveParticipantsQueryKey(id);
+  const queryKey = queryOptions?.queryKey ?? getMeetingsControllerGetActiveParticipantsQueryKey(id);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof meetingsControllerGetActiveParticipants>>
   > = ({ signal }) => meetingsControllerGetActiveParticipants(id, signal);
 
-  return {
-    queryKey,
-    queryFn,
-    enabled: !!id,
-    ...queryOptions,
-  } as UseQueryOptions<
+  return { queryKey, queryFn, enabled: !!id, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof meetingsControllerGetActiveParticipants>>,
     TError,
     TData
@@ -1698,7 +1432,7 @@ export type MeetingsControllerGetActiveParticipantsQueryError = void;
 
 export function useMeetingsControllerGetActiveParticipants<
   TData = Awaited<ReturnType<typeof meetingsControllerGetActiveParticipants>>,
-  TError = void
+  TError = void,
 >(
   id: string,
   options: {
@@ -1715,16 +1449,14 @@ export function useMeetingsControllerGetActiveParticipants<
           TError,
           Awaited<ReturnType<typeof meetingsControllerGetActiveParticipants>>
         >,
-        "initialData"
+        'initialData'
       >;
   },
-  queryClient?: QueryClient
-): DefinedUseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 export function useMeetingsControllerGetActiveParticipants<
   TData = Awaited<ReturnType<typeof meetingsControllerGetActiveParticipants>>,
-  TError = void
+  TError = void,
 >(
   id: string,
   options?: {
@@ -1741,16 +1473,14 @@ export function useMeetingsControllerGetActiveParticipants<
           TError,
           Awaited<ReturnType<typeof meetingsControllerGetActiveParticipants>>
         >,
-        "initialData"
+        'initialData'
       >;
   },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 export function useMeetingsControllerGetActiveParticipants<
   TData = Awaited<ReturnType<typeof meetingsControllerGetActiveParticipants>>,
-  TError = void
+  TError = void,
 >(
   id: string,
   options?: {
@@ -1762,17 +1492,15 @@ export function useMeetingsControllerGetActiveParticipants<
       >
     >;
   },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 /**
  * @summary Получить список активных участников в комнате встречи (Socket.IO-based)
  */
 
 export function useMeetingsControllerGetActiveParticipants<
   TData = Awaited<ReturnType<typeof meetingsControllerGetActiveParticipants>>,
-  TError = void
+  TError = void,
 >(
   id: string,
   options?: {
@@ -1784,19 +1512,13 @@ export function useMeetingsControllerGetActiveParticipants<
       >
     >;
   },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-} {
-  const queryOptions = getMeetingsControllerGetActiveParticipantsQueryOptions(
-    id,
-    options
-  );
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getMeetingsControllerGetActiveParticipantsQueryOptions(id, options);
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
-    TData,
-    TError
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
 
   query.queryKey = queryOptions.queryKey;
 
@@ -1806,15 +1528,8 @@ export function useMeetingsControllerGetActiveParticipants<
 /**
  * @summary Получить все ответы участников в упрощенном формате (только создатель)
  */
-export const meetingsControllerGetAllSubmissions = (
-  id: string,
-  signal?: AbortSignal
-) => {
-  return customInstance<void>({
-    url: `/meetings/${id}/all-submissions`,
-    method: "GET",
-    signal,
-  });
+export const meetingsControllerGetAllSubmissions = (id: string, signal?: AbortSignal) => {
+  return customInstance<void>({ url: `/meetings/${id}/all-submissions`, method: 'GET', signal });
 };
 
 export const getMeetingsControllerGetAllSubmissionsQueryKey = (id?: string) => {
@@ -1823,7 +1538,7 @@ export const getMeetingsControllerGetAllSubmissionsQueryKey = (id?: string) => {
 
 export const getMeetingsControllerGetAllSubmissionsQueryOptions = <
   TData = Awaited<ReturnType<typeof meetingsControllerGetAllSubmissions>>,
-  TError = void | void
+  TError = void | void,
 >(
   id: string,
   options?: {
@@ -1834,24 +1549,17 @@ export const getMeetingsControllerGetAllSubmissionsQueryOptions = <
         TData
       >
     >;
-  }
+  },
 ) => {
   const { query: queryOptions } = options ?? {};
 
-  const queryKey =
-    queryOptions?.queryKey ??
-    getMeetingsControllerGetAllSubmissionsQueryKey(id);
+  const queryKey = queryOptions?.queryKey ?? getMeetingsControllerGetAllSubmissionsQueryKey(id);
 
-  const queryFn: QueryFunction<
-    Awaited<ReturnType<typeof meetingsControllerGetAllSubmissions>>
-  > = ({ signal }) => meetingsControllerGetAllSubmissions(id, signal);
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof meetingsControllerGetAllSubmissions>>> = ({
+    signal,
+  }) => meetingsControllerGetAllSubmissions(id, signal);
 
-  return {
-    queryKey,
-    queryFn,
-    enabled: !!id,
-    ...queryOptions,
-  } as UseQueryOptions<
+  return { queryKey, queryFn, enabled: !!id, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof meetingsControllerGetAllSubmissions>>,
     TError,
     TData
@@ -1865,7 +1573,7 @@ export type MeetingsControllerGetAllSubmissionsQueryError = void | void;
 
 export function useMeetingsControllerGetAllSubmissions<
   TData = Awaited<ReturnType<typeof meetingsControllerGetAllSubmissions>>,
-  TError = void | void
+  TError = void | void,
 >(
   id: string,
   options: {
@@ -1882,16 +1590,14 @@ export function useMeetingsControllerGetAllSubmissions<
           TError,
           Awaited<ReturnType<typeof meetingsControllerGetAllSubmissions>>
         >,
-        "initialData"
+        'initialData'
       >;
   },
-  queryClient?: QueryClient
-): DefinedUseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 export function useMeetingsControllerGetAllSubmissions<
   TData = Awaited<ReturnType<typeof meetingsControllerGetAllSubmissions>>,
-  TError = void | void
+  TError = void | void,
 >(
   id: string,
   options?: {
@@ -1908,16 +1614,14 @@ export function useMeetingsControllerGetAllSubmissions<
           TError,
           Awaited<ReturnType<typeof meetingsControllerGetAllSubmissions>>
         >,
-        "initialData"
+        'initialData'
       >;
   },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 export function useMeetingsControllerGetAllSubmissions<
   TData = Awaited<ReturnType<typeof meetingsControllerGetAllSubmissions>>,
-  TError = void | void
+  TError = void | void,
 >(
   id: string,
   options?: {
@@ -1929,17 +1633,15 @@ export function useMeetingsControllerGetAllSubmissions<
       >
     >;
   },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 /**
  * @summary Получить все ответы участников в упрощенном формате (только создатель)
  */
 
 export function useMeetingsControllerGetAllSubmissions<
   TData = Awaited<ReturnType<typeof meetingsControllerGetAllSubmissions>>,
-  TError = void | void
+  TError = void | void,
 >(
   id: string,
   options?: {
@@ -1951,19 +1653,13 @@ export function useMeetingsControllerGetAllSubmissions<
       >
     >;
   },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-} {
-  const queryOptions = getMeetingsControllerGetAllSubmissionsQueryOptions(
-    id,
-    options
-  );
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getMeetingsControllerGetAllSubmissionsQueryOptions(id, options);
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
-    TData,
-    TError
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
 
   query.queryKey = queryOptions.queryKey;
 
@@ -1973,26 +1669,17 @@ export function useMeetingsControllerGetAllSubmissions<
 /**
  * @summary Получить детальную информацию о всех ответах участников (только создатель)
  */
-export const meetingsControllerGetPhaseSubmissions = (
-  id: string,
-  signal?: AbortSignal
-) => {
-  return customInstance<void>({
-    url: `/meetings/${id}/phase-submissions`,
-    method: "GET",
-    signal,
-  });
+export const meetingsControllerGetPhaseSubmissions = (id: string, signal?: AbortSignal) => {
+  return customInstance<void>({ url: `/meetings/${id}/phase-submissions`, method: 'GET', signal });
 };
 
-export const getMeetingsControllerGetPhaseSubmissionsQueryKey = (
-  id?: string
-) => {
+export const getMeetingsControllerGetPhaseSubmissionsQueryKey = (id?: string) => {
   return [`/meetings/${id}/phase-submissions`] as const;
 };
 
 export const getMeetingsControllerGetPhaseSubmissionsQueryOptions = <
   TData = Awaited<ReturnType<typeof meetingsControllerGetPhaseSubmissions>>,
-  TError = void | void
+  TError = void | void,
 >(
   id: string,
   options?: {
@@ -2003,24 +1690,17 @@ export const getMeetingsControllerGetPhaseSubmissionsQueryOptions = <
         TData
       >
     >;
-  }
+  },
 ) => {
   const { query: queryOptions } = options ?? {};
 
-  const queryKey =
-    queryOptions?.queryKey ??
-    getMeetingsControllerGetPhaseSubmissionsQueryKey(id);
+  const queryKey = queryOptions?.queryKey ?? getMeetingsControllerGetPhaseSubmissionsQueryKey(id);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof meetingsControllerGetPhaseSubmissions>>
   > = ({ signal }) => meetingsControllerGetPhaseSubmissions(id, signal);
 
-  return {
-    queryKey,
-    queryFn,
-    enabled: !!id,
-    ...queryOptions,
-  } as UseQueryOptions<
+  return { queryKey, queryFn, enabled: !!id, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof meetingsControllerGetPhaseSubmissions>>,
     TError,
     TData
@@ -2034,7 +1714,7 @@ export type MeetingsControllerGetPhaseSubmissionsQueryError = void | void;
 
 export function useMeetingsControllerGetPhaseSubmissions<
   TData = Awaited<ReturnType<typeof meetingsControllerGetPhaseSubmissions>>,
-  TError = void | void
+  TError = void | void,
 >(
   id: string,
   options: {
@@ -2051,16 +1731,14 @@ export function useMeetingsControllerGetPhaseSubmissions<
           TError,
           Awaited<ReturnType<typeof meetingsControllerGetPhaseSubmissions>>
         >,
-        "initialData"
+        'initialData'
       >;
   },
-  queryClient?: QueryClient
-): DefinedUseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 export function useMeetingsControllerGetPhaseSubmissions<
   TData = Awaited<ReturnType<typeof meetingsControllerGetPhaseSubmissions>>,
-  TError = void | void
+  TError = void | void,
 >(
   id: string,
   options?: {
@@ -2077,16 +1755,14 @@ export function useMeetingsControllerGetPhaseSubmissions<
           TError,
           Awaited<ReturnType<typeof meetingsControllerGetPhaseSubmissions>>
         >,
-        "initialData"
+        'initialData'
       >;
   },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 export function useMeetingsControllerGetPhaseSubmissions<
   TData = Awaited<ReturnType<typeof meetingsControllerGetPhaseSubmissions>>,
-  TError = void | void
+  TError = void | void,
 >(
   id: string,
   options?: {
@@ -2098,17 +1774,15 @@ export function useMeetingsControllerGetPhaseSubmissions<
       >
     >;
   },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 /**
  * @summary Получить детальную информацию о всех ответах участников (только создатель)
  */
 
 export function useMeetingsControllerGetPhaseSubmissions<
   TData = Awaited<ReturnType<typeof meetingsControllerGetPhaseSubmissions>>,
-  TError = void | void
+  TError = void | void,
 >(
   id: string,
   options?: {
@@ -2120,19 +1794,13 @@ export function useMeetingsControllerGetPhaseSubmissions<
       >
     >;
   },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-} {
-  const queryOptions = getMeetingsControllerGetPhaseSubmissionsQueryOptions(
-    id,
-    options
-  );
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getMeetingsControllerGetPhaseSubmissionsQueryOptions(id, options);
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
-    TData,
-    TError
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
 
   query.queryKey = queryOptions.queryKey;
 
@@ -2142,13 +1810,10 @@ export function useMeetingsControllerGetPhaseSubmissions<
 /**
  * @summary Получить статистику встречи (только завершенные)
  */
-export const meetingsControllerGetStatistics = (
-  id: string,
-  signal?: AbortSignal
-) => {
+export const meetingsControllerGetStatistics = (id: string, signal?: AbortSignal) => {
   return customInstance<StatisticsResponseDto>({
     url: `/meetings/${id}/statistics`,
-    method: "GET",
+    method: 'GET',
     signal,
   });
 };
@@ -2159,34 +1824,24 @@ export const getMeetingsControllerGetStatisticsQueryKey = (id?: string) => {
 
 export const getMeetingsControllerGetStatisticsQueryOptions = <
   TData = Awaited<ReturnType<typeof meetingsControllerGetStatistics>>,
-  TError = void | void
+  TError = void | void,
 >(
   id: string,
   options?: {
     query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof meetingsControllerGetStatistics>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof meetingsControllerGetStatistics>>, TError, TData>
     >;
-  }
+  },
 ) => {
   const { query: queryOptions } = options ?? {};
 
-  const queryKey =
-    queryOptions?.queryKey ?? getMeetingsControllerGetStatisticsQueryKey(id);
+  const queryKey = queryOptions?.queryKey ?? getMeetingsControllerGetStatisticsQueryKey(id);
 
-  const queryFn: QueryFunction<
-    Awaited<ReturnType<typeof meetingsControllerGetStatistics>>
-  > = ({ signal }) => meetingsControllerGetStatistics(id, signal);
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof meetingsControllerGetStatistics>>> = ({
+    signal,
+  }) => meetingsControllerGetStatistics(id, signal);
 
-  return {
-    queryKey,
-    queryFn,
-    enabled: !!id,
-    ...queryOptions,
-  } as UseQueryOptions<
+  return { queryKey, queryFn, enabled: !!id, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof meetingsControllerGetStatistics>>,
     TError,
     TData
@@ -2200,16 +1855,12 @@ export type MeetingsControllerGetStatisticsQueryError = void | void;
 
 export function useMeetingsControllerGetStatistics<
   TData = Awaited<ReturnType<typeof meetingsControllerGetStatistics>>,
-  TError = void | void
+  TError = void | void,
 >(
   id: string,
   options: {
     query: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof meetingsControllerGetStatistics>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof meetingsControllerGetStatistics>>, TError, TData>
     > &
       Pick<
         DefinedInitialDataOptions<
@@ -2217,25 +1868,19 @@ export function useMeetingsControllerGetStatistics<
           TError,
           Awaited<ReturnType<typeof meetingsControllerGetStatistics>>
         >,
-        "initialData"
+        'initialData'
       >;
   },
-  queryClient?: QueryClient
-): DefinedUseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 export function useMeetingsControllerGetStatistics<
   TData = Awaited<ReturnType<typeof meetingsControllerGetStatistics>>,
-  TError = void | void
+  TError = void | void,
 >(
   id: string,
   options?: {
     query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof meetingsControllerGetStatistics>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof meetingsControllerGetStatistics>>, TError, TData>
     > &
       Pick<
         UndefinedInitialDataOptions<
@@ -2243,62 +1888,44 @@ export function useMeetingsControllerGetStatistics<
           TError,
           Awaited<ReturnType<typeof meetingsControllerGetStatistics>>
         >,
-        "initialData"
+        'initialData'
       >;
   },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 export function useMeetingsControllerGetStatistics<
   TData = Awaited<ReturnType<typeof meetingsControllerGetStatistics>>,
-  TError = void | void
+  TError = void | void,
 >(
   id: string,
   options?: {
     query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof meetingsControllerGetStatistics>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof meetingsControllerGetStatistics>>, TError, TData>
     >;
   },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 /**
  * @summary Получить статистику встречи (только завершенные)
  */
 
 export function useMeetingsControllerGetStatistics<
   TData = Awaited<ReturnType<typeof meetingsControllerGetStatistics>>,
-  TError = void | void
+  TError = void | void,
 >(
   id: string,
   options?: {
     query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof meetingsControllerGetStatistics>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof meetingsControllerGetStatistics>>, TError, TData>
     >;
   },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-} {
-  const queryOptions = getMeetingsControllerGetStatisticsQueryOptions(
-    id,
-    options
-  );
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getMeetingsControllerGetStatisticsQueryOptions(id, options);
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
-    TData,
-    TError
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
 
   query.queryKey = queryOptions.queryKey;
 
@@ -2314,26 +1941,17 @@ export function useMeetingsControllerGetStatistics<
     
  * @summary Получить финальную статистику встречи со всеми данными участников (только создатель)
  */
-export const meetingsControllerGetFinalStatistics = (
-  id: string,
-  signal?: AbortSignal
-) => {
-  return customInstance<void>({
-    url: `/meetings/${id}/final-stats`,
-    method: "GET",
-    signal,
-  });
+export const meetingsControllerGetFinalStatistics = (id: string, signal?: AbortSignal) => {
+  return customInstance<void>({ url: `/meetings/${id}/final-stats`, method: 'GET', signal });
 };
 
-export const getMeetingsControllerGetFinalStatisticsQueryKey = (
-  id?: string
-) => {
+export const getMeetingsControllerGetFinalStatisticsQueryKey = (id?: string) => {
   return [`/meetings/${id}/final-stats`] as const;
 };
 
 export const getMeetingsControllerGetFinalStatisticsQueryOptions = <
   TData = Awaited<ReturnType<typeof meetingsControllerGetFinalStatistics>>,
-  TError = void | void
+  TError = void | void,
 >(
   id: string,
   options?: {
@@ -2344,24 +1962,17 @@ export const getMeetingsControllerGetFinalStatisticsQueryOptions = <
         TData
       >
     >;
-  }
+  },
 ) => {
   const { query: queryOptions } = options ?? {};
 
-  const queryKey =
-    queryOptions?.queryKey ??
-    getMeetingsControllerGetFinalStatisticsQueryKey(id);
+  const queryKey = queryOptions?.queryKey ?? getMeetingsControllerGetFinalStatisticsQueryKey(id);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof meetingsControllerGetFinalStatistics>>
   > = ({ signal }) => meetingsControllerGetFinalStatistics(id, signal);
 
-  return {
-    queryKey,
-    queryFn,
-    enabled: !!id,
-    ...queryOptions,
-  } as UseQueryOptions<
+  return { queryKey, queryFn, enabled: !!id, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof meetingsControllerGetFinalStatistics>>,
     TError,
     TData
@@ -2375,7 +1986,7 @@ export type MeetingsControllerGetFinalStatisticsQueryError = void | void;
 
 export function useMeetingsControllerGetFinalStatistics<
   TData = Awaited<ReturnType<typeof meetingsControllerGetFinalStatistics>>,
-  TError = void | void
+  TError = void | void,
 >(
   id: string,
   options: {
@@ -2392,16 +2003,14 @@ export function useMeetingsControllerGetFinalStatistics<
           TError,
           Awaited<ReturnType<typeof meetingsControllerGetFinalStatistics>>
         >,
-        "initialData"
+        'initialData'
       >;
   },
-  queryClient?: QueryClient
-): DefinedUseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 export function useMeetingsControllerGetFinalStatistics<
   TData = Awaited<ReturnType<typeof meetingsControllerGetFinalStatistics>>,
-  TError = void | void
+  TError = void | void,
 >(
   id: string,
   options?: {
@@ -2418,16 +2027,14 @@ export function useMeetingsControllerGetFinalStatistics<
           TError,
           Awaited<ReturnType<typeof meetingsControllerGetFinalStatistics>>
         >,
-        "initialData"
+        'initialData'
       >;
   },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 export function useMeetingsControllerGetFinalStatistics<
   TData = Awaited<ReturnType<typeof meetingsControllerGetFinalStatistics>>,
-  TError = void | void
+  TError = void | void,
 >(
   id: string,
   options?: {
@@ -2439,17 +2046,15 @@ export function useMeetingsControllerGetFinalStatistics<
       >
     >;
   },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 /**
  * @summary Получить финальную статистику встречи со всеми данными участников (только создатель)
  */
 
 export function useMeetingsControllerGetFinalStatistics<
   TData = Awaited<ReturnType<typeof meetingsControllerGetFinalStatistics>>,
-  TError = void | void
+  TError = void | void,
 >(
   id: string,
   options?: {
@@ -2461,19 +2066,143 @@ export function useMeetingsControllerGetFinalStatistics<
       >
     >;
   },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-} {
-  const queryOptions = getMeetingsControllerGetFinalStatisticsQueryOptions(
-    id,
-    options
-  );
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getMeetingsControllerGetFinalStatisticsQueryOptions(id, options);
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
-    TData,
-    TError
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+/**
+ * 
+      Returns list of active participants (connected via WebSocket) who haven't submitted
+      their response in the current meeting phase.
+      
+      IMPORTANT: This uses real-time Socket.IO data to determine who's active,
+      then filters out those who have already submitted.
+      
+      Only the meeting creator can view this information.
+    
+ * @summary Get active participants who have not voted yet (socket-synced)
+ */
+export const meetingsControllerGetPendingVoters = (id: string, signal?: AbortSignal) => {
+  return customInstance<void>({ url: `/meetings/${id}/pending-voters`, method: 'GET', signal });
+};
+
+export const getMeetingsControllerGetPendingVotersQueryKey = (id?: string) => {
+  return [`/meetings/${id}/pending-voters`] as const;
+};
+
+export const getMeetingsControllerGetPendingVotersQueryOptions = <
+  TData = Awaited<ReturnType<typeof meetingsControllerGetPendingVoters>>,
+  TError = void | void | void,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof meetingsControllerGetPendingVoters>>, TError, TData>
+    >;
+  },
+) => {
+  const { query: queryOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getMeetingsControllerGetPendingVotersQueryKey(id);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof meetingsControllerGetPendingVoters>>> = ({
+    signal,
+  }) => meetingsControllerGetPendingVoters(id, signal);
+
+  return { queryKey, queryFn, enabled: !!id, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof meetingsControllerGetPendingVoters>>,
+    TError,
+    TData
   > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type MeetingsControllerGetPendingVotersQueryResult = NonNullable<
+  Awaited<ReturnType<typeof meetingsControllerGetPendingVoters>>
+>;
+export type MeetingsControllerGetPendingVotersQueryError = void | void | void;
+
+export function useMeetingsControllerGetPendingVoters<
+  TData = Awaited<ReturnType<typeof meetingsControllerGetPendingVoters>>,
+  TError = void | void | void,
+>(
+  id: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof meetingsControllerGetPendingVoters>>, TError, TData>
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof meetingsControllerGetPendingVoters>>,
+          TError,
+          Awaited<ReturnType<typeof meetingsControllerGetPendingVoters>>
+        >,
+        'initialData'
+      >;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useMeetingsControllerGetPendingVoters<
+  TData = Awaited<ReturnType<typeof meetingsControllerGetPendingVoters>>,
+  TError = void | void | void,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof meetingsControllerGetPendingVoters>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof meetingsControllerGetPendingVoters>>,
+          TError,
+          Awaited<ReturnType<typeof meetingsControllerGetPendingVoters>>
+        >,
+        'initialData'
+      >;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useMeetingsControllerGetPendingVoters<
+  TData = Awaited<ReturnType<typeof meetingsControllerGetPendingVoters>>,
+  TError = void | void | void,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof meetingsControllerGetPendingVoters>>, TError, TData>
+    >;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+/**
+ * @summary Get active participants who have not voted yet (socket-synced)
+ */
+
+export function useMeetingsControllerGetPendingVoters<
+  TData = Awaited<ReturnType<typeof meetingsControllerGetPendingVoters>>,
+  TError = void | void | void,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof meetingsControllerGetPendingVoters>>, TError, TData>
+    >;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getMeetingsControllerGetPendingVotersQueryOptions(id, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
 
   query.queryKey = queryOptions.queryKey;
 

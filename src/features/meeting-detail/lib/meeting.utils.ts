@@ -12,7 +12,10 @@ import { PHASE_ORDER } from '@/src/shared/constants/meetings';
 /**
  * Check if user is creator of the meeting
  */
-export const isUserCreator = (meeting: MeetingResponseDto | null, userId: string | undefined): boolean => {
+export const isUserCreator = (
+  meeting: MeetingResponseDto | null,
+  userId: string | undefined,
+): boolean => {
   if (!meeting || !userId) return false;
   return meeting.creatorId._id === userId;
 };
@@ -20,7 +23,9 @@ export const isUserCreator = (meeting: MeetingResponseDto | null, userId: string
 /**
  * Get the next phase in the sequence
  */
-export const getNextPhase = (currentPhase: MeetingResponseDtoCurrentPhase): ChangePhaseDtoPhase | null => {
+export const getNextPhase = (
+  currentPhase: MeetingResponseDtoCurrentPhase,
+): ChangePhaseDtoPhase | null => {
   const currentIndex = PHASE_ORDER.indexOf(currentPhase);
   if (currentIndex === -1 || currentIndex === PHASE_ORDER.length - 1) {
     return null;
@@ -45,7 +50,10 @@ export const isPhaseFinished = (phase: MeetingResponseDtoCurrentPhase): boolean 
 /**
  * Validate contribution total
  */
-export const isContributionTotalValid = (contributions: Record<string, number>, tolerance = 0.1): boolean => {
+export const isContributionTotalValid = (
+  contributions: Record<string, number>,
+  tolerance = 0.1,
+): boolean => {
   const total = Object.values(contributions).reduce((sum, val) => sum + val, 0);
   return Math.abs(total - 100) < tolerance;
 };

@@ -29,7 +29,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({
     <>
       <div className="space-y-4">
         <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-2">
-          Описание задачи
+          Описание вашей задачи
         </label>
         {isAuthor ? (
           <textarea
@@ -78,10 +78,10 @@ export const TaskForm: React.FC<TaskFormProps> = ({
             <div className="flex-1 h-4 bg-slate-200 rounded-full overflow-hidden shadow-inner">
               <div
                 className="h-full rounded-full transition-all duration-500 ease-out"
-                style={{ 
+                style={{
                   width: `${contributionImportance}%`,
                   background: 'linear-gradient(90deg, #8b5cf6 0%, #a78bfa 100%)',
-                  boxShadow: '0 2px 8px rgba(139, 92, 246, 0.3)'
+                  boxShadow: '0 2px 8px rgba(139, 92, 246, 0.3)',
                 }}
               />
             </div>

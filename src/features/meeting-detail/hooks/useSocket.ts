@@ -103,7 +103,23 @@ export const useSocket = (meetingId: string | null) => {
       if (data.meetingId === meetingId) {
         console.log('👥 Participants updated:', data.totalParticipants);
         setParticipants(data.participants);
+        // Dispatch custom event for view model
+        window.dispatchEvent(new CustomEvent('participants_updated', { detail: data }));
       }
+    });
+
+    // Listen for meeting updates (phase changes, task approvals, etc.)
+    // Socket event name: meetingUpdated (camelCase per spec)
+    newSocket.on('meetingUpdated', (data: any) => {
+      console.log('📢 Meeting updated event received:', data);
+      // Trigger refetch by dispatching custom event that view model can listen to
+      window.dispatchEvent(new CustomEvent('meetingUpdated', { detail: data }));
+    });
+
+    // Also listen for phase changes
+    newSocket.on('phaseChanged', (data: any) => {
+      console.log('📢 Phase changed event received:', data);
+      window.dispatchEvent(new CustomEvent('phaseChanged', { detail: data }));
     });
 
     return () => {

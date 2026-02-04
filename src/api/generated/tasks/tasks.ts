@@ -5,7 +5,7 @@
  * API для платформы отслеживания качества встреч
  * OpenAPI spec version: 1.0
  */
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from '@tanstack/react-query';
 import type {
   DataTag,
   DefinedInitialDataOptions,
@@ -19,28 +19,26 @@ import type {
   UseMutationResult,
   UseQueryOptions,
   UseQueryResult,
-} from "@tanstack/react-query";
+} from '@tanstack/react-query';
 
 import type {
+  ApproveTaskDto,
   CreateTaskDto,
   TaskResponseDto,
   TasksControllerFindAllParams,
   UpdateTaskDto,
-} from "../meetingsQualityAPI.schemas";
+} from '../meetingsQualityAPI.schemas';
 
-import { customInstance } from "../../../shared/api/axios-instance";
+import { customInstance } from '../../../shared/api/axios-instance';
 
 /**
  * @summary Создать новую задачу
  */
-export const tasksControllerCreate = (
-  createTaskDto: CreateTaskDto,
-  signal?: AbortSignal
-) => {
+export const tasksControllerCreate = (createTaskDto: CreateTaskDto, signal?: AbortSignal) => {
   return customInstance<TaskResponseDto>({
     url: `/tasks`,
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     data: createTaskDto,
     signal,
   });
@@ -48,7 +46,7 @@ export const tasksControllerCreate = (
 
 export const getTasksControllerCreateMutationOptions = <
   TError = void | void,
-  TContext = unknown
+  TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof tasksControllerCreate>>,
@@ -62,11 +60,9 @@ export const getTasksControllerCreateMutationOptions = <
   { data: CreateTaskDto },
   TContext
 > => {
-  const mutationKey = ["tasksControllerCreate"];
+  const mutationKey = ['tasksControllerCreate'];
   const { mutation: mutationOptions } = options
-    ? options.mutation &&
-      "mutationKey" in options.mutation &&
-      options.mutation.mutationKey
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey } };
@@ -92,10 +88,7 @@ export type TasksControllerCreateMutationError = void | void;
 /**
  * @summary Создать новую задачу
  */
-export const useTasksControllerCreate = <
-  TError = void | void,
-  TContext = unknown
->(
+export const useTasksControllerCreate = <TError = void | void, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof tasksControllerCreate>>,
@@ -104,7 +97,7 @@ export const useTasksControllerCreate = <
       TContext
     >;
   },
-  queryClient?: QueryClient
+  queryClient?: QueryClient,
 ): UseMutationResult<
   Awaited<ReturnType<typeof tasksControllerCreate>>,
   TError,
@@ -120,45 +113,32 @@ export const useTasksControllerCreate = <
  */
 export const tasksControllerFindAll = (
   params?: TasksControllerFindAllParams,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ) => {
-  return customInstance<TaskResponseDto[]>({
-    url: `/tasks`,
-    method: "GET",
-    params,
-    signal,
-  });
+  return customInstance<TaskResponseDto[]>({ url: `/tasks`, method: 'GET', params, signal });
 };
 
-export const getTasksControllerFindAllQueryKey = (
-  params?: TasksControllerFindAllParams
-) => {
+export const getTasksControllerFindAllQueryKey = (params?: TasksControllerFindAllParams) => {
   return [`/tasks`, ...(params ? [params] : [])] as const;
 };
 
 export const getTasksControllerFindAllQueryOptions = <
   TData = Awaited<ReturnType<typeof tasksControllerFindAll>>,
-  TError = void
+  TError = void,
 >(
   params?: TasksControllerFindAllParams,
   options?: {
     query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof tasksControllerFindAll>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof tasksControllerFindAll>>, TError, TData>
     >;
-  }
+  },
 ) => {
   const { query: queryOptions } = options ?? {};
 
-  const queryKey =
-    queryOptions?.queryKey ?? getTasksControllerFindAllQueryKey(params);
+  const queryKey = queryOptions?.queryKey ?? getTasksControllerFindAllQueryKey(params);
 
-  const queryFn: QueryFunction<
-    Awaited<ReturnType<typeof tasksControllerFindAll>>
-  > = ({ signal }) => tasksControllerFindAll(params, signal);
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof tasksControllerFindAll>>> = ({ signal }) =>
+    tasksControllerFindAll(params, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof tasksControllerFindAll>>,
@@ -174,16 +154,12 @@ export type TasksControllerFindAllQueryError = void;
 
 export function useTasksControllerFindAll<
   TData = Awaited<ReturnType<typeof tasksControllerFindAll>>,
-  TError = void
+  TError = void,
 >(
   params: undefined | TasksControllerFindAllParams,
   options: {
     query: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof tasksControllerFindAll>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof tasksControllerFindAll>>, TError, TData>
     > &
       Pick<
         DefinedInitialDataOptions<
@@ -191,25 +167,19 @@ export function useTasksControllerFindAll<
           TError,
           Awaited<ReturnType<typeof tasksControllerFindAll>>
         >,
-        "initialData"
+        'initialData'
       >;
   },
-  queryClient?: QueryClient
-): DefinedUseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 export function useTasksControllerFindAll<
   TData = Awaited<ReturnType<typeof tasksControllerFindAll>>,
-  TError = void
+  TError = void,
 >(
   params?: TasksControllerFindAllParams,
   options?: {
     query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof tasksControllerFindAll>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof tasksControllerFindAll>>, TError, TData>
     > &
       Pick<
         UndefinedInitialDataOptions<
@@ -217,59 +187,44 @@ export function useTasksControllerFindAll<
           TError,
           Awaited<ReturnType<typeof tasksControllerFindAll>>
         >,
-        "initialData"
+        'initialData'
       >;
   },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 export function useTasksControllerFindAll<
   TData = Awaited<ReturnType<typeof tasksControllerFindAll>>,
-  TError = void
+  TError = void,
 >(
   params?: TasksControllerFindAllParams,
   options?: {
     query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof tasksControllerFindAll>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof tasksControllerFindAll>>, TError, TData>
     >;
   },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 /**
  * @summary Получить все задачи текущего пользователя
  */
 
 export function useTasksControllerFindAll<
   TData = Awaited<ReturnType<typeof tasksControllerFindAll>>,
-  TError = void
+  TError = void,
 >(
   params?: TasksControllerFindAllParams,
   options?: {
     query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof tasksControllerFindAll>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof tasksControllerFindAll>>, TError, TData>
     >;
   },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-} {
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getTasksControllerFindAllQueryOptions(params, options);
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
-    TData,
-    TError
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
 
   query.queryKey = queryOptions.queryKey;
 
@@ -279,13 +234,10 @@ export function useTasksControllerFindAll<
 /**
  * @summary Получить все задачи из конкретной встречи
  */
-export const tasksControllerFindByMeeting = (
-  meetingId: string,
-  signal?: AbortSignal
-) => {
+export const tasksControllerFindByMeeting = (meetingId: string, signal?: AbortSignal) => {
   return customInstance<TaskResponseDto[]>({
     url: `/tasks/meeting/${meetingId}`,
-    method: "GET",
+    method: 'GET',
     signal,
   });
 };
@@ -296,35 +248,24 @@ export const getTasksControllerFindByMeetingQueryKey = (meetingId?: string) => {
 
 export const getTasksControllerFindByMeetingQueryOptions = <
   TData = Awaited<ReturnType<typeof tasksControllerFindByMeeting>>,
-  TError = void | void
+  TError = void | void,
 >(
   meetingId: string,
   options?: {
     query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof tasksControllerFindByMeeting>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof tasksControllerFindByMeeting>>, TError, TData>
     >;
-  }
+  },
 ) => {
   const { query: queryOptions } = options ?? {};
 
-  const queryKey =
-    queryOptions?.queryKey ??
-    getTasksControllerFindByMeetingQueryKey(meetingId);
+  const queryKey = queryOptions?.queryKey ?? getTasksControllerFindByMeetingQueryKey(meetingId);
 
-  const queryFn: QueryFunction<
-    Awaited<ReturnType<typeof tasksControllerFindByMeeting>>
-  > = ({ signal }) => tasksControllerFindByMeeting(meetingId, signal);
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof tasksControllerFindByMeeting>>> = ({
+    signal,
+  }) => tasksControllerFindByMeeting(meetingId, signal);
 
-  return {
-    queryKey,
-    queryFn,
-    enabled: !!meetingId,
-    ...queryOptions,
-  } as UseQueryOptions<
+  return { queryKey, queryFn, enabled: !!meetingId, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof tasksControllerFindByMeeting>>,
     TError,
     TData
@@ -338,16 +279,12 @@ export type TasksControllerFindByMeetingQueryError = void | void;
 
 export function useTasksControllerFindByMeeting<
   TData = Awaited<ReturnType<typeof tasksControllerFindByMeeting>>,
-  TError = void | void
+  TError = void | void,
 >(
   meetingId: string,
   options: {
     query: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof tasksControllerFindByMeeting>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof tasksControllerFindByMeeting>>, TError, TData>
     > &
       Pick<
         DefinedInitialDataOptions<
@@ -355,25 +292,19 @@ export function useTasksControllerFindByMeeting<
           TError,
           Awaited<ReturnType<typeof tasksControllerFindByMeeting>>
         >,
-        "initialData"
+        'initialData'
       >;
   },
-  queryClient?: QueryClient
-): DefinedUseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 export function useTasksControllerFindByMeeting<
   TData = Awaited<ReturnType<typeof tasksControllerFindByMeeting>>,
-  TError = void | void
+  TError = void | void,
 >(
   meetingId: string,
   options?: {
     query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof tasksControllerFindByMeeting>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof tasksControllerFindByMeeting>>, TError, TData>
     > &
       Pick<
         UndefinedInitialDataOptions<
@@ -381,62 +312,44 @@ export function useTasksControllerFindByMeeting<
           TError,
           Awaited<ReturnType<typeof tasksControllerFindByMeeting>>
         >,
-        "initialData"
+        'initialData'
       >;
   },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 export function useTasksControllerFindByMeeting<
   TData = Awaited<ReturnType<typeof tasksControllerFindByMeeting>>,
-  TError = void | void
+  TError = void | void,
 >(
   meetingId: string,
   options?: {
     query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof tasksControllerFindByMeeting>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof tasksControllerFindByMeeting>>, TError, TData>
     >;
   },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 /**
  * @summary Получить все задачи из конкретной встречи
  */
 
 export function useTasksControllerFindByMeeting<
   TData = Awaited<ReturnType<typeof tasksControllerFindByMeeting>>,
-  TError = void | void
+  TError = void | void,
 >(
   meetingId: string,
   options?: {
     query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof tasksControllerFindByMeeting>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof tasksControllerFindByMeeting>>, TError, TData>
     >;
   },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-} {
-  const queryOptions = getTasksControllerFindByMeetingQueryOptions(
-    meetingId,
-    options
-  );
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getTasksControllerFindByMeetingQueryOptions(meetingId, options);
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
-    TData,
-    TError
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
 
   query.queryKey = queryOptions.queryKey;
 
@@ -447,11 +360,7 @@ export function useTasksControllerFindByMeeting<
  * @summary Получить задачу по ID
  */
 export const tasksControllerFindOne = (id: string, signal?: AbortSignal) => {
-  return customInstance<TaskResponseDto>({
-    url: `/tasks/${id}`,
-    method: "GET",
-    signal,
-  });
+  return customInstance<TaskResponseDto>({ url: `/tasks/${id}`, method: 'GET', signal });
 };
 
 export const getTasksControllerFindOneQueryKey = (id?: string) => {
@@ -460,34 +369,23 @@ export const getTasksControllerFindOneQueryKey = (id?: string) => {
 
 export const getTasksControllerFindOneQueryOptions = <
   TData = Awaited<ReturnType<typeof tasksControllerFindOne>>,
-  TError = void | void | void
+  TError = void | void | void,
 >(
   id: string,
   options?: {
     query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof tasksControllerFindOne>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof tasksControllerFindOne>>, TError, TData>
     >;
-  }
+  },
 ) => {
   const { query: queryOptions } = options ?? {};
 
-  const queryKey =
-    queryOptions?.queryKey ?? getTasksControllerFindOneQueryKey(id);
+  const queryKey = queryOptions?.queryKey ?? getTasksControllerFindOneQueryKey(id);
 
-  const queryFn: QueryFunction<
-    Awaited<ReturnType<typeof tasksControllerFindOne>>
-  > = ({ signal }) => tasksControllerFindOne(id, signal);
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof tasksControllerFindOne>>> = ({ signal }) =>
+    tasksControllerFindOne(id, signal);
 
-  return {
-    queryKey,
-    queryFn,
-    enabled: !!id,
-    ...queryOptions,
-  } as UseQueryOptions<
+  return { queryKey, queryFn, enabled: !!id, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof tasksControllerFindOne>>,
     TError,
     TData
@@ -501,16 +399,12 @@ export type TasksControllerFindOneQueryError = void | void | void;
 
 export function useTasksControllerFindOne<
   TData = Awaited<ReturnType<typeof tasksControllerFindOne>>,
-  TError = void | void | void
+  TError = void | void | void,
 >(
   id: string,
   options: {
     query: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof tasksControllerFindOne>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof tasksControllerFindOne>>, TError, TData>
     > &
       Pick<
         DefinedInitialDataOptions<
@@ -518,25 +412,19 @@ export function useTasksControllerFindOne<
           TError,
           Awaited<ReturnType<typeof tasksControllerFindOne>>
         >,
-        "initialData"
+        'initialData'
       >;
   },
-  queryClient?: QueryClient
-): DefinedUseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 export function useTasksControllerFindOne<
   TData = Awaited<ReturnType<typeof tasksControllerFindOne>>,
-  TError = void | void | void
+  TError = void | void | void,
 >(
   id: string,
   options?: {
     query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof tasksControllerFindOne>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof tasksControllerFindOne>>, TError, TData>
     > &
       Pick<
         UndefinedInitialDataOptions<
@@ -544,59 +432,44 @@ export function useTasksControllerFindOne<
           TError,
           Awaited<ReturnType<typeof tasksControllerFindOne>>
         >,
-        "initialData"
+        'initialData'
       >;
   },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 export function useTasksControllerFindOne<
   TData = Awaited<ReturnType<typeof tasksControllerFindOne>>,
-  TError = void | void | void
+  TError = void | void | void,
 >(
   id: string,
   options?: {
     query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof tasksControllerFindOne>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof tasksControllerFindOne>>, TError, TData>
     >;
   },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 /**
  * @summary Получить задачу по ID
  */
 
 export function useTasksControllerFindOne<
   TData = Awaited<ReturnType<typeof tasksControllerFindOne>>,
-  TError = void | void | void
+  TError = void | void | void,
 >(
   id: string,
   options?: {
     query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof tasksControllerFindOne>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof tasksControllerFindOne>>, TError, TData>
     >;
   },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-} {
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getTasksControllerFindOneQueryOptions(id, options);
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
-    TData,
-    TError
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
 
   query.queryKey = queryOptions.queryKey;
 
@@ -606,21 +479,18 @@ export function useTasksControllerFindOne<
 /**
  * @summary Обновить задачу (только автор)
  */
-export const tasksControllerUpdate = (
-  id: string,
-  updateTaskDto: UpdateTaskDto
-) => {
+export const tasksControllerUpdate = (id: string, updateTaskDto: UpdateTaskDto) => {
   return customInstance<TaskResponseDto>({
     url: `/tasks/${id}`,
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
     data: updateTaskDto,
   });
 };
 
 export const getTasksControllerUpdateMutationOptions = <
   TError = void | void,
-  TContext = unknown
+  TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof tasksControllerUpdate>>,
@@ -634,11 +504,9 @@ export const getTasksControllerUpdateMutationOptions = <
   { id: string; data: UpdateTaskDto },
   TContext
 > => {
-  const mutationKey = ["tasksControllerUpdate"];
+  const mutationKey = ['tasksControllerUpdate'];
   const { mutation: mutationOptions } = options
-    ? options.mutation &&
-      "mutationKey" in options.mutation &&
-      options.mutation.mutationKey
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey } };
@@ -664,10 +532,7 @@ export type TasksControllerUpdateMutationError = void | void;
 /**
  * @summary Обновить задачу (только автор)
  */
-export const useTasksControllerUpdate = <
-  TError = void | void,
-  TContext = unknown
->(
+export const useTasksControllerUpdate = <TError = void | void, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof tasksControllerUpdate>>,
@@ -676,7 +541,7 @@ export const useTasksControllerUpdate = <
       TContext
     >;
   },
-  queryClient?: QueryClient
+  queryClient?: QueryClient,
 ): UseMutationResult<
   Awaited<ReturnType<typeof tasksControllerUpdate>>,
   TError,
@@ -691,12 +556,12 @@ export const useTasksControllerUpdate = <
  * @summary Удалить задачу (только автор)
  */
 export const tasksControllerRemove = (id: string) => {
-  return customInstance<void>({ url: `/tasks/${id}`, method: "DELETE" });
+  return customInstance<void>({ url: `/tasks/${id}`, method: 'DELETE' });
 };
 
 export const getTasksControllerRemoveMutationOptions = <
   TError = void | void,
-  TContext = unknown
+  TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof tasksControllerRemove>>,
@@ -710,11 +575,9 @@ export const getTasksControllerRemoveMutationOptions = <
   { id: string },
   TContext
 > => {
-  const mutationKey = ["tasksControllerRemove"];
+  const mutationKey = ['tasksControllerRemove'];
   const { mutation: mutationOptions } = options
-    ? options.mutation &&
-      "mutationKey" in options.mutation &&
-      options.mutation.mutationKey
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey } };
@@ -740,10 +603,7 @@ export type TasksControllerRemoveMutationError = void | void;
 /**
  * @summary Удалить задачу (только автор)
  */
-export const useTasksControllerRemove = <
-  TError = void | void,
-  TContext = unknown
->(
+export const useTasksControllerRemove = <TError = void | void, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof tasksControllerRemove>>,
@@ -752,7 +612,7 @@ export const useTasksControllerRemove = <
       TContext
     >;
   },
-  queryClient?: QueryClient
+  queryClient?: QueryClient,
 ): UseMutationResult<
   Awaited<ReturnType<typeof tasksControllerRemove>>,
   TError,
@@ -760,6 +620,82 @@ export const useTasksControllerRemove = <
   TContext
 > => {
   const mutationOptions = getTasksControllerRemoveMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+/**
+ * @summary Approve or unapprove task (creator only)
+ */
+export const tasksControllerApproveTask = (id: string, approveTaskDto: ApproveTaskDto) => {
+  return customInstance<void>({
+    url: `/tasks/${id}/approve`,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    data: approveTaskDto,
+  });
+};
+
+export const getTasksControllerApproveTaskMutationOptions = <
+  TError = void | void | void,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof tasksControllerApproveTask>>,
+    TError,
+    { id: string; data: ApproveTaskDto },
+    TContext
+  >;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof tasksControllerApproveTask>>,
+  TError,
+  { id: string; data: ApproveTaskDto },
+  TContext
+> => {
+  const mutationKey = ['tasksControllerApproveTask'];
+  const { mutation: mutationOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof tasksControllerApproveTask>>,
+    { id: string; data: ApproveTaskDto }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return tasksControllerApproveTask(id, data);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type TasksControllerApproveTaskMutationResult = NonNullable<
+  Awaited<ReturnType<typeof tasksControllerApproveTask>>
+>;
+export type TasksControllerApproveTaskMutationBody = ApproveTaskDto;
+export type TasksControllerApproveTaskMutationError = void | void | void;
+
+/**
+ * @summary Approve or unapprove task (creator only)
+ */
+export const useTasksControllerApproveTask = <TError = void | void | void, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof tasksControllerApproveTask>>,
+      TError,
+      { id: string; data: ApproveTaskDto },
+      TContext
+    >;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof tasksControllerApproveTask>>,
+  TError,
+  { id: string; data: ApproveTaskDto },
+  TContext
+> => {
+  const mutationOptions = getTasksControllerApproveTaskMutationOptions(options);
 
   return useMutation(mutationOptions, queryClient);
 };

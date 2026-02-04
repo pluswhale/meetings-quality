@@ -10,11 +10,15 @@ import {
 } from '@/src/shared/api/generated/meetingsQualityAPI.schemas';
 
 // Re-export generated enums for easy access
-export { MeetingResponseDtoCurrentPhase, MeetingResponseDtoStatus, MeetingsControllerFindAllFilter };
+export {
+  MeetingResponseDtoCurrentPhase,
+  MeetingResponseDtoStatus,
+  MeetingsControllerFindAllFilter,
+};
 
 // Phase display names
 export const PHASE_LABELS: Record<MeetingResponseDtoCurrentPhase, string> = {
-  [MeetingResponseDtoCurrentPhase.emotional_evaluation]: 'Эмоции',
+  [MeetingResponseDtoCurrentPhase.emotional_evaluation]: 'Обсуждение',
   [MeetingResponseDtoCurrentPhase.understanding_contribution]: 'Вклад',
   [MeetingResponseDtoCurrentPhase.task_planning]: 'Задачи',
   [MeetingResponseDtoCurrentPhase.task_evaluation]: 'Оценка задач',

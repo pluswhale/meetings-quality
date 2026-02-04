@@ -136,11 +136,11 @@ export type MeetingResponseDtoCurrentPhase =
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const MeetingResponseDtoCurrentPhase = {
-  emotional_evaluation: "emotional_evaluation",
-  understanding_contribution: "understanding_contribution",
-  task_planning: "task_planning",
-  task_evaluation: "task_evaluation",
-  finished: "finished",
+  emotional_evaluation: 'emotional_evaluation',
+  understanding_contribution: 'understanding_contribution',
+  task_planning: 'task_planning',
+  task_evaluation: 'task_evaluation',
+  finished: 'finished',
 } as const;
 
 export type MeetingResponseDtoStatus =
@@ -148,9 +148,9 @@ export type MeetingResponseDtoStatus =
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const MeetingResponseDtoStatus = {
-  upcoming: "upcoming",
-  active: "active",
-  finished: "finished",
+  upcoming: 'upcoming',
+  active: 'active',
+  finished: 'finished',
 } as const;
 
 export interface MeetingResponseDto {
@@ -189,16 +189,15 @@ export interface UpdateMeetingDto {
 /**
  * Новая фаза встречи
  */
-export type ChangePhaseDtoPhase =
-  typeof ChangePhaseDtoPhase[keyof typeof ChangePhaseDtoPhase];
+export type ChangePhaseDtoPhase = typeof ChangePhaseDtoPhase[keyof typeof ChangePhaseDtoPhase];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ChangePhaseDtoPhase = {
-  emotional_evaluation: "emotional_evaluation",
-  understanding_contribution: "understanding_contribution",
-  task_planning: "task_planning",
-  task_evaluation: "task_evaluation",
-  finished: "finished",
+  emotional_evaluation: 'emotional_evaluation',
+  understanding_contribution: 'understanding_contribution',
+  task_planning: 'task_planning',
+  task_evaluation: 'task_evaluation',
+  finished: 'finished',
 } as const;
 
 export interface ChangePhaseDto {
@@ -344,6 +343,11 @@ export interface UpdateTaskDto {
   isCompleted?: boolean;
 }
 
+export interface ApproveTaskDto {
+  /** Approve or unapprove the task */
+  approved: boolean;
+}
+
 export type MeetingsControllerFindAllParams = {
   /**
    * Фильтр по статусу встречи
@@ -356,8 +360,8 @@ export type MeetingsControllerFindAllFilter =
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const MeetingsControllerFindAllFilter = {
-  current: "current",
-  past: "past",
+  current: 'current',
+  past: 'past',
 } as const;
 
 export type TasksControllerFindAllParams = {
@@ -372,6 +376,6 @@ export type TasksControllerFindAllFilter =
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const TasksControllerFindAllFilter = {
-  current: "current",
-  past: "past",
+  current: 'current',
+  past: 'past',
 } as const;

@@ -2,7 +2,7 @@
  * PhaseContent - Routes to appropriate phase content based on current phase
  */
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { MeetingResponseDtoCurrentPhase } from '@/src/shared/api/generated/meetingsQualityAPI.schemas';
 import { useAuthStore } from '@/src/shared/store/auth.store';
@@ -12,6 +12,7 @@ import { UnderstandingScorePanel } from './UnderstandingScorePanel';
 import { ContributionDistributionPanel } from './ContributionDistributionPanel';
 import { TaskPlanningForm } from './TaskPlanningForm';
 import { TaskEvaluationForm } from './TaskEvaluationForm';
+import { TaskEmotionalScaleSlider } from './TaskEmotionalScaleSlider';
 import { CreatorStatsPanels } from './CreatorStatsPanels';
 import { MeetingDetailViewModel } from '../types';
 
@@ -22,6 +23,14 @@ interface PhaseContentProps {
 export const PhaseContent: React.FC<PhaseContentProps> = ({ vm }) => {
   const { meeting, isCreator, activePhase } = vm;
   const { currentUser } = useAuthStore();
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to bottom when phase changes
+  useEffect(() => {
+    if (bottomRef.current) {
+      bottomRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }
+  }, [activePhase]);
 
 
   const renderEmotionalEvaluationPhase = () => (
@@ -67,16 +76,41 @@ export const PhaseContent: React.FC<PhaseContentProps> = ({ vm }) => {
         onExpectedContributionChange={vm.setExpectedContribution}
         onSubmit={vm.handleSubmitTaskPlanning}
         isSubmitting={vm.isSubmittingTask || vm.isCreatingTask}
+        isApproved={vm.isMyTaskApproved}
+      />
+      
+      {/* Emotional Scale Slider - Everyone can evaluate their emotional state */}
+      <TaskEmotionalScaleSlider
+        value={vm.taskEmotionalScale}
+        onChange={vm.setTaskEmotionalScale}
+        onAutoSave={vm.handleAutoSaveTaskEmotionalScale}
+        disabled={vm.isMyTaskApproved}
       />
     </div>
   );
 
   const renderTaskEvaluationPhase = () => {
-    // Collect all tasks from taskPlannings with author information
-    // EXCLUDE current user's task
+    // Task visibility rules:
+    // 1. Creator sees all tasks
+    // 2. Participants see only approved tasks + their own task
+    // 3. EXCLUDE current user's task from evaluation list
     const currentUserId = currentUser?._id;
+    
     const tasksToEvaluate = meeting?.taskPlannings
-      ?.filter((taskPlanning: any) => taskPlanning.participantId !== currentUserId)
+      ?.filter((taskPlanning: any) => {
+        // Never evaluate your own task
+        if (taskPlanning.participantId === currentUserId) return false;
+        
+        // Creator sees all tasks
+        if (vm.isCreator) return true;
+        
+        // Participants see only approved tasks
+        // Check for 'approved' (new spec) or 'isApproved' (legacy) or task.approved
+        const isApproved = taskPlanning.approved === true || 
+                          taskPlanning.isApproved === true || 
+                          taskPlanning.task?.approved === true;
+        return isApproved;
+      })
       .map((taskPlanning: any) => {
         const author = vm.allUsers.find((u) => u._id === taskPlanning.participant._id);
         return {
@@ -91,6 +125,28 @@ export const PhaseContent: React.FC<PhaseContentProps> = ({ vm }) => {
 
     return (
       <div className="space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-700">
+        {/* Info banner for participants */}
+        {!vm.isCreator && (
+          <div className="bg-blue-50 border border-blue-100 p-4 rounded-2xl flex items-start gap-3">
+            <svg
+              className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <p className="text-sm text-blue-800 font-medium">
+              Вы видите только задачи, одобренные организатором.
+            </p>
+          </div>
+        )}
+        
         <TaskEvaluationForm
           tasks={tasksToEvaluate}
           onEvaluationChange={vm.handleSubmitTaskEvaluation}
@@ -137,6 +193,7 @@ export const PhaseContent: React.FC<PhaseContentProps> = ({ vm }) => {
       {/* Creator Controls */}
       {isCreator && activePhase !== MeetingResponseDtoCurrentPhase.finished && (
         <motion.div
+          ref={bottomRef}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
@@ -159,6 +216,9 @@ export const PhaseContent: React.FC<PhaseContentProps> = ({ vm }) => {
           </button>
         </motion.div>
       )}
+      
+      {/* Bottom reference for non-creators */}
+      {!isCreator && <div ref={bottomRef} />}
     </>
   );
 };

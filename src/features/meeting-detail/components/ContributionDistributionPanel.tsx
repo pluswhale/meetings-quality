@@ -57,30 +57,41 @@ export const ContributionDistributionPanel: React.FC<ContributionDistributionPan
         <div className="space-y-3 md:space-y-4">
           {participants.map((participant) => {
             const contribution = Number(contributions[participant._id] || 0);
+
+            const isLocked = totalContribution >= 100;
+
             return (
               <div key={participant._id}>
                 <div className="flex justify-between items-center mb-2 gap-2">
                   <div className="flex-1 min-w-0">
-                    <span className="font-bold text-slate-900 text-sm md:text-base block truncate">
+                    <span className="font-bold text-slate-900 block truncate">
                       {participant.fullName}
                     </span>
-                    <span className="text-[10px] md:text-xs text-slate-400 truncate block">
+                    <span className="text-xs text-slate-400 block truncate">
                       {participant.email}
                     </span>
                   </div>
-                  <span className="text-xl md:text-2xl font-black text-purple-600 tabular-nums flex-shrink-0">
+                  <span className="text-2xl font-black text-purple-600 tabular-nums">
                     {contribution}%
                   </span>
                 </div>
+
                 <Slider
                   value={contribution}
-                  onChange={(value) => onContributionChange(participant._id, value)}
-                  onChangeEnd={onAutoSave}
+                  min={0}
+                  max={100}
+                  step={10}
                   variant="default"
+                  onChange={(value) => {
+                    if (isLocked && value > contribution) return;
+                    onContributionChange(participant._id, value);
+                  }}
+                  onChangeEnd={onAutoSave}
                 />
               </div>
             );
           })}
+
         </div>
       </div>
     </div>

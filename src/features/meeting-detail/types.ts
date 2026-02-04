@@ -29,38 +29,50 @@ export interface VotingInfo {
 }
 
 export interface PhaseSubmissions {
-  emotionalEvaluations?: Record<string, any>;
-  understandingContributions?: Record<string, any>;
-  taskPlannings?: Record<string, any>;
+  emotional_evaluation?: Record<string, any>;
+  understanding_contribution?: Record<string, any>;
+  task_planning?: Record<string, any>;
+}
+
+export interface PendingVoter {
+  _id: string;
+  fullName: string;
+  email: string;
+  isOnline?: boolean;
 }
 
 export interface MeetingDetailViewModel {
   // Data
   meeting: any;
+  meetingId: string;
+  isMyTaskApproved: boolean;
+  handleApproveTask: (taskId: string, currentStatus: boolean) => void;
+  isApprovingTask: boolean;
   statistics: any;
   allUsers: UserResponseDto[];
   meetingParticipants: UserResponseDto[];
   votingInfo: VotingInfo | null;
   phaseSubmissions: PhaseSubmissions | null;
   activeParticipants: ActiveParticipantsResponse | null;
-  
+  pendingVoters: PendingVoter[];
+
   // State
   isLoading: boolean;
   isCreator: boolean;
   activePhase: any; // The phase currently being viewed (could be previous for participants)
   viewedPhase: any | null; // For participants viewing previous phases
-  
+
   // Phase 2 state
   emotionalEvaluations: EmotionalEvaluationsMap;
   setEmotionalEvaluations: React.Dispatch<React.SetStateAction<EmotionalEvaluationsMap>>;
-  
+
   // Phase 3 state
   understandingScore: number;
   setUnderstandingScore: React.Dispatch<React.SetStateAction<number>>;
   contributions: ContributionsMap;
   setContributions: React.Dispatch<React.SetStateAction<ContributionsMap>>;
   totalContribution: number;
-  
+
   // Phase 4 state
   taskDescription: string;
   commonQuestion: string;
@@ -70,11 +82,14 @@ export interface MeetingDetailViewModel {
   setDeadline: React.Dispatch<React.SetStateAction<string>>;
   expectedContribution: number;
   setExpectedContribution: React.Dispatch<React.SetStateAction<number>>;
-  
+  taskEmotionalScale: number;
+  setTaskEmotionalScale: React.Dispatch<React.SetStateAction<number>>;
+  handleAutoSaveTaskEmotionalScale: () => void;
+
   // Phase 5 state (task evaluation)
   taskEvaluations: Record<string, number>;
   setTaskEvaluations: React.Dispatch<React.SetStateAction<Record<string, number>>>;
-  
+
   // Mutations
   isSubmittingEmotional: boolean;
   isSubmittingUnderstanding: boolean;
@@ -82,7 +97,7 @@ export interface MeetingDetailViewModel {
   isSubmittingTaskEvaluation: boolean;
   isCreatingTask: boolean;
   isChangingPhase: boolean;
-  
+
   // Handlers
   handleNextPhase: () => void;
   handleChangeToPhase: (phase: any) => void;

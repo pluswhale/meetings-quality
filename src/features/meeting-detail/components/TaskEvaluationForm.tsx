@@ -27,10 +27,7 @@ export const TaskEvaluationForm: React.FC<TaskEvaluationFormProps> = ({
   onEvaluationChange,
   existingEvaluation,
 }) => {
-
-  const [evaluations, setEvaluations] = useState<Record<string, number>>(
-    existingEvaluation || {}
-  );
+  const [evaluations, setEvaluations] = useState<Record<string, number>>(existingEvaluation || {});
 
   useEffect(() => {
     // Initialize all tasks with default score of 50 if not already evaluated
@@ -54,9 +51,12 @@ export const TaskEvaluationForm: React.FC<TaskEvaluationFormProps> = ({
     onEvaluationChange(evaluations);
   };
 
-  const averageScore = Object.values(evaluations).length > 0
-    ? Math.round(Object.values(evaluations).reduce((a, b) => a + b, 0) / Object.values(evaluations).length)
-    : 0;
+  const averageScore =
+    Object.values(evaluations).length > 0
+      ? Math.round(
+          Object.values(evaluations).reduce((a, b) => a + b, 0) / Object.values(evaluations).length,
+        )
+      : 0;
 
   if (tasks.length === 0) {
     return (
@@ -74,9 +74,7 @@ export const TaskEvaluationForm: React.FC<TaskEvaluationFormProps> = ({
             d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
           />
         </svg>
-        <p className="text-base md:text-lg font-black text-slate-400">
-          Нет задач для оценки
-        </p>
+        <p className="text-base md:text-lg font-black text-slate-400">Нет задач для оценки</p>
         <p className="text-xs md:text-sm text-slate-400 mt-2">
           Задачи появятся после фазы планирования
         </p>
@@ -100,7 +98,7 @@ export const TaskEvaluationForm: React.FC<TaskEvaluationFormProps> = ({
               Оцените объективную важность каждой задачи от 0 до 100
             </p>
           </div>
-          
+
           <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-4 md:p-6 rounded-2xl md:rounded-3xl border-2 border-blue-200 flex-shrink-0">
             <p className="text-[10px] md:text-xs font-black text-blue-600 uppercase tracking-wider mb-1 md:mb-2">
               Средняя оценка
@@ -116,7 +114,7 @@ export const TaskEvaluationForm: React.FC<TaskEvaluationFormProps> = ({
           {tasks.map((task) => {
             const score = evaluations[task.authorId] || 50;
             const author = task.author;
-            
+
             return (
               <div
                 key={task.authorId}
@@ -165,7 +163,7 @@ export const TaskEvaluationForm: React.FC<TaskEvaluationFormProps> = ({
 
                   <div className="mb-3 md:mb-4">
                     <p className="text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-wider mb-1 md:mb-2">
-                      Описание задачи
+                      Описание вашей задачи
                     </p>
                     <p className="text-sm md:text-base font-medium text-slate-700 bg-slate-50 p-3 md:p-4 rounded-xl">
                       {task.taskDescription}
@@ -203,10 +201,10 @@ export const TaskEvaluationForm: React.FC<TaskEvaluationFormProps> = ({
                         score >= 75
                           ? 'text-green-600'
                           : score >= 50
-                          ? 'text-blue-600'
-                          : score >= 25
-                          ? 'text-orange-600'
-                          : 'text-red-600'
+                            ? 'text-blue-600'
+                            : score >= 25
+                              ? 'text-orange-600'
+                              : 'text-red-600'
                       }`}
                     >
                       {score}
@@ -220,10 +218,10 @@ export const TaskEvaluationForm: React.FC<TaskEvaluationFormProps> = ({
                       score >= 75
                         ? 'green'
                         : score >= 50
-                        ? 'default'
-                        : score >= 25
-                        ? 'orange'
-                        : 'red'
+                          ? 'default'
+                          : score >= 25
+                            ? 'orange'
+                            : 'red'
                     }
                   />
                   <div className="flex justify-between text-[10px] md:text-xs font-bold text-slate-400 mt-1 md:mt-2">
@@ -250,7 +248,8 @@ export const TaskEvaluationForm: React.FC<TaskEvaluationFormProps> = ({
             />
           </svg>
           <span>
-            Ваши оценки автоматически сохраняются при изменении слайдеров. Оцените важность каждой задачи объективно.
+            Ваши оценки автоматически сохраняются при изменении слайдеров. Оцените важность каждой
+            задачи объективно.
           </span>
         </p>
       </div>

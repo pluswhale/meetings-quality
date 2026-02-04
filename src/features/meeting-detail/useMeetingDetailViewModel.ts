@@ -27,31 +27,24 @@ import {
 } from '@/src/shared/api/generated/meetingsQualityAPI.schemas';
 import { POLLING_INTERVALS, PHASE_LABELS, PHASE_ORDER } from '@/src/shared/constants';
 import { isUserCreator, getNextPhase } from './lib';
-import { 
-  MeetingDetailViewModel, 
-  EmotionalEvaluationsMap, 
-  ContributionsMap 
-} from './types';
+import { MeetingDetailViewModel, EmotionalEvaluationsMap, ContributionsMap } from './types';
 import {
   getAllSubmissions,
   getActiveParticipants,
   ActiveParticipantsResponse,
 } from './api/meeting-room.api';
 import { useSocket } from './hooks';
-import {
-  submitTaskEvaluation,
-  TaskImportanceEvaluationItem,
-} from './api/task-evaluation.api';
+import { submitTaskEvaluation, TaskImportanceEvaluationItem } from './api/task-evaluation.api';
+import { getPendingVoters } from './api/pending-voters.api';
+import customInstance from '@/src/shared/api/axios-instance';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewModel => {
   const navigate = useNavigate();
   const { currentUser } = useAuthStore();
 
   // Socket.IO for real-time participant presence
-  const { 
-    isConnected: isSocketConnected, 
-    participants: socketParticipants 
-  } = useSocket(meetingId);
+  const { isConnected: isSocketConnected, participants: socketParticipants } = useSocket(meetingId);
 
   // Fetch meeting data with polling
   const { data: meeting, isLoading } = useMeetingsControllerFindOne(meetingId, {
@@ -77,20 +70,85 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
   const { data: allUsers = [] } = useUsersControllerFindAll();
 
   // Determine if current user is creator
-  const isCreator = useMemo(
-    () => isUserCreator(meeting, currentUser?._id),
-    [meeting, currentUser]
-  );
+  const isCreator = useMemo(() => isUserCreator(meeting, currentUser?._id), [meeting, currentUser]);
 
   // Fetch voting info for creator
   const { data: votingInfo } = useMeetingsControllerGetVotingInfo(meetingId, {
     query: {
-      enabled: !!(
-        isCreator && meeting?.currentPhase !== MeetingResponseDtoCurrentPhase.finished
-      ),
+      enabled: !!(isCreator && meeting?.currentPhase !== MeetingResponseDtoCurrentPhase.finished),
       refetchInterval: POLLING_INTERVALS.VOTING_INFO,
     },
   }) as { data: any };
+
+  // Fetch pending voters for creator (users who haven't submitted yet)
+  const { data: pendingVotersData, refetch: refetchPendingVoters } = useQuery({
+    queryKey: ['/meetings', meetingId, 'pending-voters'],
+    queryFn: () => getPendingVoters(meetingId),
+    enabled: !!(isCreator && meeting?.currentPhase !== MeetingResponseDtoCurrentPhase.finished),
+    refetchInterval: POLLING_INTERVALS.VOTING_INFO,
+  });
+
+  // Listen for socket events to refetch pending voters
+  useEffect(() => {
+    const handleMeetingUpdated = (event: CustomEvent) => {
+      const data = event.detail;
+      console.log('🔄 Meeting updated - refetching pending voters and submissions', data);
+
+      // Refetch based on update type
+      if (data?.type) {
+        if (data.type === 'task_approved' || data.type === 'task_updated') {
+          // Task-related updates
+          queryClient.invalidateQueries({ queryKey: ['/meetings', meetingId, 'all-submissions'] });
+          queryClient.invalidateQueries({ queryKey: ['/tasks', 'meeting', meetingId] });
+        }
+        if (
+          data.type === 'emotional_evaluation_updated' ||
+          data.type === 'understanding_contribution_updated' ||
+          data.type === 'task_planning_updated' ||
+          data.type === 'task_evaluation_updated'
+        ) {
+          // Voting-related updates
+          refetchPendingVoters();
+        }
+      }
+
+      // Always refetch meeting data
+      queryClient.invalidateQueries({ queryKey: ['/meetings', meetingId] });
+    };
+
+    const handleParticipantsUpdated = () => {
+      console.log('👥 Participants updated - refetching pending voters');
+      refetchPendingVoters();
+    };
+
+    const handlePhaseChanged = (event: CustomEvent) => {
+      console.log('📢 Phase changed - refetching data', event.detail);
+      refetchPendingVoters();
+      queryClient.invalidateQueries({ queryKey: ['/meetings', meetingId] });
+    };
+
+    window.addEventListener('meetingUpdated', handleMeetingUpdated as EventListener);
+    window.addEventListener('participants_updated', handleParticipantsUpdated);
+    window.addEventListener('phaseChanged', handlePhaseChanged as EventListener);
+
+    return () => {
+      window.removeEventListener('meetingUpdated', handleMeetingUpdated as EventListener);
+      window.removeEventListener('participants_updated', handleParticipantsUpdated);
+      window.removeEventListener('phaseChanged', handlePhaseChanged as EventListener);
+    };
+  }, [meetingId, refetchPendingVoters]);
+
+  // Combine pending voters with online status from socket participants
+  const pendingVoters = useMemo(() => {
+    if (!pendingVotersData?.pendingParticipants) return [];
+
+    const onlineParticipantIds = socketParticipants?.map((p) => p.userId) || [];
+
+    return pendingVotersData.pendingParticipants.map((participant: any) => ({
+      ...participant,
+      isOnline: onlineParticipantIds.includes(participant._id),
+    }));
+  }, [pendingVotersData, socketParticipants]);
 
   // Note: Join/Leave is now handled by useSocket hook via Socket.IO
   // This provides automatic cleanup on disconnect and real-time updates
@@ -105,7 +163,7 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
       try {
         const response: any = await getAllSubmissions(meetingId);
         const data = response;
-        
+
         // Validate response structure
         if (!data || typeof data !== 'object') {
           console.error('Invalid response from getAllSubmissions:', data);
@@ -114,7 +172,9 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
 
         // Check if submissions field exists
         if (!data.submissions) {
-          console.warn('⚠️ Backend response missing "submissions" field. Expected format: { meetingId, submissions: {...} }');
+          console.warn(
+            '⚠️ Backend response missing "submissions" field. Expected format: { meetingId, submissions: {...} }',
+          );
           console.warn('Received:', data);
           // Set empty submissions to prevent errors in UI
           setPhaseSubmissions({
@@ -128,12 +188,12 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
         setPhaseSubmissions(data.submissions);
       } catch (error: any) {
         console.error('Failed to fetch submissions:', error);
-        
+
         // If 404, endpoint might not be implemented yet
         if (error?.response?.status === 404) {
           console.warn('⚠️ Endpoint /all-submissions not found. Backend needs to implement it.');
         }
-        
+
         // Set empty submissions to prevent UI crashes
         setPhaseSubmissions({
           emotional_evaluation: {},
@@ -155,13 +215,17 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
 
     return {
       meetingId: meetingId,
-      activeParticipants: socketParticipants.map(p => ({
+      activeParticipants: socketParticipants.map((p) => ({
         _id: p.userId,
         fullName: p.fullName || '',
         email: p.email || '',
         isActive: true,
         joinedAt: typeof p.joinedAt === 'string' ? p.joinedAt : new Date(p.joinedAt).toISOString(),
-        lastSeen: p.lastSeen ? (typeof p.lastSeen === 'string' ? p.lastSeen : new Date(p.lastSeen).toISOString()) : undefined,
+        lastSeen: p.lastSeen
+          ? typeof p.lastSeen === 'string'
+            ? p.lastSeen
+            : new Date(p.lastSeen).toISOString()
+          : undefined,
       })),
       totalParticipants: meeting?.participantIds?.length || 0,
       activeCount: socketParticipants.length,
@@ -179,9 +243,9 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
     () =>
       Object.values(contributions).reduce(
         (sum: number, v) => sum + (typeof v === 'number' ? v : 0),
-        0
+        0,
       ),
-    [contributions]
+    [contributions],
   );
 
   // Phase 4: Task Planning state
@@ -189,6 +253,59 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
   const [commonQuestion, setCommonQuestion] = useState('');
   const [deadline, setDeadline] = useState('');
   const [expectedContribution, setExpectedContribution] = useState(50);
+  const [taskEmotionalScale, setTaskEmotionalScale] = useState(50);
+
+  // Load participant's existing task into form (if exists)
+  useEffect(() => {
+    if (!meeting?.taskPlannings || !currentUser?._id) {
+      console.log('⚠️ Cannot load task: missing data', {
+        hasTaskPlannings: !!meeting?.taskPlannings,
+        hasCurrentUser: !!currentUser?._id,
+      });
+      return;
+    }
+
+    console.log('🔍 Looking for my task in taskPlannings:', {
+      taskPlannings: meeting.taskPlannings,
+      currentUserId: currentUser._id,
+    });
+
+    const myPlan = meeting.taskPlannings.find((t: any) => {
+      // Handle both string comparison and populated participant object
+      const planParticipantId = typeof t.participantId === 'string' 
+        ? t.participantId 
+        : t.participantId?._id || t.participant?._id;
+      
+      const match = planParticipantId === currentUser._id;
+      console.log('Comparing:', { planParticipantId, currentUserId: currentUser._id, match });
+      return match;
+    });
+
+    console.log('📋 Found my task plan:', myPlan);
+
+    if (myPlan) {
+      // Load existing task data into form
+      console.log('✅ Loading task data into form:', {
+        taskDescription: myPlan.taskDescription,
+        commonQuestion: myPlan.commonQuestion,
+        deadline: myPlan.deadline,
+        contribution: myPlan.expectedContributionPercentage,
+      });
+
+      // Always set the values from the backend (even if empty) to sync state
+      setTaskDescription(myPlan.taskDescription || '');
+      setCommonQuestion((myPlan as any).commonQuestion || '');
+      if (myPlan.deadline) {
+        const date = new Date(myPlan.deadline);
+        setDeadline(date.toISOString().split('T')[0]);
+      }
+      if (myPlan.expectedContributionPercentage !== undefined) {
+        setExpectedContribution(myPlan.expectedContributionPercentage);
+      }
+    } else {
+      console.log('❌ No task plan found for current user');
+    }
+  }, [meeting?.taskPlannings, meeting?.updatedAt, currentUser?._id]);
 
   // Phase 5: Task Evaluation state (evaluating others' tasks)
   const [taskEvaluations, setTaskEvaluations] = useState<Record<string, number>>({});
@@ -199,8 +316,7 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
   const activePhase = viewedPhase || meeting?.currentPhase;
 
   // Mutations
-  const { mutate: changePhase, isPending: isChangingPhase } =
-    useMeetingsControllerChangePhase();
+  const { mutate: changePhase, isPending: isChangingPhase } = useMeetingsControllerChangePhase();
   const { mutate: submitEmotionalEvaluation, isPending: isSubmittingEmotional } =
     useMeetingsControllerSubmitEmotionalEvaluation();
   const { mutate: submitUnderstandingContribution, isPending: isSubmittingUnderstanding } =
@@ -219,14 +335,14 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
 
     // Get list of active participant IDs from Socket.IO
     const activeParticipantIds = socketParticipants.map((p) => p.userId);
-    
+
     // Filter all users to get only those who are connected via socket
     const activeUsers = allUsers.filter((user) => activeParticipantIds.includes(user._id));
-    
+
     // Ensure current user is included if they're in the socket participants list
     const currentUserId = currentUser?._id;
     const hasCurrentUser = activeUsers.some((u) => u._id === currentUserId);
-    
+
     if (!hasCurrentUser && currentUserId && activeParticipantIds.includes(currentUserId)) {
       // Current user is active but not in filtered list - add them
       const currentUserData = allUsers.find((u) => u._id === currentUserId);
@@ -234,8 +350,11 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
         activeUsers.push(currentUserData);
       }
     }
-    
-    console.log('📋 Socket.IO participants for voting:', activeUsers.map(u => u.fullName));
+
+    console.log(
+      '📋 Socket.IO participants for voting:',
+      activeUsers.map((u) => u.fullName),
+    );
     console.log('🔌 Socket connected:', isSocketConnected, '| Active count:', activeUsers.length);
     return activeUsers;
   }, [socketParticipants, allUsers, currentUser, isSocketConnected]);
@@ -260,7 +379,7 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
         onError: (err: any) => {
           toast.error(`Ошибка: ${err?.response?.data?.message || 'Не удалось изменить фазу'}`);
         },
-      }
+      },
     );
   };
 
@@ -282,7 +401,7 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
           onError: (err: any) => {
             toast.error(`Ошибка: ${err?.response?.data?.message || 'Не удалось изменить фазу'}`);
           },
-        }
+        },
       );
     } else {
       // Participants can only view previous phases (client-side only)
@@ -304,7 +423,7 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
     if (!meetingId) return;
 
     const evaluations: ParticipantEmotionalEvaluationDto[] = Object.entries(
-      emotionalEvaluations
+      emotionalEvaluations,
     ).map(([participantId, evaluation]) => ({
       targetParticipantId: participantId,
       emotionalScale: evaluation.emotionalScale,
@@ -326,7 +445,7 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
         onError: (err: any) => {
           toast.error(`Ошибка: ${err?.response?.data?.message || 'Не удалось сохранить оценку'}`);
         },
-      }
+      },
     );
   };
 
@@ -335,7 +454,7 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
     if (!meetingId) return;
 
     const evaluations: ParticipantEmotionalEvaluationDto[] = Object.entries(
-      emotionalEvaluations
+      emotionalEvaluations,
     ).map(([participantId, evaluation]) => ({
       targetParticipantId: participantId,
       emotionalScale: evaluation.emotionalScale,
@@ -355,7 +474,7 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
           console.error('Auto-save failed:', err);
           // Silent fail - no toast
         },
-      }
+      },
     );
   };
 
@@ -366,7 +485,7 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
       ([participantId, percentage]) => ({
         participantId,
         contributionPercentage: Number(percentage),
-      })
+      }),
     );
 
     if (contributionList.length === 0) {
@@ -390,7 +509,7 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
         onError: (err: any) => {
           toast.error(`Ошибка: ${err?.response?.data?.message || 'Не удалось сохранить данные'}`);
         },
-      }
+      },
     );
   };
 
@@ -402,7 +521,7 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
       ([participantId, percentage]) => ({
         participantId,
         contributionPercentage: Number(percentage),
-      })
+      }),
     );
 
     // if (contributionList.length === 0) return;
@@ -424,7 +543,7 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
           console.error('Auto-save failed:', err);
           // Silent fail - no toast
         },
-      }
+      },
     );
   };
 
@@ -463,27 +582,33 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
                 queryClient.invalidateQueries({ queryKey: ['/meetings', meetingId] });
                 queryClient.invalidateQueries({ queryKey: ['/tasks'] });
                 toast.success('Задача создана и добавлена в ваш список!');
-                setTaskDescription('');
-                setCommonQuestion('');
-                setDeadline('');
-                setExpectedContribution(50);
+                // DON'T clear fields - participant should see their submitted task
+                // Fields will stay populated so user can see what they submitted
+                // If they need to edit, they can modify and resubmit
               },
               onError: (taskErr: any) => {
                 console.error('Task creation failed:', taskErr);
                 toast.error(
                   `План сохранен, но задача не создана: ${
                     taskErr?.response?.data?.message || 'Ошибка'
-                  }`
+                  }`,
                 );
               },
-            }
+            },
           );
         },
         onError: (err: any) => {
           toast.error(`Ошибка: ${err?.response?.data?.message || 'Не удалось сохранить план'}`);
         },
-      }
+      },
     );
+  };
+
+  // Auto-save task emotional scale
+  const handleAutoSaveTaskEmotionalScale = () => {
+    // This could be extended to save to backend if needed
+    // For now, it's just stored in local state
+    console.log('Task emotional scale auto-saved:', taskEmotionalScale);
   };
 
   const handleSubmitTaskEvaluation = async (evaluations: Record<string, number>) => {
@@ -493,7 +618,7 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
       ([authorId, score]) => ({
         taskAuthorId: authorId,
         importanceScore: score,
-      })
+      }),
     );
 
     if (evaluationList.length === 0) {
@@ -516,15 +641,68 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
     }
   };
 
+  const { mutate: approveTask, isPending: isApprovingTask } = useMutation({
+    mutationFn: async ({
+      taskId,
+      currentApproved,
+    }: {
+      taskId: string;
+      currentApproved: boolean;
+    }) => {
+      // PATCH /tasks/:id/approve
+      // Request body: { approved: boolean }
+      // Toggle the current approval status
+      const response = await customInstance<any>({
+        url: `/tasks/${taskId}/approve`,
+        method: 'PATCH',
+        data: { approved: !currentApproved }, // Toggle the current status
+      });
+      return response;
+    },
+    onSuccess: (data) => {
+      const approved = data?.approved || data?.task?.approved;
+      toast.success(approved ? 'Задача одобрена' : 'Одобрение отменено');
+      // Refetch all relevant data
+      queryClient.invalidateQueries({ queryKey: ['/meetings', meetingId, 'all-submissions'] });
+      queryClient.invalidateQueries({ queryKey: ['/meetings', meetingId] });
+      queryClient.invalidateQueries({ queryKey: ['/tasks', 'meeting', meetingId] });
+    },
+    onError: (err: any) => {
+      const message = err?.response?.data?.message || 'Не удалось обновить статус задачи';
+      toast.error(message);
+      console.error('Task approval error:', err);
+    },
+  });
+
+  const isMyTaskApproved = useMemo(() => {
+    if (!meeting?.taskPlannings || !currentUser?._id) return false;
+
+    // Find current user's task planning
+    const myPlan = meeting.taskPlannings.find((t: any) => t.participantId === currentUser._id);
+    if (!myPlan) return false;
+
+    console.log('myPlan', myPlan);
+
+    return (myPlan as any)?.approved === true;
+  }, [meeting, currentUser]);
+
+  console.log('isMyTaskApproved', isMyTaskApproved);
+
+  const handleApproveTask = (taskId: string, currentApproved: boolean) => {
+    approveTask({ taskId, currentApproved });
+  };
+
   return {
     // Data
     meeting,
+    meetingId: meeting?._id,
     statistics,
     allUsers,
     meetingParticipants,
     votingInfo,
     phaseSubmissions,
     activeParticipants,
+    pendingVoters,
 
     // State
     isLoading,
@@ -552,6 +730,12 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
     setDeadline,
     expectedContribution,
     setExpectedContribution,
+    taskEmotionalScale,
+    setTaskEmotionalScale,
+    handleAutoSaveTaskEmotionalScale,
+    isMyTaskApproved,
+    handleApproveTask,
+    isApprovingTask,
 
     // Phase 5 state
     taskEvaluations,
