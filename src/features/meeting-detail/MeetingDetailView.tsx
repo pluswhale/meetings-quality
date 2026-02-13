@@ -125,6 +125,7 @@ export const MeetingDetailView: React.FC = () => {
             submissions={vm.phaseSubmissions}
             participants={vm.meetingParticipants}
             isLoading={!vm.phaseSubmissions}
+            isRefreshing={vm.isLoadingSubmissions && !!vm.phaseSubmissions}
           />
         )}
 

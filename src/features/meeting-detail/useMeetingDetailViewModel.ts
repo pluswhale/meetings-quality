@@ -3,7 +3,7 @@
  * Contains all business logic, state management, and data fetching
  */
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '@/src/shared/store/auth.store';
@@ -88,7 +88,61 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
     refetchInterval: POLLING_INTERVALS.VOTING_INFO,
   });
 
-  // Listen for socket events to refetch pending voters
+  // Fetch all submissions for creator (replaces phase-submissions)
+  const [phaseSubmissions, setPhaseSubmissions] = useState<any>(null);
+  const [isLoadingSubmissions, setIsLoadingSubmissions] = useState(false);
+
+  const fetchAllSubmissions = useCallback(async () => {
+    if (!isCreator || !meetingId) return;
+
+    setIsLoadingSubmissions(true);
+    try {
+      const response: any = await getAllSubmissions(meetingId);
+      const data = response;
+
+      // Validate response structure
+      if (!data || typeof data !== 'object') {
+        console.error('Invalid response from getAllSubmissions:', data);
+        return;
+      }
+
+      // Check if submissions field exists
+      if (!data.submissions) {
+        console.warn(
+          '⚠️ Backend response missing "submissions" field. Expected format: { meetingId, submissions: {...} }',
+        );
+        console.warn('Received:', data);
+        // Set empty submissions to prevent errors in UI
+        setPhaseSubmissions({
+          emotional_evaluation: {},
+          understanding_contribution: {},
+          task_planning: {},
+        });
+        return;
+      }
+
+      console.log('✅ Submissions data updated:', data.submissions);
+      setPhaseSubmissions(data.submissions);
+    } catch (error: any) {
+      console.error('Failed to fetch submissions:', error);
+
+      // If 404, endpoint might not be implemented yet
+      if (error?.response?.status === 404) {
+        console.warn('⚠️ Endpoint /all-submissions not found. Backend needs to implement it.');
+      }
+
+      // Set empty submissions to prevent UI crashes
+      setPhaseSubmissions({
+        emotional_evaluation: {},
+        understanding_contribution: {},
+        task_planning: {},
+      });
+    } finally {
+      setIsLoadingSubmissions(false);
+    }
+  }, [isCreator, meetingId]);
+
+  // Listen for socket events to refetch pending voters and submissions
   useEffect(() => {
     const handleMeetingUpdated = (event: CustomEvent) => {
       const data = event.detail;
@@ -100,6 +154,10 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
           // Task-related updates
           queryClient.invalidateQueries({ queryKey: ['/meetings', meetingId, 'all-submissions'] });
           queryClient.invalidateQueries({ queryKey: ['/tasks', 'meeting', meetingId] });
+          // Also refetch submissions for creator panel
+          if (isCreator) {
+            fetchAllSubmissions();
+          }
         }
         if (
           data.type === 'emotional_evaluation_updated' ||
@@ -109,6 +167,25 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
         ) {
           // Voting-related updates
           refetchPendingVoters();
+          // 🎯 FIX: Refetch submissions when evaluations are updated
+          if (isCreator) {
+            console.log('✨ Refetching submissions for creator panel...');
+            fetchAllSubmissions();
+            
+            // Show toast notification based on update type
+            const messages: Record<string, string> = {
+              emotional_evaluation_updated: 'Получена новая эмоциональная оценка!',
+              understanding_contribution_updated: 'Получена новая оценка понимания!',
+              task_planning_updated: 'Получена новая задача!',
+              task_evaluation_updated: 'Получена новая оценка задачи!',
+            };
+            
+            const message = messages[data.type] || 'Получено новое обновление!';
+            toast.success(message, {
+              icon: '✨',
+              duration: 3000,
+            });
+          }
         }
       }
 
@@ -125,6 +202,10 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
       console.log('📢 Phase changed - refetching data', event.detail);
       refetchPendingVoters();
       queryClient.invalidateQueries({ queryKey: ['/meetings', meetingId] });
+      // Refetch submissions when phase changes
+      if (isCreator) {
+        fetchAllSubmissions();
+      }
     };
 
     window.addEventListener('meetingUpdated', handleMeetingUpdated as EventListener);
@@ -136,7 +217,7 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
       window.removeEventListener('participants_updated', handleParticipantsUpdated);
       window.removeEventListener('phaseChanged', handlePhaseChanged as EventListener);
     };
-  }, [meetingId, refetchPendingVoters]);
+  }, [meetingId, refetchPendingVoters, isCreator, fetchAllSubmissions]);
 
   // Combine pending voters with online status from socket participants
   const pendingVoters = useMemo(() => {
@@ -153,60 +234,14 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
   // Note: Join/Leave is now handled by useSocket hook via Socket.IO
   // This provides automatic cleanup on disconnect and real-time updates
 
-  // Fetch all submissions for creator (replaces phase-submissions)
-  const [phaseSubmissions, setPhaseSubmissions] = useState<any>(null);
-
+  // Setup polling for submissions
   useEffect(() => {
     if (!isCreator || !meetingId) return;
-
-    const fetchAllSubmissions = async () => {
-      try {
-        const response: any = await getAllSubmissions(meetingId);
-        const data = response;
-
-        // Validate response structure
-        if (!data || typeof data !== 'object') {
-          console.error('Invalid response from getAllSubmissions:', data);
-          return;
-        }
-
-        // Check if submissions field exists
-        if (!data.submissions) {
-          console.warn(
-            '⚠️ Backend response missing "submissions" field. Expected format: { meetingId, submissions: {...} }',
-          );
-          console.warn('Received:', data);
-          // Set empty submissions to prevent errors in UI
-          setPhaseSubmissions({
-            emotional_evaluation: {},
-            understanding_contribution: {},
-            task_planning: {},
-          });
-          return;
-        }
-
-        setPhaseSubmissions(data.submissions);
-      } catch (error: any) {
-        console.error('Failed to fetch submissions:', error);
-
-        // If 404, endpoint might not be implemented yet
-        if (error?.response?.status === 404) {
-          console.warn('⚠️ Endpoint /all-submissions not found. Backend needs to implement it.');
-        }
-
-        // Set empty submissions to prevent UI crashes
-        setPhaseSubmissions({
-          emotional_evaluation: {},
-          understanding_contribution: {},
-          task_planning: {},
-        });
-      }
-    };
 
     fetchAllSubmissions();
     const interval = setInterval(fetchAllSubmissions, POLLING_INTERVALS.PHASE_SUBMISSIONS);
     return () => clearInterval(interval);
-  }, [isCreator, meetingId]);
+  }, [isCreator, meetingId, fetchAllSubmissions]);
 
   // Active participants from Socket.IO (real-time)
   // Build ActiveParticipantsResponse-like structure from socket data
@@ -707,6 +742,7 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
 
     // State
     isLoading,
+    isLoadingSubmissions,
     isCreator,
     activePhase,
     viewedPhase,

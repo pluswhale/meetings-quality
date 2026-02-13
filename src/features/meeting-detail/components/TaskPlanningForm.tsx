@@ -3,11 +3,7 @@
  */
 
 import React from 'react';
-import DatePicker, { registerLocale } from 'react-datepicker';
-import { ru } from 'date-fns/locale';
-import { Slider } from '@/src/shared/ui';
-
-registerLocale('ru', ru);
+import { Slider, DateTimePicker } from '@/src/shared/ui';
 
 interface TaskPlanningFormProps {
   commonQuestion: string;
@@ -119,27 +115,18 @@ export const TaskPlanningForm: React.FC<TaskPlanningFormProps> = ({
             <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">
               Дедлайн
             </label>
-            <div className={isApproved ? 'pointer-events-none opacity-60' : ''}>
-              <DatePicker
-                selected={deadline ? new Date(deadline) : null}
-                onChange={(date: Date | null) => {
-                  if (date) {
-                    onDeadlineChange(date.toISOString().split('T')[0]);
-                  }
-                }}
-                disabled={isApproved}
-                dateFormat="dd.MM.yyyy"
-                className={`w-full px-6 py-4 border-2 rounded-2xl font-bold transition-all outline-none ${
-                  isApproved
-                    ? 'bg-slate-100 border-slate-200 text-slate-500'
-                    : 'bg-slate-50 border-slate-100 focus:ring-4 focus:ring-blue-100 focus:border-blue-400 focus:bg-white text-slate-900'
-                }`}
-                calendarClassName="!font-bold"
-                locale="ru"
-                placeholderText="Выберите дату"
-                minDate={new Date()}
-              />
-            </div>
+            <DateTimePicker
+              selected={deadline ? new Date(deadline) : null}
+              onChange={(date: Date | null) => {
+                if (date) {
+                  onDeadlineChange(date.toISOString().split('T')[0]);
+                }
+              }}
+              disabled={isApproved}
+              showTimeSelect={false}
+              placeholder="Выберите дату"
+              minDate={new Date()}
+            />
           </div>
 
           <div>

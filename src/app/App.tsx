@@ -1,8 +1,6 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
-import 'react-datepicker/dist/react-datepicker.css';
-import '@/src/shared/styles/datepicker-custom.css';
 import '@/src/shared/styles/slider-custom.css';
 import { QueryProvider } from './providers/QueryProvider';
 import { ProtectedRoute, AuthRoute, RootRedirect } from './routing/guards';

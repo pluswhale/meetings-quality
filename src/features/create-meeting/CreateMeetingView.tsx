@@ -5,9 +5,8 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Button, Input, TextArea, Heading, Text } from '@/src/shared/ui';
+import { Button, Input, TextArea, Heading, Text, DateTimePicker } from '@/src/shared/ui';
 import { useCreateMeetingViewModel } from './useCreateMeetingViewModel';
-import DatePicker from 'react-datepicker';
 
 export const CreateMeetingView: React.FC = () => {
   const vm = useCreateMeetingViewModel();
@@ -120,23 +119,16 @@ export const CreateMeetingView: React.FC = () => {
             Дата и время начала встречи
           </Text>
 
-          <DatePicker
+          <DateTimePicker
             selected={vm.upcomingDate ? new Date(vm.upcomingDate) : null}
             onChange={(date: Date | null) => {
               if (date) {
                 vm.setUpcomingDate(date.toISOString());
               }
             }}
-            showTimeSelect
-            timeFormat="HH:mm"
-            timeIntervals={15}
-            dateFormat="dd.MM.yyyy HH:mm"
-            timeCaption="Время"
-            className="w-full px-6 py-4 border-2 rounded-2xl font-bold transition-all outline-none"
-            calendarClassName="!font-bold"
-            locale="ru"
-            placeholderText="Выберите дату и время"
             minDate={new Date()}
+            placeholder="Выберите дату и время"
+            disabled={vm.isPending}
           />
         </motion.div>
 

@@ -16,6 +16,7 @@ interface CreatorSubmissionsPanelProps {
   submissions: SubmissionData | null;
   participants: UserResponseDto[];
   isLoading?: boolean;
+  isRefreshing?: boolean;
   isApprovingTask?: boolean;
   onApproveTask?: (taskId: string, currentStatus: boolean) => void;
 }
@@ -24,6 +25,7 @@ export const CreatorSubmissionsPanel: React.FC<CreatorSubmissionsPanelProps> = (
   submissions,
   participants,
   isLoading = false,
+  isRefreshing = false,
   isApprovingTask = false,
   onApproveTask = () => {},
 }) => {
@@ -32,7 +34,15 @@ export const CreatorSubmissionsPanel: React.FC<CreatorSubmissionsPanelProps> = (
   return (
     <div className="bg-white rounded-[20px] md:rounded-[40px] shadow-2xl shadow-slate-200/50 border border-slate-100 overflow-hidden mb-8 md:mb-12">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-4 md:p-8">
+      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-4 md:p-8 relative">
+        {/* Refreshing indicator */}
+        {isRefreshing && (
+          <div className="absolute top-2 right-2 md:top-4 md:right-4 flex items-center gap-2 bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full">
+            <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            <span className="text-xs font-bold text-white">Обновление...</span>
+          </div>
+        )}
+        
         <div className="flex items-center gap-2 md:gap-3">
           <svg
             className="w-6 h-6 md:w-8 md:h-8 text-white flex-shrink-0"
@@ -172,7 +182,7 @@ const EmotionalTab: React.FC<{
             {data.submitted && data.evaluations && data.evaluations.length > 0 ? (
               <div className="space-y-1.5 md:space-y-2 mt-3 md:mt-4 pt-3 md:pt-4 border-t border-slate-200">
                 {data.evaluations
-                  .filter((evaluation: any) => evaluation.isToxic)
+                  .filter((evaluation: any) => !evaluation.isToxic)
                   .map((evaluation: any, idx: number) => {
                     return (
                       <div
@@ -189,7 +199,7 @@ const EmotionalTab: React.FC<{
                             {evaluation.emotionalScale > 0 ? '+' : ''}
                             {evaluation.emotionalScale}
                           </span>
-                          {evaluation.isToxic && (
+                          {!evaluation.isToxic && (
                             <span className="text-[10px] md:text-xs bg-red-100 text-red-600 px-1.5 md:px-2 py-0.5 md:py-1 rounded-full font-bold whitespace-nowrap">
                               Токсичен
                             </span>

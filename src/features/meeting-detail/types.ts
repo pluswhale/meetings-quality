@@ -58,6 +58,7 @@ export interface MeetingDetailViewModel {
 
   // State
   isLoading: boolean;
+  isLoadingSubmissions: boolean;
   isCreator: boolean;
   activePhase: any; // The phase currently being viewed (could be previous for participants)
   viewedPhase: any | null; // For participants viewing previous phases
