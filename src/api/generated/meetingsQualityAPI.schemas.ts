@@ -40,6 +40,8 @@ export interface CreateMeetingDto {
   title: string;
   /** Вопрос для обсуждения */
   question: string;
+  /** Дата и время встречи */
+  upcomingDate: string;
   /** ID участников встречи */
   participantIds?: string[];
 }

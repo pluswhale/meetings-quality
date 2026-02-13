@@ -5,19 +5,20 @@
 import React from 'react';
 import { UserResponseDto } from '@/src/shared/api/generated/meetingsQualityAPI.schemas';
 import { EmotionalEvaluationsMap } from '../types';
-import { Slider } from '@/src/shared/ui';
 
 interface EmotionalEvaluationTableProps {
+  currentUser: UserResponseDto;
   participants: UserResponseDto[];
   evaluations: EmotionalEvaluationsMap;
   onUpdateEvaluation: (
     participantId: string,
-    update: Partial<{ emotionalScale: number; isToxic: boolean }>
+    update: Partial<{ emotionalScale: number; isToxic: boolean }>,
   ) => void;
   onAutoSave: () => void;
 }
 
 export const EmotionalEvaluationTable: React.FC<EmotionalEvaluationTableProps> = ({
+  currentUser,
   participants,
   evaluations,
   onUpdateEvaluation,
@@ -44,46 +45,45 @@ export const EmotionalEvaluationTable: React.FC<EmotionalEvaluationTableProps> =
 
         {/* Body */}
         <div className="divide-y divide-slate-100">
-          {participants.map((participant) => {
-            const evaluation = evaluations[participant._id] || {
-              emotionalScale: 0,
-              isToxic: false,
-            };
+          {participants
+            .filter((participant) => participant._id !== currentUser?._id)
+            .map((participant) => {
+              const evaluation = evaluations[participant._id] || {
+                emotionalScale: 0,
+                isToxic: false,
+              };
 
-            return (
-              <div
-                key={participant._id}
-                className="grid grid-cols-[1fr_120px] items-center p-6 hover:bg-slate-50 transition-colors"
-              >
-                {/* Participant */}
-                <div>
-                  <h4 className="font-black text-slate-900">
-                    {participant.fullName}
-                  </h4>
-                </div>
+              return (
+                <div
+                  key={participant._id}
+                  className="grid grid-cols-[1fr_120px] items-center p-6 hover:bg-slate-50 transition-colors"
+                >
+                  {/* Participant */}
+                  <div>
+                    <h4 className="font-black text-slate-900">{participant.fullName}</h4>
+                  </div>
 
-                {/* Toxic */}
-                <div className="flex justify-center">
-                  <label className="cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={evaluation.isToxic}
-                      onChange={(e) => {
-                        onUpdateEvaluation(participant._id, {
-                          isToxic: e.target.checked,
-                        });
-                        setTimeout(onAutoSave, 100);
-                      }}
-                      className="w-6 h-6 rounded accent-red-600 cursor-pointer"
-                    />
-                  </label>
+                  {/* Toxic */}
+                  <div className="flex justify-center">
+                    <label className="cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={evaluation.isToxic}
+                        onChange={(e) => {
+                          onUpdateEvaluation(participant._id, {
+                            isToxic: e.target.checked,
+                          });
+                          setTimeout(onAutoSave, 100);
+                        }}
+                        className="w-6 h-6 rounded accent-red-600 cursor-pointer"
+                      />
+                    </label>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
         </div>
       </div>
     </section>
   );
 };
-

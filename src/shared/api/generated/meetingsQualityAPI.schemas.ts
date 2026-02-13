@@ -42,6 +42,8 @@ export interface CreateMeetingDto {
   question: string;
   /** ID участников встречи */
   participantIds?: string[];
+  /** Дедлайн встречи */
+  upcomingDate?: string;
 }
 
 export interface EmotionalEvaluationItemDto {
@@ -110,25 +112,25 @@ export interface TaskPlanningDto {
 }
 
 export type MeetingResponseDtoCurrentPhase =
-  typeof MeetingResponseDtoCurrentPhase[keyof typeof MeetingResponseDtoCurrentPhase];
+  (typeof MeetingResponseDtoCurrentPhase)[keyof typeof MeetingResponseDtoCurrentPhase];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const MeetingResponseDtoCurrentPhase = {
-  emotional_evaluation: "emotional_evaluation",
-  understanding_contribution: "understanding_contribution",
-  task_planning: "task_planning",
-  task_evaluation: "task_evaluation",
-  finished: "finished",
+  emotional_evaluation: 'emotional_evaluation',
+  understanding_contribution: 'understanding_contribution',
+  task_planning: 'task_planning',
+  task_evaluation: 'task_evaluation',
+  finished: 'finished',
 } as const;
 
 export type MeetingResponseDtoStatus =
-  typeof MeetingResponseDtoStatus[keyof typeof MeetingResponseDtoStatus];
+  (typeof MeetingResponseDtoStatus)[keyof typeof MeetingResponseDtoStatus];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const MeetingResponseDtoStatus = {
-  upcoming: "upcoming",
-  active: "active",
-  finished: "finished",
+  upcoming: 'upcoming',
+  active: 'active',
+  finished: 'finished',
 } as const;
 
 export interface MeetingResponseDto {
@@ -163,16 +165,15 @@ export interface UpdateMeetingDto {
 /**
  * Новая фаза встречи
  */
-export type ChangePhaseDtoPhase =
-  typeof ChangePhaseDtoPhase[keyof typeof ChangePhaseDtoPhase];
+export type ChangePhaseDtoPhase = (typeof ChangePhaseDtoPhase)[keyof typeof ChangePhaseDtoPhase];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ChangePhaseDtoPhase = {
-  discussion: "discussion",
-  emotional_evaluation: "emotional_evaluation",
-  understanding_contribution: "understanding_contribution",
-  task_planning: "task_planning",
-  finished: "finished",
+  discussion: 'discussion',
+  emotional_evaluation: 'emotional_evaluation',
+  understanding_contribution: 'understanding_contribution',
+  task_planning: 'task_planning',
+  finished: 'finished',
 } as const;
 
 export interface ChangePhaseDto {
@@ -310,12 +311,13 @@ export type MeetingsControllerFindAllParams = {
 };
 
 export type MeetingsControllerFindAllFilter =
-  typeof MeetingsControllerFindAllFilter[keyof typeof MeetingsControllerFindAllFilter];
+  (typeof MeetingsControllerFindAllFilter)[keyof typeof MeetingsControllerFindAllFilter];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const MeetingsControllerFindAllFilter = {
-  current: "current",
-  past: "past",
+  current: 'current',
+  past: 'past',
+  upcoming: 'upcoming',
 } as const;
 
 export type TasksControllerFindAllParams = {
@@ -326,10 +328,10 @@ export type TasksControllerFindAllParams = {
 };
 
 export type TasksControllerFindAllFilter =
-  typeof TasksControllerFindAllFilter[keyof typeof TasksControllerFindAllFilter];
+  (typeof TasksControllerFindAllFilter)[keyof typeof TasksControllerFindAllFilter];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const TasksControllerFindAllFilter = {
-  current: "current",
-  past: "past",
+  current: 'current',
+  past: 'past',
 } as const;

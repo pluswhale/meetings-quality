@@ -37,6 +37,16 @@ export const MeetingsFilter: React.FC<MeetingsFilterProps> = ({
       >
         {FILTER_LABELS[MeetingsControllerFindAllFilter.past]}
       </button>
+      <button
+        onClick={() => onFilterChange(MeetingsControllerFindAllFilter.upcoming)}
+        className={`px-6 py-2 rounded-full font-semibold transition-all ${
+          currentFilter === MeetingsControllerFindAllFilter.upcoming
+            ? 'bg-blue-600 text-white shadow-md shadow-blue-100'
+            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+        }`}
+      >
+        {FILTER_LABELS[MeetingsControllerFindAllFilter.upcoming]}
+      </button>
     </div>
   );
 };

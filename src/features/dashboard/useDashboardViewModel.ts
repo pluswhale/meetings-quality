@@ -19,8 +19,7 @@ export const useDashboardViewModel = (): DashboardViewModel => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Tab state
-  const currentTab =
-    (searchParams.get('tab') as DashboardTab) || DashboardTab.MEETINGS;
+  const currentTab = (searchParams.get('tab') as DashboardTab) || DashboardTab.MEETINGS;
 
   const setTab = (newTab: DashboardTab) => {
     setSearchParams({ tab: newTab });
@@ -28,29 +27,15 @@ export const useDashboardViewModel = (): DashboardViewModel => {
 
   // Filter state
   const [filter, setFilter] = useState<MeetingsControllerFindAllFilter>(
-    MeetingsControllerFindAllFilter.current
+    MeetingsControllerFindAllFilter.current,
   );
 
   // Fetch data
-  const {
-    data: meetings = [],
-    isLoading: meetingsLoading,
-  } = useMeetingsControllerFindAll();
+  const { data: meetings = [], isLoading: meetingsLoading } = useMeetingsControllerFindAll({
+    filter,
+  });
 
   const { data: tasks = [], isLoading: tasksLoading } = useTasksControllerFindAll();
-
-  // Filter meetings
-  const filteredMeetings = useMemo(
-    () =>
-      meetings.filter((m) =>
-        filter === MeetingsControllerFindAllFilter.current
-          ? m.currentPhase !== MeetingResponseDtoCurrentPhase.finished
-          : m.currentPhase === MeetingResponseDtoCurrentPhase.finished
-      ),
-    [meetings, filter]
-  );
-
-
 
   // Handlers
   const handleLogout = () => {
@@ -65,7 +50,6 @@ export const useDashboardViewModel = (): DashboardViewModel => {
     setFilter,
     meetings,
     tasks,
-    filteredMeetings,
     meetingsLoading,
     tasksLoading,
     handleLogout,

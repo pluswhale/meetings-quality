@@ -30,7 +30,6 @@ export const PHASE_ORDER: MeetingResponseDtoCurrentPhase[] = [
   MeetingResponseDtoCurrentPhase.emotional_evaluation,
   MeetingResponseDtoCurrentPhase.understanding_contribution,
   MeetingResponseDtoCurrentPhase.task_planning,
-  MeetingResponseDtoCurrentPhase.task_evaluation,
   MeetingResponseDtoCurrentPhase.finished,
 ] as const;
 
@@ -45,6 +44,7 @@ export const STATUS_LABELS: Record<MeetingResponseDtoStatus, string> = {
 export const FILTER_LABELS: Record<MeetingsControllerFindAllFilter, string> = {
   [MeetingsControllerFindAllFilter.current]: 'Текущие',
   [MeetingsControllerFindAllFilter.past]: 'Прошедшие',
+  [MeetingsControllerFindAllFilter.upcoming]: 'Предстоящие',
 } as const;
 
 // Polling intervals (in milliseconds)

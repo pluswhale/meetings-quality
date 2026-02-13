@@ -107,13 +107,15 @@ export const MeetingDetailView: React.FC = () => {
         className="space-y-12"
       >
         {/* Pending Voters Panel - Only visible for creators */}
-        {vm.isCreator && vm.meeting.currentPhase !== MeetingResponseDtoCurrentPhase.finished && (
-          <PendingVotersPanel
-            pendingVoters={vm.pendingVoters || []}
-            isLoading={!vm.pendingVoters}
-            currentPhase={vm.meeting.currentPhase}
-          />
-        )}
+        {vm.isCreator &&
+          vm.meeting.currentPhase !== MeetingResponseDtoCurrentPhase.finished &&
+          vm.meeting.currentPhase !== MeetingResponseDtoCurrentPhase.emotional_evaluation && (
+            <PendingVotersPanel
+              pendingVoters={vm.pendingVoters || []}
+              isLoading={!vm.pendingVoters}
+              currentPhase={vm.meeting.currentPhase}
+            />
+          )}
 
         {/* Creator Submissions Panel - Only visible for creators */}
         {vm.isCreator && vm.meeting.currentPhase !== MeetingResponseDtoCurrentPhase.finished && (

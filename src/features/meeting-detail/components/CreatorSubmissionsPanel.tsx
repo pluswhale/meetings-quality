@@ -171,28 +171,33 @@ const EmotionalTab: React.FC<{
 
             {data.submitted && data.evaluations && data.evaluations.length > 0 ? (
               <div className="space-y-1.5 md:space-y-2 mt-3 md:mt-4 pt-3 md:pt-4 border-t border-slate-200">
-                {data.evaluations.map((evaluation: any, idx: number) => {
-                  return (
-                    <div key={idx} className="flex justify-between items-center py-1 md:py-2 gap-2">
-                      <span className="text-slate-600 font-medium text-xs md:text-sm truncate flex-1">
-                        {evaluation.targetParticipant?.fullName || 'Unknown'}
-                      </span>
-                      <div className="flex items-center gap-1.5 md:gap-2 flex-shrink-0">
-                        <span
-                          className={`font-black text-base md:text-lg ${evaluation.emotionalScale >= 0 ? 'text-green-600' : 'text-red-600'}`}
-                        >
-                          {evaluation.emotionalScale > 0 ? '+' : ''}
-                          {evaluation.emotionalScale}
+                {data.evaluations
+                  .filter((evaluation: any) => evaluation.isToxic)
+                  .map((evaluation: any, idx: number) => {
+                    return (
+                      <div
+                        key={idx}
+                        className="flex justify-between items-center py-1 md:py-2 gap-2"
+                      >
+                        <span className="text-slate-600 font-medium text-xs md:text-sm truncate flex-1">
+                          {evaluation.targetParticipant?.fullName || 'Unknown'}
                         </span>
-                        {evaluation.isToxic && (
-                          <span className="text-[10px] md:text-xs bg-red-100 text-red-600 px-1.5 md:px-2 py-0.5 md:py-1 rounded-full font-bold whitespace-nowrap">
-                            Токсичен
+                        <div className="flex items-center gap-1.5 md:gap-2 flex-shrink-0">
+                          <span
+                            className={`font-black text-base md:text-lg ${evaluation.emotionalScale >= 0 ? 'text-green-600' : 'text-red-600'}`}
+                          >
+                            {evaluation.emotionalScale > 0 ? '+' : ''}
+                            {evaluation.emotionalScale}
                           </span>
-                        )}
+                          {evaluation.isToxic && (
+                            <span className="text-[10px] md:text-xs bg-red-100 text-red-600 px-1.5 md:px-2 py-0.5 md:py-1 rounded-full font-bold whitespace-nowrap">
+                              Токсичен
+                            </span>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
               </div>
             ) : data.submitted ? (
               <p className="text-xs md:text-sm text-slate-400 mt-2 md:mt-3 italic">
@@ -303,8 +308,6 @@ const TasksTab: React.FC<{
           participants.find((p) => p._id === userId)?.fullName ||
           'Unknown';
 
-        console.log('data', data);
-
         const isApproved =
           data.approved === true || data.isApproved === true || data.task?.approved === true;
         const taskId = data.taskId;
@@ -337,7 +340,7 @@ const TasksTab: React.FC<{
 
               <div className="flex items-center gap-2 flex-shrink-0">
                 {/* APPROVAL CHECKBOX LOGIC */}
-                {taskId && !isApproved && (
+                {taskId && (
                   <label
                     className={`flex items-center gap-2 px-3 py-1.5 rounded-full border cursor-pointer transition-all select-none ${
                       isApproved

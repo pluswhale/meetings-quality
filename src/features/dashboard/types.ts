@@ -16,24 +16,23 @@ export enum DashboardTab {
 export interface DashboardViewModel {
   // User data
   currentUser: any;
-  
+
   // Tab state
   currentTab: DashboardTab;
   setTab: (tab: DashboardTab) => void;
-  
+
   // Filter state
   filter: MeetingsControllerFindAllFilter;
   setFilter: (filter: MeetingsControllerFindAllFilter) => void;
-  
+
   // Data
   meetings: MeetingResponseDto[];
   tasks: TaskResponseDto[];
-  filteredMeetings: MeetingResponseDto[];
-  
+
   // Loading state
   meetingsLoading: boolean;
   tasksLoading: boolean;
-  
+
   // Handlers
   handleLogout: () => void;
 }

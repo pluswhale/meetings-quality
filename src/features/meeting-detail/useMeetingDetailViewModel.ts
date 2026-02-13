@@ -272,10 +272,11 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
 
     const myPlan = meeting.taskPlannings.find((t: any) => {
       // Handle both string comparison and populated participant object
-      const planParticipantId = typeof t.participantId === 'string' 
-        ? t.participantId 
-        : t.participantId?._id || t.participant?._id;
-      
+      const planParticipantId =
+        typeof t.participantId === 'string'
+          ? t.participantId
+          : t.participantId?._id || t.participant?._id;
+
       const match = planParticipantId === currentUser._id;
       console.log('Comparing:', { planParticipantId, currentUserId: currentUser._id, match });
       return match;
@@ -373,8 +374,12 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
     changePhase(
       { id: meetingId, data: { phase: nextPhase as ChangePhaseDtoPhase } },
       {
-        onSuccess: () => {
+        onSuccess: (response: any) => {
+          console.log('response 190192029', response);
           queryClient.invalidateQueries({ queryKey: ['/meetings', meetingId] });
+          if (isCreator && response.status === MeetingResponseDtoCurrentPhase.finished) {
+            navigate('/meeting/create');
+          }
         },
         onError: (err: any) => {
           toast.error(`Ошибка: ${err?.response?.data?.message || 'Не удалось изменить фазу'}`);
@@ -678,15 +683,11 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
     if (!meeting?.taskPlannings || !currentUser?._id) return false;
 
     // Find current user's task planning
-    const myPlan = meeting.taskPlannings.find((t: any) => t.participantId === currentUser._id);
+    const myPlan = meeting.taskPlannings.find((t: any) => t.participant._id === currentUser._id);
     if (!myPlan) return false;
-
-    console.log('myPlan', myPlan);
 
     return (myPlan as any)?.approved === true;
   }, [meeting, currentUser]);
-
-  console.log('isMyTaskApproved', isMyTaskApproved);
 
   const handleApproveTask = (taskId: string, currentApproved: boolean) => {
     approveTask({ taskId, currentApproved });

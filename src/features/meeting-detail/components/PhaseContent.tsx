@@ -32,10 +32,10 @@ export const PhaseContent: React.FC<PhaseContentProps> = ({ vm }) => {
     }
   }, [activePhase]);
 
-
   const renderEmotionalEvaluationPhase = () => (
     <div className="space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-700">
       <EmotionalEvaluationTable
+        currentUser={currentUser}
         participants={vm.meetingParticipants}
         evaluations={vm.emotionalEvaluations}
         onUpdateEvaluation={(id, update) =>
@@ -78,7 +78,7 @@ export const PhaseContent: React.FC<PhaseContentProps> = ({ vm }) => {
         isSubmitting={vm.isSubmittingTask || vm.isCreatingTask}
         isApproved={vm.isMyTaskApproved}
       />
-      
+
       {/* Emotional Scale Slider - Everyone can evaluate their emotional state */}
       <TaskEmotionalScaleSlider
         value={vm.taskEmotionalScale}
@@ -95,33 +95,35 @@ export const PhaseContent: React.FC<PhaseContentProps> = ({ vm }) => {
     // 2. Participants see only approved tasks + their own task
     // 3. EXCLUDE current user's task from evaluation list
     const currentUserId = currentUser?._id;
-    
-    const tasksToEvaluate = meeting?.taskPlannings
-      ?.filter((taskPlanning: any) => {
-        // Never evaluate your own task
-        if (taskPlanning.participantId === currentUserId) return false;
-        
-        // Creator sees all tasks
-        if (vm.isCreator) return true;
-        
-        // Participants see only approved tasks
-        // Check for 'approved' (new spec) or 'isApproved' (legacy) or task.approved
-        const isApproved = taskPlanning.approved === true || 
-                          taskPlanning.isApproved === true || 
-                          taskPlanning.task?.approved === true;
-        return isApproved;
-      })
-      .map((taskPlanning: any) => {
-        const author = vm.allUsers.find((u) => u._id === taskPlanning.participant._id);
-        return {
-          authorId: taskPlanning.participant._id,
-          author: author || null,
-          taskDescription: taskPlanning.taskDescription,
-          commonQuestion: taskPlanning.commonQuestion || meeting.question,
-          deadline: taskPlanning.deadline,
-          originalContribution: taskPlanning.expectedContributionPercentage,
-        };
-      }) || [];
+
+    const tasksToEvaluate =
+      meeting?.taskPlannings
+        ?.filter((taskPlanning: any) => {
+          // Never evaluate your own task
+          if (taskPlanning.participantId === currentUserId) return false;
+
+          // Creator sees all tasks
+          if (vm.isCreator) return true;
+
+          // Participants see only approved tasks
+          // Check for 'approved' (new spec) or 'isApproved' (legacy) or task.approved
+          const isApproved =
+            taskPlanning.approved === true ||
+            taskPlanning.isApproved === true ||
+            taskPlanning.task?.approved === true;
+          return isApproved;
+        })
+        .map((taskPlanning: any) => {
+          const author = vm.allUsers.find((u) => u._id === taskPlanning.participant._id);
+          return {
+            authorId: taskPlanning.participant._id,
+            author: author || null,
+            taskDescription: taskPlanning.taskDescription,
+            commonQuestion: taskPlanning.commonQuestion || meeting.question,
+            deadline: taskPlanning.deadline,
+            originalContribution: taskPlanning.expectedContributionPercentage,
+          };
+        }) || [];
 
     return (
       <div className="space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-700">
@@ -146,7 +148,7 @@ export const PhaseContent: React.FC<PhaseContentProps> = ({ vm }) => {
             </p>
           </div>
         )}
-        
+
         <TaskEvaluationForm
           tasks={tasksToEvaluate}
           onEvaluationChange={vm.handleSubmitTaskEvaluation}
@@ -168,7 +170,6 @@ export const PhaseContent: React.FC<PhaseContentProps> = ({ vm }) => {
             {meeting.question}
           </p>
         </div>
-       
       </div>
 
       {/* Understanding Score Panel - Always visible for everyone (except finished) */}
@@ -185,8 +186,7 @@ export const PhaseContent: React.FC<PhaseContentProps> = ({ vm }) => {
         renderEmotionalEvaluationPhase()}
       {activePhase === MeetingResponseDtoCurrentPhase.understanding_contribution &&
         renderUnderstandingContributionPhase()}
-      {activePhase === MeetingResponseDtoCurrentPhase.task_planning &&
-        renderTaskPlanningPhase()}
+      {activePhase === MeetingResponseDtoCurrentPhase.task_planning && renderTaskPlanningPhase()}
       {activePhase === MeetingResponseDtoCurrentPhase.task_evaluation &&
         renderTaskEvaluationPhase()}
 
@@ -204,7 +204,11 @@ export const PhaseContent: React.FC<PhaseContentProps> = ({ vm }) => {
             disabled={vm.isChangingPhase}
             className="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full font-black uppercase tracking-[0.2em] text-sm shadow-2xl shadow-blue-300/50 hover:shadow-3xl hover:-translate-y-1 transition-all disabled:opacity-50 flex items-center gap-3"
           >
-            {vm.isChangingPhase ? 'Переключение...' : 'Следующая фаза'}
+            {vm.isChangingPhase
+              ? 'Переключение...'
+              : vm.meeting.currentPhase === MeetingResponseDtoCurrentPhase.task_planning
+                ? 'Завершить'
+                : 'Следующая фаза'}
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
@@ -216,7 +220,7 @@ export const PhaseContent: React.FC<PhaseContentProps> = ({ vm }) => {
           </button>
         </motion.div>
       )}
-      
+
       {/* Bottom reference for non-creators */}
       {!isCreator && <div ref={bottomRef} />}
     </>
