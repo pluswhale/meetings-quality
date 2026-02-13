@@ -5,7 +5,7 @@
  * API для платформы отслеживания качества встреч
  * OpenAPI spec version: 1.0
  */
-import { useQuery } from "@tanstack/react-query";
+import { useQuery } from '@tanstack/react-query';
 import type {
   DataTag,
   DefinedInitialDataOptions,
@@ -16,21 +16,17 @@ import type {
   UndefinedInitialDataOptions,
   UseQueryOptions,
   UseQueryResult,
-} from "@tanstack/react-query";
+} from '@tanstack/react-query';
 
-import type { UserResponseDto } from "../meetingsQualityAPI.schemas";
+import type { UserResponseDto } from '../meetingsQualityAPI.schemas';
 
-import { customInstance } from "../../../shared/api/axios-instance";
+import { customInstance } from '../../../shared/api/axios-instance';
 
 /**
  * @summary Получить список всех пользователей
  */
 export const usersControllerFindAll = (signal?: AbortSignal) => {
-  return customInstance<UserResponseDto[]>({
-    url: `/users`,
-    method: "GET",
-    signal,
-  });
+  return customInstance<UserResponseDto[]>({ url: `/users`, method: 'GET', signal });
 };
 
 export const getUsersControllerFindAllQueryKey = () => {
@@ -39,24 +35,18 @@ export const getUsersControllerFindAllQueryKey = () => {
 
 export const getUsersControllerFindAllQueryOptions = <
   TData = Awaited<ReturnType<typeof usersControllerFindAll>>,
-  TError = void
+  TError = void,
 >(options?: {
   query?: Partial<
-    UseQueryOptions<
-      Awaited<ReturnType<typeof usersControllerFindAll>>,
-      TError,
-      TData
-    >
+    UseQueryOptions<Awaited<ReturnType<typeof usersControllerFindAll>>, TError, TData>
   >;
 }) => {
   const { query: queryOptions } = options ?? {};
 
-  const queryKey =
-    queryOptions?.queryKey ?? getUsersControllerFindAllQueryKey();
+  const queryKey = queryOptions?.queryKey ?? getUsersControllerFindAllQueryKey();
 
-  const queryFn: QueryFunction<
-    Awaited<ReturnType<typeof usersControllerFindAll>>
-  > = ({ signal }) => usersControllerFindAll(signal);
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof usersControllerFindAll>>> = ({ signal }) =>
+    usersControllerFindAll(signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof usersControllerFindAll>>,
@@ -72,15 +62,11 @@ export type UsersControllerFindAllQueryError = void;
 
 export function useUsersControllerFindAll<
   TData = Awaited<ReturnType<typeof usersControllerFindAll>>,
-  TError = void
+  TError = void,
 >(
   options: {
     query: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof usersControllerFindAll>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof usersControllerFindAll>>, TError, TData>
     > &
       Pick<
         DefinedInitialDataOptions<
@@ -88,24 +74,18 @@ export function useUsersControllerFindAll<
           TError,
           Awaited<ReturnType<typeof usersControllerFindAll>>
         >,
-        "initialData"
+        'initialData'
       >;
   },
-  queryClient?: QueryClient
-): DefinedUseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 export function useUsersControllerFindAll<
   TData = Awaited<ReturnType<typeof usersControllerFindAll>>,
-  TError = void
+  TError = void,
 >(
   options?: {
     query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof usersControllerFindAll>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof usersControllerFindAll>>, TError, TData>
     > &
       Pick<
         UndefinedInitialDataOptions<
@@ -113,57 +93,42 @@ export function useUsersControllerFindAll<
           TError,
           Awaited<ReturnType<typeof usersControllerFindAll>>
         >,
-        "initialData"
+        'initialData'
       >;
   },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 export function useUsersControllerFindAll<
   TData = Awaited<ReturnType<typeof usersControllerFindAll>>,
-  TError = void
+  TError = void,
 >(
   options?: {
     query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof usersControllerFindAll>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof usersControllerFindAll>>, TError, TData>
     >;
   },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-};
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 /**
  * @summary Получить список всех пользователей
  */
 
 export function useUsersControllerFindAll<
   TData = Awaited<ReturnType<typeof usersControllerFindAll>>,
-  TError = void
+  TError = void,
 >(
   options?: {
     query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof usersControllerFindAll>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof usersControllerFindAll>>, TError, TData>
     >;
   },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & {
-  queryKey: DataTag<QueryKey, TData, TError>;
-} {
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getUsersControllerFindAllQueryOptions(options);
 
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
-    TData,
-    TError
-  > & { queryKey: DataTag<QueryKey, TData, TError> };
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
 
   query.queryKey = queryOptions.queryKey;
 
