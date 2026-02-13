@@ -10,11 +10,15 @@ import {
 } from '@/src/shared/api/generated/meetingsQualityAPI.schemas';
 
 // Re-export generated enums for easy access
-export { MeetingResponseDtoCurrentPhase, MeetingResponseDtoStatus, MeetingsControllerFindAllFilter };
+export {
+  MeetingResponseDtoCurrentPhase,
+  MeetingResponseDtoStatus,
+  MeetingsControllerFindAllFilter,
+};
 
 // Phase display names
 export const PHASE_LABELS: Record<MeetingResponseDtoCurrentPhase, string> = {
-  [MeetingResponseDtoCurrentPhase.emotional_evaluation]: 'Эмоции',
+  [MeetingResponseDtoCurrentPhase.emotional_evaluation]: 'Обсуждение',
   [MeetingResponseDtoCurrentPhase.understanding_contribution]: 'Вклад',
   [MeetingResponseDtoCurrentPhase.task_planning]: 'Задачи',
   [MeetingResponseDtoCurrentPhase.task_evaluation]: 'Оценка задач',
@@ -26,7 +30,6 @@ export const PHASE_ORDER: MeetingResponseDtoCurrentPhase[] = [
   MeetingResponseDtoCurrentPhase.emotional_evaluation,
   MeetingResponseDtoCurrentPhase.understanding_contribution,
   MeetingResponseDtoCurrentPhase.task_planning,
-  MeetingResponseDtoCurrentPhase.task_evaluation,
   MeetingResponseDtoCurrentPhase.finished,
 ] as const;
 
@@ -41,6 +44,7 @@ export const STATUS_LABELS: Record<MeetingResponseDtoStatus, string> = {
 export const FILTER_LABELS: Record<MeetingsControllerFindAllFilter, string> = {
   [MeetingsControllerFindAllFilter.current]: 'Текущие',
   [MeetingsControllerFindAllFilter.past]: 'Прошедшие',
+  [MeetingsControllerFindAllFilter.upcoming]: 'Предстоящие',
 } as const;
 
 // Polling intervals (in milliseconds)

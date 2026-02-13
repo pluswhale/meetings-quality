@@ -15,7 +15,9 @@ export const useCreateMeetingViewModel = (): CreateMeetingViewModel => {
   // Form state
   const [title, setTitle] = useState('');
   const [question, setQuestion] = useState('');
+
   const [error, setError] = useState('');
+  const [upcomingDate, setUpcomingDate] = useState<string | null>(null);
 
   // API mutation
   const { mutate: createMeeting, isPending } = useMeetingsControllerCreate();
@@ -31,7 +33,7 @@ export const useCreateMeetingViewModel = (): CreateMeetingViewModel => {
     }
 
     createMeeting(
-      { data: { title, question, participantIds: [] } },
+      { data: { title, question, participantIds: [], upcomingDate } },
       {
         onSuccess: (data) => {
           queryClient.invalidateQueries({ queryKey: ['meetings'] });
@@ -41,7 +43,7 @@ export const useCreateMeetingViewModel = (): CreateMeetingViewModel => {
           const message = err?.response?.data?.message || 'Ошибка создания встречи';
           setError(message);
         },
-      }
+      },
     );
   };
 
@@ -50,6 +52,8 @@ export const useCreateMeetingViewModel = (): CreateMeetingViewModel => {
   };
 
   return {
+    upcomingDate,
+    setUpcomingDate,
     title,
     setTitle,
     question,

@@ -55,16 +55,7 @@ export const MeetingHeader: React.FC<MeetingHeaderProps> = ({
         <h1 className="text-4xl font-black text-slate-900 tracking-tight leading-tight mb-4">
           {title}
         </h1>
-        <div className="flex items-center gap-4 text-slate-400 text-sm font-bold uppercase tracking-widest">
-          <span>#{meetingId}</span>
-          <div className="w-1.5 h-1.5 rounded-full bg-slate-300" />
-          <span>
-            {new Date(createdAt).toLocaleTimeString('ru-RU', {
-              hour: '2-digit',
-              minute: '2-digit',
-            })}
-          </span>
-        </div>
+
       </div>
 
       <motion.div

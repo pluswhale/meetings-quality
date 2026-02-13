@@ -1,17 +1,15 @@
-/**
- * Slider - Beautiful range input with progress bar
- */
-
+import * as RadixSlider from '@radix-ui/react-slider';
 import React from 'react';
 
 interface SliderProps {
   value: number;
   min?: number;
   max?: number;
+  step?: number;
   onChange: (value: number) => void;
-  onChangeEnd?: (value: number) => void; // Triggered when slider is released
+  onChangeEnd?: (value: number) => void;
   variant?: 'default' | 'green' | 'emotional' | 'importance';
-  showProgress?: boolean;
+  disabled?: boolean;
   className?: string;
 }
 
@@ -19,74 +17,54 @@ export const Slider: React.FC<SliderProps> = ({
   value,
   min = 0,
   max = 100,
+  step = 10,
   onChange,
   onChangeEnd,
   variant = 'default',
-  showProgress = true,
+  disabled = false,
   className = '',
 }) => {
-  // Calculate progress percentage
-  const percentage = ((value - min) / (max - min)) * 100;
+  const trackClass = {
+    default: 'bg-slate-200',
+    green: 'bg-green-200',
+    importance: 'bg-orange-200',
+    emotional: 'bg-gradient-to-r from-red-400 via-yellow-300 to-green-400',
+  }[variant];
 
-  const handleMouseUp = (e: React.MouseEvent<HTMLInputElement>) => {
-    if (onChangeEnd) {
-      onChangeEnd(Number(e.currentTarget.value));
-    }
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent<HTMLInputElement>) => {
-    if (onChangeEnd) {
-      onChangeEnd(Number(e.currentTarget.value));
-    }
-  };
-
-  const sliderClasses = [
-    variant === 'green' && 'slider-green',
-    variant === 'emotional' && 'slider-emotional',
-    variant === 'importance' && 'slider-importance',
-  ]
-    .filter(Boolean)
-    .join(' ');
-
-  const progressClasses = [
-    'slider-progress',
-    variant === 'green' && 'slider-progress-green',
-    variant === 'importance' && 'slider-progress-importance',
-  ]
-    .filter(Boolean)
-    .join(' ');
-
-  if (!showProgress || variant === 'emotional') {
-    // No progress bar for emotional slider (has gradient track)
-    return (
-      <input
-        type="range"
-        min={min}
-        max={max}
-        step={10}
-        value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
-        onMouseUp={handleMouseUp}
-        onTouchEnd={handleTouchEnd}
-        className={`${sliderClasses} ${className}`}
-      />
-    );
-  }
+  const rangeClass = {
+    default: 'bg-purple-600',
+    green: 'bg-green-600',
+    importance: 'bg-orange-500',
+    emotional: 'hidden',
+  }[variant];
 
   return (
-    <div className="slider-wrapper">
-      <div className={progressClasses} style={{ width: `${percentage}%` }} />
-      <input
-        type="range"
-        min={min}
-        max={max}
-        step={10}
-        value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
-        onMouseUp={handleMouseUp}
-        onTouchEnd={handleTouchEnd}
-        className={`${sliderClasses} ${className}`}
+    <RadixSlider.Root
+      value={[value]}
+      min={min}
+      max={max}
+      step={step}
+      disabled={disabled}
+      onValueChange={([v]) => onChange(v)}
+      onValueCommit={([v]) => onChangeEnd?.(v)}
+      className={`relative flex items-center select-none touch-none h-6 ${className}`}
+    >
+      <RadixSlider.Track
+        className={`relative grow rounded-full h-2 ${trackClass}`}
+      >
+        <RadixSlider.Range
+          className={`absolute h-full rounded-full ${rangeClass}`}
+        />
+      </RadixSlider.Track>
+
+      <RadixSlider.Thumb
+        className="
+          block w-5 h-5 bg-white border-2 border-purple-600
+          rounded-full shadow transition
+          focus:outline-none focus:ring-2 focus:ring-purple-400
+          disabled:opacity-50
+        "
       />
-    </div>
+    </RadixSlider.Root>
   );
 };

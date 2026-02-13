@@ -43,12 +43,7 @@ export const DashboardView: React.FC = () => {
                 <Button
                   variant="success"
                   leftIcon={
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -74,13 +69,13 @@ export const DashboardView: React.FC = () => {
                 <div className="flex justify-center items-center py-20">
                   <div className="animate-spin w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full" />
                 </div>
-              ) : vm.filteredMeetings.length === 0 ? (
+              ) : vm.meetings.length === 0 ? (
                 <div className="text-center py-20">
                   <p className="text-slate-400 font-bold text-lg">Встречи отсутствуют</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {vm.filteredMeetings.map((m) => (
+                  {vm.meetings.map((m) => (
                     <Link key={m._id} to={`/meeting/${m._id}`}>
                       <Card hover>
                         <CardHeader
