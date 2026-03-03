@@ -40,9 +40,9 @@ export const PhaseSubmissionsDisplay: React.FC<PhaseSubmissionsDisplayProps> = (
       </h4>
 
       {currentPhase === MeetingResponseDtoCurrentPhase.emotional_evaluation &&
-        phaseSubmissions.emotionalEvaluations && (
+        phaseSubmissions.emotional_evaluation && (
           <div className="space-y-4">
-            {Object.entries(phaseSubmissions.emotionalEvaluations).map(
+            {Object.entries(phaseSubmissions.emotional_evaluation).map(
               ([userId, data]: [string, any]) => {
                 const user = participants.find((p) => p._id === userId);
                 return (
@@ -92,9 +92,9 @@ export const PhaseSubmissionsDisplay: React.FC<PhaseSubmissionsDisplayProps> = (
         )}
 
       {currentPhase === MeetingResponseDtoCurrentPhase.understanding_contribution &&
-        phaseSubmissions.understandingContributions && (
+        phaseSubmissions.understanding_contribution && (
           <div className="space-y-4">
-            {Object.entries(phaseSubmissions.understandingContributions).map(
+            {Object.entries(phaseSubmissions.understanding_contribution).map(
               ([userId, data]: [string, any]) => {
                 const user = participants.find((p) => p._id === userId);
                 return (
@@ -138,9 +138,9 @@ export const PhaseSubmissionsDisplay: React.FC<PhaseSubmissionsDisplayProps> = (
         )}
 
       {currentPhase === MeetingResponseDtoCurrentPhase.task_planning &&
-        phaseSubmissions.taskPlannings && (
+        phaseSubmissions.task_planning && (
           <div className="space-y-4">
-            {Object.entries(phaseSubmissions.taskPlannings).map(
+            {Object.entries(phaseSubmissions.task_planning).map(
               ([userId, data]: [string, any]) => {
                 const user = participants.find((p) => p._id === userId);
                 return (

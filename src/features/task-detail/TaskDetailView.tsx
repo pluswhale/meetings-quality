@@ -50,9 +50,7 @@ export const TaskDetailView: React.FC = () => {
         <h1 className="text-4xl font-black text-slate-900 tracking-tight leading-tight mb-4">
           Детали задачи
         </h1>
-        <p className="text-slate-500 text-lg font-medium">
-          Персональное задание по итогам встречи
-        </p>
+        <p className="text-slate-500 text-lg font-medium">Персональное задание по итогам встречи</p>
       </header>
 
       <div className="bg-white rounded-[40px] shadow-2xl shadow-slate-200/50 border border-slate-100 p-10 md:p-14 space-y-10">
@@ -75,7 +73,7 @@ export const TaskDetailView: React.FC = () => {
                 {vm.isAuthor ? currentUser?.fullName.charAt(0) : 'U'}
               </div>
               <span className="text-slate-700 font-bold">
-                {vm.isAuthor ? 'Вы' : vm.task.authorId}
+                {vm.isAuthor ? 'Вы' : vm.task.authorId.fullName}
               </span>
             </div>
           </div>

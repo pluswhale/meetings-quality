@@ -7,7 +7,7 @@ export default defineConfig({
     },
     output: {
       mode: 'tags-split',
-      target: './src/api/generated',
+      target: './src/shared/api/generated',
       client: 'react-query',
       // Don't set baseUrl - let axios-instance.ts handle it
       // This will generate relative paths like /meetings, /auth/login

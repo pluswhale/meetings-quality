@@ -4,6 +4,7 @@
 
 import { UserResponseDto } from '@/src/shared/api/generated/meetingsQualityAPI.schemas';
 import { ActiveParticipantsResponse } from './api/meeting-room.api';
+import type { MeetingSubmissions } from '@/src/features/meeting/types';
 
 export interface EmotionalEvaluationState {
   emotionalScale: number;
@@ -28,11 +29,8 @@ export interface VotingInfo {
   };
 }
 
-export interface PhaseSubmissions {
-  emotional_evaluation?: Record<string, any>;
-  understanding_contribution?: Record<string, any>;
-  task_planning?: Record<string, any>;
-}
+/** @deprecated Use MeetingSubmissions from @/src/features/meeting/types instead. */
+export type PhaseSubmissions = MeetingSubmissions;
 
 export interface PendingVoter {
   _id: string;
@@ -52,7 +50,7 @@ export interface MeetingDetailViewModel {
   allUsers: UserResponseDto[];
   meetingParticipants: UserResponseDto[];
   votingInfo: VotingInfo | null;
-  phaseSubmissions: PhaseSubmissions | null;
+  phaseSubmissions: MeetingSubmissions | null;
   activeParticipants: ActiveParticipantsResponse | null;
   pendingVoters: PendingVoter[];
 
@@ -77,6 +75,8 @@ export interface MeetingDetailViewModel {
   // Phase 4 state
   taskDescription: string;
   commonQuestion: string;
+  estimateHours: string;
+  onChangeEstimateHours: React.Dispatch<React.SetStateAction<string>>;
   setCommonQuestion: React.Dispatch<React.SetStateAction<string>>;
   setTaskDescription: React.Dispatch<React.SetStateAction<string>>;
   deadline: string;

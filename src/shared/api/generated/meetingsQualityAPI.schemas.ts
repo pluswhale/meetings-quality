@@ -40,39 +40,39 @@ export interface CreateMeetingDto {
   title: string;
   /** Вопрос для обсуждения */
   question: string;
+  /** Дата и время встречи */
+  upcomingDate: string;
   /** ID участников встречи */
   participantIds?: string[];
-  /** Дедлайн встречи */
-  upcomingDate?: string;
+}
+
+export interface MeetingParticipantRefDto {
+  _id: string;
+  /** @nullable */
+  fullName: string | null;
+  /** @nullable */
+  email: string | null;
 }
 
 export interface EmotionalEvaluationItemDto {
-  /** ID участника, которого оценивают */
   targetParticipantId: string;
   /**
-   * Эмоциональная оценка
    * @minimum -100
    * @maximum 100
    */
   emotionalScale: number;
-  /** Флаг токсичности */
   isToxic: boolean;
 }
 
 export interface EmotionalEvaluationDto {
-  /** ID участника, который оценивал */
-  participantId: string;
-  /** Оценки других участников */
+  participant: MeetingParticipantRefDto;
   evaluations: EmotionalEvaluationItemDto[];
-  /** Дата отправки */
   submittedAt: string;
 }
 
 export interface ContributionItemDto {
-  /** ID участника */
   participantId: string;
   /**
-   * Процент вклада
    * @minimum 0
    * @maximum 100
    */
@@ -80,51 +80,44 @@ export interface ContributionItemDto {
 }
 
 export interface UnderstandingContributionDto {
-  /** ID участника */
-  participantId: string;
+  participant: MeetingParticipantRefDto;
   /**
-   * Оценка понимания
    * @minimum 0
    * @maximum 100
    */
   understandingScore: number;
-  /** Распределение вклада */
   contributions: ContributionItemDto[];
-  /** Дата отправки */
   submittedAt: string;
 }
 
-export interface TaskPlanningDto {
-  /** ID участника */
-  participantId: string;
-  /** Описание задачи */
-  taskDescription: string;
-  /** Дедлайн */
-  deadline: string;
+export interface TaskImportanceEvaluationItemDto {
+  taskAuthorId: string;
   /**
-   * Ожидаемый процент вклада
    * @minimum 0
    * @maximum 100
    */
-  expectedContributionPercentage: number;
-  /** Дата отправки */
+  importanceScore: number;
+}
+
+export interface TaskEvaluationDto {
+  participant: MeetingParticipantRefDto;
+  evaluations: TaskImportanceEvaluationItemDto[];
   submittedAt: string;
 }
 
 export type MeetingResponseDtoCurrentPhase =
-  (typeof MeetingResponseDtoCurrentPhase)[keyof typeof MeetingResponseDtoCurrentPhase];
+  typeof MeetingResponseDtoCurrentPhase[keyof typeof MeetingResponseDtoCurrentPhase];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const MeetingResponseDtoCurrentPhase = {
   emotional_evaluation: 'emotional_evaluation',
   understanding_contribution: 'understanding_contribution',
   task_planning: 'task_planning',
-  task_evaluation: 'task_evaluation',
   finished: 'finished',
 } as const;
 
 export type MeetingResponseDtoStatus =
-  (typeof MeetingResponseDtoStatus)[keyof typeof MeetingResponseDtoStatus];
+  typeof MeetingResponseDtoStatus[keyof typeof MeetingResponseDtoStatus];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const MeetingResponseDtoStatus = {
@@ -137,18 +130,14 @@ export interface MeetingResponseDto {
   _id: string;
   title: string;
   question: string;
-  /** ID создателя встречи (строка) */
-  creatorId: string;
-  /** Массив ID участников (строки) */
+  creatorId: MeetingParticipantRefDto;
   participantIds: string[];
+  activeParticipantIds: MeetingParticipantRefDto[];
   currentPhase: MeetingResponseDtoCurrentPhase;
   status: MeetingResponseDtoStatus;
-  /** Эмоциональные оценки участников */
   emotionalEvaluations: EmotionalEvaluationDto[];
-  /** Понимание и вклад участников */
   understandingContributions: UnderstandingContributionDto[];
-  /** Планирование задач участников */
-  taskPlannings: TaskPlanningDto[];
+  taskEvaluations: TaskEvaluationDto[];
   createdAt: string;
   updatedAt: string;
 }
@@ -165,11 +154,10 @@ export interface UpdateMeetingDto {
 /**
  * Новая фаза встречи
  */
-export type ChangePhaseDtoPhase = (typeof ChangePhaseDtoPhase)[keyof typeof ChangePhaseDtoPhase];
+export type ChangePhaseDtoPhase = typeof ChangePhaseDtoPhase[keyof typeof ChangePhaseDtoPhase];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ChangePhaseDtoPhase = {
-  discussion: 'discussion',
   emotional_evaluation: 'emotional_evaluation',
   understanding_contribution: 'understanding_contribution',
   task_planning: 'task_planning',
@@ -195,7 +183,7 @@ export interface ParticipantEmotionalEvaluationDto {
 }
 
 export interface SubmitEmotionalEvaluationDto {
-  /** Эмоциональные оценки других участников */
+  /** Эмоциональные оценки других участников (можно отправить пустой массив - голосование полностью опциональное) */
   evaluations: ParticipantEmotionalEvaluationDto[];
 }
 
@@ -217,15 +205,15 @@ export interface SubmitUnderstandingContributionDto {
    * @maximum 100
    */
   understandingScore: number;
-  /** Распределение вклада участников в обсуждение */
+  /** Распределение вклада участников в обсуждение (можно отправить пустой массив - голосование полностью опциональное) */
   contributions: ContributionInfluenceDto[];
 }
 
 export interface SubmitTaskPlanningDto {
-  /** Глобальное понимание задачи */
-  commonQuestion: string;
   /** Описание задачи */
   taskDescription: string;
+  /** Общий вопрос задачи */
+  commonQuestion: string;
   /** Дедлайн задачи (ISO формат) */
   deadline: string;
   /**
@@ -236,34 +224,55 @@ export interface SubmitTaskPlanningDto {
   expectedContributionPercentage: number;
 }
 
-export type StatisticsResponseDtoParticipantStatsItemParticipant = {
+export interface TaskImportanceEvaluationDto {
+  /** ID автора задачи, которую оценивают */
+  taskAuthorId: string;
+  /**
+   * Оценка важности задачи (0-100)
+   * @minimum 0
+   * @maximum 100
+   */
+  importanceScore: number;
+}
+
+export interface SubmitTaskEvaluationDto {
+  /** Массив оценок важности задач (можно отправить пустой массив - голосование полностью опциональное) */
+  evaluations: TaskImportanceEvaluationDto[];
+}
+
+export type ParticipantStatDtoParticipant = {
   _id?: string;
-  fullName?: string;
-  email?: string;
+  /** @nullable */
+  fullName?: string | null;
+  /** @nullable */
+  email?: string | null;
 };
 
-export type StatisticsResponseDtoParticipantStatsItem = {
-  participant?: StatisticsResponseDtoParticipantStatsItemParticipant;
-  understandingScore?: number;
-  averageEmotionalScale?: number;
-  toxicityFlags?: number;
-};
+export interface ParticipantStatDto {
+  participant: ParticipantStatDtoParticipant;
+  understandingScore: number;
+  averageEmotionalScale: number;
+  toxicityFlags: number;
+  averageContribution: number;
+}
 
 export interface StatisticsResponseDto {
   question: string;
   avgUnderstanding: number;
-  participantStats: StatisticsResponseDtoParticipantStatsItem[];
+  participantStats: ParticipantStatDto[];
 }
 
 export interface CreateTaskDto {
-  /** Глобальное понимание задачи */
-  commonQuestion: string;
   /** Описание задачи */
   description: string;
+  /** Описание общего вопроса */
+  commonQuestion: string;
   /** ID встречи, из которой создана задача */
   meetingId: string;
   /** Дедлайн задачи (ISO формат) */
   deadline: string;
+  /** Оценить время на задачу */
+  estimateHours: number;
   /**
    * Важность вклада (0-100)
    * @minimum 0
@@ -272,17 +281,35 @@ export interface CreateTaskDto {
   contributionImportance: number;
 }
 
+export interface TaskAuthorRefDto {
+  _id: string;
+  /** @nullable */
+  fullName: string | null;
+  /** @nullable */
+  email: string | null;
+}
+
+export interface TaskMeetingRefDto {
+  _id: string;
+  title: string;
+  question: string;
+}
+
 export interface TaskResponseDto {
   _id: string;
   description: string;
-  authorId: string;
-  meetingId: string;
+  commonQuestion: string;
+  authorId: TaskAuthorRefDto;
+  meetingId: TaskMeetingRefDto;
   deadline: string;
+  /** Estimated hours to complete the task */
+  estimateHours: number;
   /**
    * @minimum 0
    * @maximum 100
    */
   contributionImportance: number;
+  approved: boolean;
   isCompleted: boolean;
   createdAt: string;
   updatedAt: string;
@@ -293,6 +320,8 @@ export interface UpdateTaskDto {
   description?: string;
   /** Дедлайн задачи (ISO формат) */
   deadline?: string;
+  /** Оценить время на задачу */
+  estimateHours: number;
   /**
    * Важность вклада (0-100)
    * @minimum 0
@@ -303,6 +332,11 @@ export interface UpdateTaskDto {
   isCompleted?: boolean;
 }
 
+export interface ApproveTaskDto {
+  /** Approve or unapprove the task */
+  approved: boolean;
+}
+
 export type MeetingsControllerFindAllParams = {
   /**
    * Фильтр по статусу встречи
@@ -311,7 +345,7 @@ export type MeetingsControllerFindAllParams = {
 };
 
 export type MeetingsControllerFindAllFilter =
-  (typeof MeetingsControllerFindAllFilter)[keyof typeof MeetingsControllerFindAllFilter];
+  typeof MeetingsControllerFindAllFilter[keyof typeof MeetingsControllerFindAllFilter];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const MeetingsControllerFindAllFilter = {
@@ -328,7 +362,7 @@ export type TasksControllerFindAllParams = {
 };
 
 export type TasksControllerFindAllFilter =
-  (typeof TasksControllerFindAllFilter)[keyof typeof TasksControllerFindAllFilter];
+  typeof TasksControllerFindAllFilter[keyof typeof TasksControllerFindAllFilter];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const TasksControllerFindAllFilter = {

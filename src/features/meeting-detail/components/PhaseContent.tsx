@@ -6,14 +6,11 @@ import React, { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { MeetingResponseDtoCurrentPhase } from '@/src/shared/api/generated/meetingsQualityAPI.schemas';
 import { useAuthStore } from '@/src/shared/store/auth.store';
-import { CreatorWarningBanner } from '@/src/shared/components';
 import { EmotionalEvaluationTable } from './EmotionalEvaluationTable';
 import { UnderstandingScorePanel } from './UnderstandingScorePanel';
 import { ContributionDistributionPanel } from './ContributionDistributionPanel';
 import { TaskPlanningForm } from './TaskPlanningForm';
-import { TaskEvaluationForm } from './TaskEvaluationForm';
 import { TaskEmotionalScaleSlider } from './TaskEmotionalScaleSlider';
-import { CreatorStatsPanels } from './CreatorStatsPanels';
 import { MeetingDetailViewModel } from '../types';
 
 interface PhaseContentProps {
@@ -66,6 +63,8 @@ export const PhaseContent: React.FC<PhaseContentProps> = ({ vm }) => {
   const renderTaskPlanningPhase = () => (
     <div className="space-y-12">
       <TaskPlanningForm
+        estimateHours={vm.estimateHours}
+        onEstimateHoursChange={vm.onChangeEstimateHours}
         commonQuestion={vm.commonQuestion}
         onCommonQuestionChange={vm.setCommonQuestion}
         taskDescription={vm.taskDescription}
@@ -88,75 +87,6 @@ export const PhaseContent: React.FC<PhaseContentProps> = ({ vm }) => {
       />
     </div>
   );
-
-  const renderTaskEvaluationPhase = () => {
-    // Task visibility rules:
-    // 1. Creator sees all tasks
-    // 2. Participants see only approved tasks + their own task
-    // 3. EXCLUDE current user's task from evaluation list
-    const currentUserId = currentUser?._id;
-
-    const tasksToEvaluate =
-      meeting?.taskPlannings
-        ?.filter((taskPlanning: any) => {
-          // Never evaluate your own task
-          if (taskPlanning.participantId === currentUserId) return false;
-
-          // Creator sees all tasks
-          if (vm.isCreator) return true;
-
-          // Participants see only approved tasks
-          // Check for 'approved' (new spec) or 'isApproved' (legacy) or task.approved
-          const isApproved =
-            taskPlanning.approved === true ||
-            taskPlanning.isApproved === true ||
-            taskPlanning.task?.approved === true;
-          return isApproved;
-        })
-        .map((taskPlanning: any) => {
-          const author = vm.allUsers.find((u) => u._id === taskPlanning.participant._id);
-          return {
-            authorId: taskPlanning.participant._id,
-            author: author || null,
-            taskDescription: taskPlanning.taskDescription,
-            commonQuestion: taskPlanning.commonQuestion || meeting.question,
-            deadline: taskPlanning.deadline,
-            originalContribution: taskPlanning.expectedContributionPercentage,
-          };
-        }) || [];
-
-    return (
-      <div className="space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-700">
-        {/* Info banner for participants */}
-        {!vm.isCreator && (
-          <div className="bg-blue-50 border border-blue-100 p-4 rounded-2xl flex items-start gap-3">
-            <svg
-              className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            <p className="text-sm text-blue-800 font-medium">
-              Вы видите только задачи, одобренные организатором.
-            </p>
-          </div>
-        )}
-
-        <TaskEvaluationForm
-          tasks={tasksToEvaluate}
-          onEvaluationChange={vm.handleSubmitTaskEvaluation}
-          existingEvaluation={vm.taskEvaluations}
-        />
-      </div>
-    );
-  };
 
   return (
     <>
@@ -187,8 +117,6 @@ export const PhaseContent: React.FC<PhaseContentProps> = ({ vm }) => {
       {activePhase === MeetingResponseDtoCurrentPhase.understanding_contribution &&
         renderUnderstandingContributionPhase()}
       {activePhase === MeetingResponseDtoCurrentPhase.task_planning && renderTaskPlanningPhase()}
-      {activePhase === MeetingResponseDtoCurrentPhase.task_evaluation &&
-        renderTaskEvaluationPhase()}
 
       {/* Creator Controls */}
       {isCreator && activePhase !== MeetingResponseDtoCurrentPhase.finished && (

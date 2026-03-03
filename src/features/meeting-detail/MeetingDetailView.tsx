@@ -123,7 +123,6 @@ export const MeetingDetailView: React.FC = () => {
             isApprovingTask={vm.isApprovingTask}
             onApproveTask={vm.handleApproveTask}
             submissions={vm.phaseSubmissions}
-            participants={vm.meetingParticipants}
             isLoading={!vm.phaseSubmissions}
             isRefreshing={vm.isLoadingSubmissions && !!vm.phaseSubmissions}
           />

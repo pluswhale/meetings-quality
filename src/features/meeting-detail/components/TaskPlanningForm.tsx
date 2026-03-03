@@ -7,6 +7,8 @@ import { Slider, DateTimePicker } from '@/src/shared/ui';
 
 interface TaskPlanningFormProps {
   commonQuestion: string;
+  estimateHours: string;
+  onEstimateHoursChange: (value: string) => void;
   onCommonQuestionChange: (value: string) => void;
   taskDescription: string;
   onTaskDescriptionChange: (value: string) => void;
@@ -24,6 +26,8 @@ export const TaskPlanningForm: React.FC<TaskPlanningFormProps> = ({
   commonQuestion,
   deadline,
   onTaskDescriptionChange,
+  estimateHours,
+  onEstimateHoursChange,
   onCommonQuestionChange,
   onDeadlineChange,
   expectedContribution,
@@ -38,11 +42,13 @@ export const TaskPlanningForm: React.FC<TaskPlanningFormProps> = ({
         <h2 className="text-2xl font-black mb-8 flex items-center gap-3">
           {taskDescription ? 'Моя задача' : 'Создать задачу'}
           {taskDescription && (
-            <span className={`text-xs px-3 py-1 rounded-full border uppercase tracking-widest ${
-              isApproved 
-                ? 'bg-green-100 text-green-600 border-green-200'
-                : 'bg-amber-100 text-amber-600 border-amber-200'
-            }`}>
+            <span
+              className={`text-xs px-3 py-1 rounded-full border uppercase tracking-widest ${
+                isApproved
+                  ? 'bg-green-100 text-green-600 border-green-200'
+                  : 'bg-amber-100 text-amber-600 border-amber-200'
+              }`}
+            >
               {isApproved ? 'Одобрено' : 'Ожидает одобрения'}
             </span>
           )}
@@ -108,6 +114,23 @@ export const TaskPlanningForm: React.FC<TaskPlanningFormProps> = ({
                   : 'bg-slate-50 border-slate-100 focus:ring-4 focus:ring-blue-100 focus:border-blue-400 focus:bg-white text-slate-900'
               }`}
               placeholder="Опишите задачу, которую нужно выполнить..."
+            />
+          </div>
+
+          <div>
+            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">
+              Время на задачу
+            </label>
+            <input
+              value={estimateHours}
+              onChange={(e) => onEstimateHoursChange(e.target.value)}
+              disabled={isApproved}
+              className={`w-full px-6 py-4 border-2 rounded-2xl font-bold transition-all outline-none ${
+                isApproved
+                  ? 'bg-slate-100 border-slate-200 text-slate-500 cursor-not-allowed'
+                  : 'bg-slate-50 border-slate-100 focus:ring-4 focus:ring-blue-100 focus:border-blue-400 focus:bg-white text-slate-900'
+              }`}
+              placeholder="Опишите на сколько времени вы рассчитываете, чтобы выполнить задачу..."
             />
           </div>
 
