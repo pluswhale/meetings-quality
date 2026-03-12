@@ -1,55 +1,53 @@
-/**
- * ViewModel for TaskDetail
- * Contains all business logic for viewing and editing tasks
- */
-
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '@/src/shared/store/auth.store';
-import { queryClient } from '@/src/app/providers/QueryProvider';
 import {
   useTasksControllerFindOne,
   useTasksControllerUpdate,
+  getTasksControllerFindOneQueryKey,
+  getTasksControllerFindAllQueryKey,
 } from '@/src/shared/api/generated/tasks/tasks';
 import { TaskDetailViewModel } from './types';
 import { toISOString } from '@/src/shared/lib';
 
 export const useTaskDetailViewModel = (taskId: string): TaskDetailViewModel => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { currentUser } = useAuthStore();
 
-  // Fetch task data
   const { data: task, isLoading } = useTasksControllerFindOne(taskId, {
-    query: {
-      enabled: !!taskId,
-    },
+    query: { enabled: Boolean(taskId) },
   });
 
-  // Update mutation
   const { mutate: updateTask, isPending: isUpdating } = useTasksControllerUpdate();
 
-  // Form state
   const [description, setDescription] = useState('');
   const [deadline, setDeadline] = useState('');
+  const [isCompleted, setIsCompleted] = useState(false);
 
-  // Sync form state with task data
   useEffect(() => {
     if (task) {
       setDescription(task.description);
       setDeadline(new Date(task.deadline).toISOString().split('T')[0]);
+      setIsCompleted(task.isCompleted);
     }
   }, [task]);
 
-  // Check if current user is author
+  // Fix: authorId is a TaskAuthorRefDto object, compare via _id
   const isAuthor = useMemo(
-    () => task?.authorId === currentUser?._id,
-    [task, currentUser]
+    () => Boolean(task && currentUser && task.authorId._id === currentUser._id),
+    [task, currentUser],
   );
 
-  // Handlers
+  const invalidateTaskCache = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: getTasksControllerFindOneQueryKey(taskId) });
+    queryClient.invalidateQueries({ queryKey: getTasksControllerFindAllQueryKey() });
+  }, [queryClient, taskId]);
+
   const handleSave = () => {
-    if (!taskId) return;
+    if (!taskId || !task) return;
 
     updateTask(
       {
@@ -57,35 +55,34 @@ export const useTaskDetailViewModel = (taskId: string): TaskDetailViewModel => {
         data: {
           description,
           deadline: toISOString(deadline),
+          estimateHours: task.estimateHours,
+          isCompleted,
         },
       },
       {
         onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: ['tasks', taskId] });
-          queryClient.invalidateQueries({ queryKey: ['tasks'] });
+          invalidateTaskCache();
           toast.success('Изменения сохранены');
         },
-        onError: (err: any) => {
-          toast.error(`Ошибка: ${err?.response?.data?.message || 'Не удалось сохранить изменения'}`);
+        onError: () => {
+          toast.error('Не удалось сохранить изменения');
         },
-      }
+      },
     );
   };
 
-  const handleNavigateBack = () => {
-    navigate('/dashboard');
-  };
-
   return {
-    task: task || null,
+    task: task ?? null,
     isLoading,
     isAuthor,
     description,
     setDescription,
     deadline,
     setDeadline,
+    isCompleted,
+    setIsCompleted,
     isUpdating,
     handleSave,
-    handleNavigateBack,
+    handleNavigateBack: () => navigate(-1),
   };
 };

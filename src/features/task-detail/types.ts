@@ -17,10 +17,12 @@ export interface TaskDetailViewModel {
   setDescription: (value: string) => void;
   deadline: string;
   setDeadline: (value: string) => void;
-  
+  isCompleted: boolean;
+  setIsCompleted: (value: boolean) => void;
+
   // Mutation state
   isUpdating: boolean;
-  
+
   // Handlers
   handleSave: () => void;
   handleNavigateBack: () => void;

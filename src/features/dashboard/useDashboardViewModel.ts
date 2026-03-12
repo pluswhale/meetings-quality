@@ -1,16 +1,11 @@
-/**
- * ViewModel for Dashboard
- * Contains all business logic for dashboard functionality
- */
-
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '@/src/shared/store/auth.store';
 import { useMeetingsControllerFindAll } from '@/src/shared/api/generated/meetings/meetings';
-import { useTasksControllerFindAll } from '@/src/shared/api/generated/tasks/tasks';
+import { useProjectsControllerFindAll } from '@/src/shared/api/generated/projects/projects';
 import {
-  MeetingResponseDtoCurrentPhase,
   MeetingsControllerFindAllFilter,
+  ProjectsControllerFindAllStatus,
 } from '@/src/shared/api/generated/meetingsQualityAPI.schemas';
 import { DashboardViewModel, DashboardTab } from './types';
 
@@ -18,40 +13,42 @@ export const useDashboardViewModel = (): DashboardViewModel => {
   const { currentUser, logout } = useAuthStore();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Tab state
-  const currentTab = (searchParams.get('tab') as DashboardTab) || DashboardTab.MEETINGS;
+  const currentTab = (searchParams.get('tab') as DashboardTab) || DashboardTab.PROJECTS;
 
   const setTab = (newTab: DashboardTab) => {
     setSearchParams({ tab: newTab });
   };
 
-  // Filter state
-  const [filter, setFilter] = useState<MeetingsControllerFindAllFilter>(
+  const [projectStatus, setProjectStatus] = useState<
+    ProjectsControllerFindAllStatus | undefined
+  >(undefined);
+
+  const [meetingFilter, setMeetingFilter] = useState<MeetingsControllerFindAllFilter>(
     MeetingsControllerFindAllFilter.current,
   );
 
-  // Fetch data
-  const { data: meetings = [], isLoading: meetingsLoading } = useMeetingsControllerFindAll({
-    filter,
-  });
+  const { data: projects = [], isLoading: projectsLoading } = useProjectsControllerFindAll(
+    projectStatus ? { status: projectStatus } : undefined,
+    { query: { enabled: currentTab === DashboardTab.PROJECTS } },
+  );
 
-  const { data: tasks = [], isLoading: tasksLoading } = useTasksControllerFindAll();
-
-  // Handlers
-  const handleLogout = () => {
-    logout();
-  };
+  const { data: meetings = [], isLoading: meetingsLoading } = useMeetingsControllerFindAll(
+    { filter: meetingFilter },
+    { query: { enabled: currentTab === DashboardTab.MEETINGS } },
+  );
 
   return {
     currentUser,
     currentTab,
     setTab,
-    filter,
-    setFilter,
+    projects,
+    projectsLoading,
+    projectStatus,
+    setProjectStatus,
     meetings,
-    tasks,
     meetingsLoading,
-    tasksLoading,
-    handleLogout,
+    meetingFilter,
+    setMeetingFilter,
+    handleLogout: logout,
   };
 };

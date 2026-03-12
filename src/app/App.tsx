@@ -9,6 +9,8 @@ import { Dashboard } from '@/src/features/dashboard';
 import { MeetingDetail } from '@/src/features/meeting-detail';
 import { CreateMeeting } from '@/src/features/create-meeting';
 import { TaskDetail } from '@/src/features/task-detail';
+import { ProjectDetailView, CreateProjectView } from '@/src/features/projects';
+import { CreateTaskView } from '@/src/features/create-task';
 
 const App: React.FC = () => {
   return (
@@ -18,41 +20,36 @@ const App: React.FC = () => {
           position="top-right"
           toastOptions={{
             duration: 4000,
-            style: {
-              background: '#363636',
-              color: '#fff',
-            },
-            success: {
-              duration: 3000,
-              iconTheme: {
-                primary: '#10b981',
-                secondary: '#fff',
-              },
-            },
-            error: {
-              duration: 5000,
-              iconTheme: {
-                primary: '#ef4444',
-                secondary: '#fff',
-              },
-            },
+            style: { background: '#1e293b', color: '#f8fafc', borderRadius: '12px' },
+            success: { duration: 3000, iconTheme: { primary: '#10b981', secondary: '#fff' } },
+            error: { duration: 5000, iconTheme: { primary: '#ef4444', secondary: '#fff' } },
           }}
         />
         <div className="min-h-screen bg-slate-50 selection:bg-blue-100 selection:text-blue-700">
           <Routes>
-            {/* Public Auth Routes */}
+            {/* Auth */}
             <Route path="/login" element={<AuthRoute><LoginScreen /></AuthRoute>} />
             <Route path="/register" element={<AuthRoute><RegisterScreen /></AuthRoute>} />
 
-            {/* Protected Main Routes */}
+            {/* Dashboard */}
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+
+            {/* Projects */}
+            <Route path="/projects" element={<Navigate to="/dashboard?tab=PROJECTS" replace />} />
+            <Route path="/project/create" element={<ProtectedRoute><CreateProjectView /></ProtectedRoute>} />
+            <Route path="/project/:id" element={<ProtectedRoute><ProjectDetailView /></ProtectedRoute>} />
+
+            {/* Meetings */}
             <Route path="/meeting/create" element={<ProtectedRoute><CreateMeeting /></ProtectedRoute>} />
             <Route path="/meeting/:id" element={<ProtectedRoute><MeetingDetail /></ProtectedRoute>} />
+
+            {/* Tasks */}
+            <Route path="/task/create" element={<ProtectedRoute><CreateTaskView /></ProtectedRoute>} />
             <Route path="/task/:id" element={<ProtectedRoute><TaskDetail /></ProtectedRoute>} />
 
             {/* Fallbacks */}
             <Route path="/" element={<RootRedirect />} />
-            <Route path="*" element={<div className="p-20 text-center font-black text-slate-400">404 — Страница не найдена</div>} />
+            <Route path="*" element={<div className="p-20 text-center text-sm font-medium text-slate-400">404 — Страница не найдена</div>} />
           </Routes>
         </div>
       </BrowserRouter>

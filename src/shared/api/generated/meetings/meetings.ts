@@ -117,7 +117,8 @@ export const useMeetingsControllerCreate = <TError = void, TContext = unknown>(
   return useMutation(mutationOptions, queryClient);
 };
 /**
- * @summary Получить все встречи текущего пользователя
+ * Returns meetings where the user is a participant. Optionally scope to a specific project with ?projectId=.
+ * @summary Get meetings for the current user
  */
 export const meetingsControllerFindAll = (
   params?: MeetingsControllerFindAllParams,
@@ -214,7 +215,7 @@ export function useMeetingsControllerFindAll<
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 /**
- * @summary Получить все встречи текущего пользователя
+ * @summary Get meetings for the current user
  */
 
 export function useMeetingsControllerFindAll<

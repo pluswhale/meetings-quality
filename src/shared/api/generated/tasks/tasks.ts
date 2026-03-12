@@ -109,7 +109,8 @@ export const useTasksControllerCreate = <TError = void | void, TContext = unknow
   return useMutation(mutationOptions, queryClient);
 };
 /**
- * @summary Получить все задачи текущего пользователя
+ * Returns tasks authored by the current user. Supports optional filters: status (filter), project scope (projectId), and keyword search on description (search).
+ * @summary Get tasks for the current user
  */
 export const tasksControllerFindAll = (
   params?: TasksControllerFindAllParams,
@@ -205,7 +206,7 @@ export function useTasksControllerFindAll<
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 /**
- * @summary Получить все задачи текущего пользователя
+ * @summary Get tasks for the current user
  */
 
 export function useTasksControllerFindAll<

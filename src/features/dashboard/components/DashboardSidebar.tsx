@@ -1,7 +1,3 @@
-/**
- * DashboardSidebar - Navigation sidebar
- */
-
 import React from 'react';
 import { DashboardTab } from '../types';
 
@@ -9,87 +5,83 @@ interface DashboardSidebarProps {
   currentTab: DashboardTab;
   onTabChange: (tab: DashboardTab) => void;
   onLogout: () => void;
+  userName?: string;
 }
+
+const NAV_ITEMS: { tab: DashboardTab; label: string; icon: React.ReactNode }[] = [
+  {
+    tab: DashboardTab.PROJECTS,
+    label: 'Проекты',
+    icon: (
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" />
+      </svg>
+    ),
+  },
+  {
+    tab: DashboardTab.MEETINGS,
+    label: 'Встречи',
+    icon: (
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+      </svg>
+    ),
+  },
+];
 
 export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   currentTab,
   onTabChange,
   onLogout,
+  userName,
 }) => {
   return (
-    <aside className="hidden md:flex w-72 bg-white border-r border-slate-200 p-8 flex-col justify-between shadow-sm z-10">
+    <aside className="hidden md:flex w-64 bg-white border-r border-slate-100 p-6 flex-col justify-between">
+      {/* Logo */}
       <div>
-        <div className="mb-12">
-          <div className="w-10 h-10 bg-blue-600 rounded-2xl flex items-center justify-center text-white font-black text-xl shadow-lg shadow-blue-200 mb-4">
+        <div className="flex items-center gap-3 mb-10">
+          <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center text-white text-sm font-bold">
             M
           </div>
-          <h2 className="text-2xl font-black text-slate-900 tracking-tight">Dashboard</h2>
+          <span className="text-sm font-semibold text-slate-900">MeetingQuality</span>
         </div>
 
-        <nav className="space-y-2">
-          <button
-            onClick={() => onTabChange(DashboardTab.MEETINGS)}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-all duration-200 ${
-              currentTab === DashboardTab.MEETINGS
-                ? 'bg-blue-600 text-white shadow-md shadow-blue-100'
-                : 'text-slate-500 hover:bg-slate-100'
-            }`}
-          >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-              />
-            </svg>
-            Встречи
-          </button>
-          <button
-            onClick={() => onTabChange(DashboardTab.TASKS)}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-all duration-200 ${
-              currentTab === DashboardTab.TASKS
-                ? 'bg-blue-600 text-white shadow-md shadow-blue-100'
-                : 'text-slate-500 hover:bg-slate-100'
-            }`}
-          >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
-              />
-            </svg>
-            Задачи
-          </button>
+        <nav className="space-y-1">
+          {NAV_ITEMS.map(({ tab, label, icon }) => {
+            const active = currentTab === tab;
+            return (
+              <button
+                key={tab}
+                onClick={() => onTabChange(tab)}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                  active
+                    ? 'bg-slate-100 text-slate-900'
+                    : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
+                }`}
+              >
+                {icon}
+                {label}
+              </button>
+            );
+          })}
         </nav>
       </div>
 
-      <button
-        onClick={onLogout}
-        className="flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-red-600 hover:bg-red-50 transition-colors"
-      >
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-          />
-        </svg>
-        Выйти
-      </button>
+      {/* Footer */}
+      <div className="space-y-1 pt-4 border-t border-slate-100">
+        {userName && (
+          <p className="px-3 py-2 text-xs text-slate-400 truncate">{userName}</p>
+        )}
+        <button
+          onClick={onLogout}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-500 hover:bg-red-50 hover:text-red-600 transition-colors"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+          </svg>
+          Выйти
+        </button>
+      </div>
     </aside>
   );
 };

@@ -1,28 +1,25 @@
-/**
- * ViewModel for CreateMeeting
- * Contains all business logic for creating meetings
- */
-
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { queryClient } from '@/src/app/providers/QueryProvider';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { useMeetingsControllerCreate } from '@/src/shared/api/generated/meetings/meetings';
+import { getMeetingsControllerFindAllQueryKey } from '@/src/shared/api/generated/meetings/meetings';
 import { CreateMeetingViewModel } from './types';
 
 export const useCreateMeetingViewModel = (): CreateMeetingViewModel => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [searchParams] = useSearchParams();
 
-  // Form state
+  // Read optional projectId from URL: /meeting/create?projectId=xxx
+  const projectId = searchParams.get('projectId') ?? undefined;
+
   const [title, setTitle] = useState('');
   const [question, setQuestion] = useState('');
-
   const [error, setError] = useState('');
   const [upcomingDate, setUpcomingDate] = useState<string | null>(null);
 
-  // API mutation
   const { mutate: createMeeting, isPending } = useMeetingsControllerCreate();
 
-  // Handlers
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -33,14 +30,21 @@ export const useCreateMeetingViewModel = (): CreateMeetingViewModel => {
     }
 
     createMeeting(
-      { data: { title, question, participantIds: [], upcomingDate } },
+      { data: { title, question, participantIds: [], upcomingDate, projectId } },
       {
         onSuccess: (data) => {
-          queryClient.invalidateQueries({ queryKey: ['meetings'] });
-          navigate(`/meeting/${data._id}`);
+          queryClient.invalidateQueries({ queryKey: getMeetingsControllerFindAllQueryKey() });
+          // If came from a project, go back to the project page; otherwise go to the meeting
+          if (projectId) {
+            navigate(`/project/${projectId}?tab=meetings`);
+          } else {
+            navigate(`/meeting/${data._id}`);
+          }
         },
-        onError: (err: any) => {
-          const message = err?.response?.data?.message || 'Ошибка создания встречи';
+        onError: (err: unknown) => {
+          const message =
+            (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+            'Ошибка создания встречи';
           setError(message);
         },
       },
@@ -48,7 +52,11 @@ export const useCreateMeetingViewModel = (): CreateMeetingViewModel => {
   };
 
   const handleNavigateBack = () => {
-    navigate('/dashboard');
+    if (projectId) {
+      navigate(`/project/${projectId}`);
+    } else {
+      navigate('/dashboard');
+    }
   };
 
   return {

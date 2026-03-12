@@ -35,7 +35,90 @@ export interface LoginDto {
   password: string;
 }
 
+export interface CreateProjectDto {
+  /** Project title */
+  title: string;
+  /** High-level goal for this project */
+  goal?: string;
+  /** Detailed description of the project scope */
+  description?: string;
+  /** User IDs to invite as participants (creator is added automatically) */
+  participantIds?: string[];
+}
+
+export interface ProjectParticipantRefDto {
+  _id: string;
+  fullName: string;
+  email: string;
+}
+
+export type ProjectResponseDtoStatus =
+  typeof ProjectResponseDtoStatus[keyof typeof ProjectResponseDtoStatus];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const ProjectResponseDtoStatus = {
+  current: 'current',
+  archived: 'archived',
+} as const;
+
+export interface ProjectResponseDto {
+  _id: string;
+  title: string;
+  goal: string;
+  description: string;
+  creatorId: ProjectParticipantRefDto;
+  participantIds: ProjectParticipantRefDto[];
+  status: ProjectResponseDtoStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type ProjectDetailResponseDtoStatus =
+  typeof ProjectDetailResponseDtoStatus[keyof typeof ProjectDetailResponseDtoStatus];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const ProjectDetailResponseDtoStatus = {
+  current: 'current',
+  archived: 'archived',
+} as const;
+
+export interface ProjectDetailResponseDto {
+  _id: string;
+  title: string;
+  goal: string;
+  description: string;
+  creatorId: ProjectParticipantRefDto;
+  participantIds: ProjectParticipantRefDto[];
+  status: ProjectDetailResponseDtoStatus;
+  createdAt: string;
+  updatedAt: string;
+  /** Total meetings under this project */
+  meetingCount: number;
+  /** Total tasks under this project */
+  taskCount: number;
+}
+
+export type UpdateProjectDtoStatus =
+  typeof UpdateProjectDtoStatus[keyof typeof UpdateProjectDtoStatus];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const UpdateProjectDtoStatus = {
+  current: 'current',
+  archived: 'archived',
+} as const;
+
+export interface UpdateProjectDto {
+  title?: string;
+  goal?: string;
+  description?: string;
+  /** Replaces the full participant list. Creator is always preserved. */
+  participantIds?: string[];
+  status?: UpdateProjectDtoStatus;
+}
+
 export interface CreateMeetingDto {
+  /** Project this meeting belongs to */
+  projectId?: string;
   /** Название встречи */
   title: string;
   /** Вопрос для обсуждения */
@@ -263,6 +346,8 @@ export interface StatisticsResponseDto {
 }
 
 export interface CreateTaskDto {
+  /** Project this task belongs to */
+  projectId?: string;
   /** Описание задачи */
   description: string;
   /** Описание общего вопроса */
@@ -337,11 +422,35 @@ export interface ApproveTaskDto {
   approved: boolean;
 }
 
+export type ProjectsControllerFindAllParams = {
+  /**
+   * Filter by project status
+   */
+  status?: ProjectsControllerFindAllStatus;
+  /**
+   * Case-insensitive keyword search across title, goal, and description
+   */
+  search?: string;
+};
+
+export type ProjectsControllerFindAllStatus =
+  typeof ProjectsControllerFindAllStatus[keyof typeof ProjectsControllerFindAllStatus];
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const ProjectsControllerFindAllStatus = {
+  current: 'current',
+  archived: 'archived',
+} as const;
+
 export type MeetingsControllerFindAllParams = {
   /**
-   * Фильтр по статусу встречи
+   * Filter by meeting status
    */
   filter?: MeetingsControllerFindAllFilter;
+  /**
+   * Scope results to a specific project
+   */
+  projectId?: string;
 };
 
 export type MeetingsControllerFindAllFilter =
@@ -356,9 +465,17 @@ export const MeetingsControllerFindAllFilter = {
 
 export type TasksControllerFindAllParams = {
   /**
-   * Фильтр по статусу задачи
+   * Filter by completion status
    */
   filter?: TasksControllerFindAllFilter;
+  /**
+   * Scope results to a specific project
+   */
+  projectId?: string;
+  /**
+   * Case-insensitive keyword search on task description
+   */
+  search?: string;
 };
 
 export type TasksControllerFindAllFilter =

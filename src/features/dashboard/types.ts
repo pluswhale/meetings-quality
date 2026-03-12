@@ -2,37 +2,36 @@
  * Types for Dashboard feature
  */
 
-import {
+import type {
   MeetingResponseDto,
-  TaskResponseDto,
+  ProjectResponseDto,
   MeetingsControllerFindAllFilter,
+  ProjectsControllerFindAllStatus,
+  UserResponseDto,
 } from '@/src/shared/api/generated/meetingsQualityAPI.schemas';
 
 export enum DashboardTab {
+  PROJECTS = 'PROJECTS',
   MEETINGS = 'MEETINGS',
-  TASKS = 'TASKS',
 }
 
 export interface DashboardViewModel {
-  // User data
-  currentUser: any;
+  currentUser: UserResponseDto | null;
 
-  // Tab state
   currentTab: DashboardTab;
   setTab: (tab: DashboardTab) => void;
 
-  // Filter state
-  filter: MeetingsControllerFindAllFilter;
-  setFilter: (filter: MeetingsControllerFindAllFilter) => void;
+  // Projects tab
+  projects: ProjectResponseDto[];
+  projectsLoading: boolean;
+  projectStatus: ProjectsControllerFindAllStatus | undefined;
+  setProjectStatus: (s: ProjectsControllerFindAllStatus | undefined) => void;
 
-  // Data
+  // Meetings tab
   meetings: MeetingResponseDto[];
-  tasks: TaskResponseDto[];
-
-  // Loading state
   meetingsLoading: boolean;
-  tasksLoading: boolean;
+  meetingFilter: MeetingsControllerFindAllFilter;
+  setMeetingFilter: (f: MeetingsControllerFindAllFilter) => void;
 
-  // Handlers
   handleLogout: () => void;
 }
