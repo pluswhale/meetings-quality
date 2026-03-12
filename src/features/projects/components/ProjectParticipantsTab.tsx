@@ -10,7 +10,7 @@ export const ProjectParticipantsTab: React.FC<ProjectParticipantsTabProps> = ({
   participants,
   creatorId,
 }) => {
-  if (participants.length === 0) {
+  if (participants?.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16">
         <p className="text-sm text-slate-500 font-medium">Нет участников</p>
@@ -33,10 +33,12 @@ const ParticipantRow: React.FC<{
   participant: ProjectParticipantRefDto;
   isCreator: boolean;
 }> = ({ participant, isCreator }) => {
+  console.log('participant', participant);
+
   const initials = participant.fullName
-    .split(' ')
-    .map((n) => n.charAt(0).toUpperCase())
-    .slice(0, 2)
+    ?.split(' ')
+    ?.map((n) => n.charAt(0).toUpperCase())
+    ?.slice(0, 2)
     .join('');
 
   return (
