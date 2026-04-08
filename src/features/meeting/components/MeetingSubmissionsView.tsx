@@ -24,6 +24,8 @@ export interface MeetingSubmissionsViewProps {
   isRefreshing: boolean;
   onApproveTask: (taskId: string, currentApproved: boolean) => void;
   isApprovingTask: boolean;
+  /** When true, shows a live indicator — data is streaming from WebSocket. */
+  isLive?: boolean;
 }
 
 type TabKey = 'emotional' | 'understanding' | 'tasks';
@@ -43,13 +45,33 @@ export const MeetingSubmissionsView = memo<MeetingSubmissionsViewProps>(
     isRefreshing,
     onApproveTask,
     isApprovingTask,
+    isLive = false,
   }) {
     const [activeTab, setActiveTab] = useState<TabKey>('emotional');
 
+    const emotionalCount = Object.keys(submissions?.emotional_evaluation ?? {}).length;
+    const understandingCount = Object.keys(submissions?.understanding_contribution ?? {}).length;
+    const tasksCount = Object.keys(submissions?.task_planning ?? {}).length;
+
+    const counts: Record<TabKey, number> = {
+      emotional: emotionalCount,
+      understanding: understandingCount,
+      tasks: tasksCount,
+    };
+
     return (
-      <div className="bg-white rounded-[20px] md:rounded-[40px] shadow-2xl shadow-slate-200/50 border border-slate-100 overflow-hidden mb-8 md:mb-12">
-        <PanelHeader isRefreshing={isRefreshing} />
-        <TabBar activeTab={activeTab} onSelect={setActiveTab} />
+      <div
+        className="rounded-[24px] md:rounded-[32px] overflow-hidden mb-8 md:mb-12"
+        style={{
+          background: 'rgba(255,255,255,0.72)',
+          backdropFilter: 'blur(24px)',
+          WebkitBackdropFilter: 'blur(24px)',
+          border: '1px solid rgba(99,102,241,0.12)',
+          boxShadow: '0 8px 32px rgba(99,102,241,0.08), 0 1px 0 rgba(255,255,255,0.8) inset',
+        }}
+      >
+        <PanelHeader isRefreshing={isRefreshing} isLive={isLive} />
+        <TabBar activeTab={activeTab} onSelect={setActiveTab} counts={counts} />
 
         <div className="p-4 md:p-8">
           {isLoading ? (
@@ -57,14 +79,10 @@ export const MeetingSubmissionsView = memo<MeetingSubmissionsViewProps>(
           ) : (
             <>
               {activeTab === 'emotional' && (
-                <EmotionalTab
-                  submissions={submissions?.emotional_evaluation ?? {}}
-                />
+                <EmotionalTab submissions={submissions?.emotional_evaluation ?? {}} />
               )}
               {activeTab === 'understanding' && (
-                <UnderstandingTab
-                  submissions={submissions?.understanding_contribution ?? {}}
-                />
+                <UnderstandingTab submissions={submissions?.understanding_contribution ?? {}} />
               )}
               {activeTab === 'tasks' && (
                 <TasksTab
@@ -85,25 +103,56 @@ MeetingSubmissionsView.displayName = 'MeetingSubmissionsView';
 
 // ─── Panel header ─────────────────────────────────────────────────────────────
 
-const PanelHeader = memo<{ isRefreshing: boolean }>(function PanelHeader({ isRefreshing }) {
+const PanelHeader = memo<{ isRefreshing: boolean; isLive: boolean }>(function PanelHeader({
+  isRefreshing,
+  isLive,
+}) {
   return (
-    <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-4 md:p-8 relative">
-      {isRefreshing && (
-        <div className="absolute top-2 right-2 md:top-4 md:right-4 flex items-center gap-2 bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full">
-          <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
-          <span className="text-xs font-bold text-white">Обновление...</span>
-        </div>
-      )}
+    <div
+      className="relative px-5 py-5 md:px-8 md:py-6"
+      style={{
+        background: 'linear-gradient(135deg, rgba(99,102,241,0.9) 0%, rgba(139,92,246,0.85) 100%)',
+      }}
+    >
+      {/* Shine overlay */}
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background: 'linear-gradient(180deg, rgba(255,255,255,0.15) 0%, transparent 60%)',
+        }}
+      />
 
-      <div className="flex items-center gap-2 md:gap-3">
-        <ClipboardIcon className="w-6 h-6 md:w-8 md:h-8 text-white flex-shrink-0" />
-        <div className="flex-1 min-w-0">
-          <h2 className="text-lg md:text-2xl font-black text-white truncate">
-            Панель администратора
-          </h2>
-          <p className="text-blue-100 text-xs md:text-sm font-bold mt-0.5 md:mt-1 truncate">
-            Отслеживание участников и голосов
-          </p>
+      <div className="relative flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
+            <ClipboardIcon className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h2 className="text-base md:text-xl font-bold text-white leading-tight">
+              Панель администратора
+            </h2>
+            <p className="text-indigo-200 text-xs font-medium mt-0.5">
+              Отслеживание участников и голосов
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {isLive && (
+            <span className="flex items-center gap-1.5 bg-white/20 backdrop-blur-sm text-white text-[11px] font-bold px-2.5 py-1 rounded-full">
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-300 opacity-75" />
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-400" />
+              </span>
+              LIVE
+            </span>
+          )}
+          {isRefreshing && (
+            <span className="flex items-center gap-1.5 bg-white/20 backdrop-blur-sm text-white text-[11px] font-bold px-2.5 py-1 rounded-full">
+              <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              Sync
+            </span>
+          )}
         </div>
       </div>
     </div>
@@ -112,28 +161,44 @@ const PanelHeader = memo<{ isRefreshing: boolean }>(function PanelHeader({ isRef
 
 // ─── Tab bar ──────────────────────────────────────────────────────────────────
 
-const TabBar = memo<{ activeTab: TabKey; onSelect: (tab: TabKey) => void }>(
-  function TabBar({ activeTab, onSelect }) {
-    return (
-      <div className="flex overflow-x-auto border-b border-slate-200 bg-slate-50 scrollbar-hide">
-        {TABS.map(({ key, label }) => (
+const TabBar = memo<{
+  activeTab: TabKey;
+  onSelect: (tab: TabKey) => void;
+  counts: Record<TabKey, number>;
+}>(function TabBar({ activeTab, onSelect, counts }) {
+  return (
+    <div className="flex border-b border-indigo-50 bg-white/60 backdrop-blur-sm px-2 gap-1">
+      {TABS.map(({ key, label }) => {
+        const isActive = activeTab === key;
+        const count = counts[key];
+        return (
           <button
             key={key}
             onClick={() => onSelect(key)}
             className={[
-              'flex-1 min-w-[80px] py-3 md:py-4 px-3 md:px-6 font-black text-xs md:text-sm transition-colors',
-              activeTab === key
-                ? 'bg-white text-blue-600 border-b-4 border-blue-600'
-                : 'text-slate-400 hover:text-slate-600',
+              'flex items-center gap-1.5 flex-1 min-w-0 justify-center py-3.5 px-2 text-xs md:text-sm font-semibold transition-all duration-150 rounded-none relative',
+              isActive ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600',
             ].join(' ')}
           >
             {label}
+            {count > 0 && (
+              <span
+                className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none ${
+                  isActive ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-100 text-slate-500'
+                }`}
+              >
+                {count}
+              </span>
+            )}
+            {isActive && (
+              <span className="absolute bottom-0 left-2 right-2 h-0.5 rounded-full bg-indigo-500" />
+            )}
           </button>
-        ))}
-      </div>
-    );
-  },
-);
+        );
+      })}
+    </div>
+  );
+});
 
 // ─── Emotional tab ────────────────────────────────────────────────────────────
 
@@ -152,72 +217,44 @@ const EmotionalTab = memo<{ submissions: Record<string, EmotionalSubmission> }>(
           const toxicEvals = data.evaluations.filter((e) => e.isToxic);
 
           return (
-            <div
-              key={participantId}
-              className="bg-slate-50 p-4 md:p-6 rounded-xl md:rounded-2xl border border-slate-200"
-            >
-              <div className="flex items-start md:items-center justify-between mb-3 md:mb-4 gap-2">
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="text-slate-400 font-medium text-[11px]">Отправитель:</span>
-                  <span className="font-black text-slate-900 text-base md:text-lg block truncate">
-                    {data.participant.fullName ?? 'Unknown'}
-                  </span>
+            <GlassCard key={participantId} submitted={data.submitted}>
+              <div className="flex items-start justify-between gap-2 mb-3">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <Avatar name={data.participant.fullName} />
+                  <div className="min-w-0">
+                    <p className="font-bold text-slate-800 text-sm md:text-base truncate leading-tight">
+                      {data.participant.fullName ?? 'Unknown'}
+                    </p>
+                    <p className="text-[10px] text-slate-400">Оценил эмоции</p>
+                  </div>
                 </div>
                 <SubmissionBadge submitted={data.submitted} />
               </div>
 
               {data.submitted && data.evaluations.length > 0 ? (
-                <div className="space-y-1.5 md:space-y-2 mt-3 md:mt-4 pt-3 md:pt-4 border-t border-slate-200">
-                  {nonToxicEvals.map((evaluation, idx) => (
-                    <div
+                <div className="space-y-2 mt-3 pt-3 border-t border-slate-100">
+                  {nonToxicEvals.map((ev, idx) => (
+                    <EmotionRow
                       key={idx}
-                      className="flex justify-between items-center py-1 md:py-2 gap-2"
-                    >
-                      <span className="text-slate-600 font-medium text-xs md:text-sm truncate flex-1">
-                        {evaluation.targetParticipant.fullName ?? 'Unknown'}
-                      </span>
-                      <span
-                        className={[
-                          'font-black text-base md:text-lg',
-                          evaluation.emotionalScale >= 0 ? 'text-green-600' : 'text-red-600',
-                        ].join(' ')}
-                      >
-                        {evaluation.emotionalScale > 0 ? '+' : ''}
-                        {evaluation.emotionalScale}
-                      </span>
-                    </div>
+                      name={ev.targetParticipant.fullName}
+                      value={ev.emotionalScale}
+                    />
                   ))}
-
-                  {toxicEvals.map((evaluation, idx) => (
-                    <div
-                      key={`toxic-${idx}`}
-                      className="flex justify-between items-center py-1 md:py-2 gap-2"
-                    >
-                      <span className="text-slate-600 font-medium text-xs md:text-sm truncate flex-1">
-                        {evaluation.targetParticipant.fullName ?? 'Unknown'}
-                      </span>
-                      <div className="flex items-center gap-1.5 flex-shrink-0">
-                        <span className="font-black text-base md:text-lg text-red-600">
-                          {evaluation.emotionalScale > 0 ? '+' : ''}
-                          {evaluation.emotionalScale}
-                        </span>
-                        <span className="text-[10px] md:text-xs bg-red-100 text-red-600 px-1.5 md:px-2 py-0.5 rounded-full font-bold whitespace-nowrap">
-                          Токсичен
-                        </span>
-                      </div>
-                    </div>
+                  {toxicEvals.map((ev, idx) => (
+                    <EmotionRow
+                      key={`t-${idx}`}
+                      name={ev.targetParticipant.fullName}
+                      value={ev.emotionalScale}
+                      toxic
+                    />
                   ))}
                 </div>
               ) : data.submitted ? (
-                <p className="text-xs md:text-sm text-slate-400 mt-2 md:mt-3 italic">
-                  Оценок не найдено
-                </p>
+                <p className="text-xs text-slate-400 mt-2 italic">Оценок не найдено</p>
               ) : (
-                <p className="text-xs md:text-sm text-slate-400 mt-2 md:mt-3 italic">
-                  Ожидание ответа...
-                </p>
+                <WaitingPulse />
               )}
-            </div>
+            </GlassCard>
           );
         })}
       </div>
@@ -238,23 +275,23 @@ const UnderstandingTab = memo<{ submissions: Record<string, UnderstandingSubmiss
     return (
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {entries.map(([participantId, data]) => (
-          <div
-            key={participantId}
-            className="bg-slate-50 p-6 rounded-2xl border border-slate-200"
-          >
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex-1 min-w-0">
-                <span className="font-black text-slate-900 text-lg block truncate">
-                  {data.participant.fullName ?? 'Unknown'}
-                </span>
-                {data.participant.email !== null && (
-                  <p className="text-xs text-slate-400 mt-1 truncate">{data.participant.email}</p>
-                )}
+          <GlassCard key={participantId} submitted={data.submitted}>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                <Avatar name={data.participant.fullName} color="amber" />
+                <div className="min-w-0">
+                  <p className="font-bold text-slate-800 text-sm md:text-base truncate leading-tight">
+                    {data.participant.fullName ?? 'Unknown'}
+                  </p>
+                  {data.participant.email && (
+                    <p className="text-[10px] text-slate-400 truncate">{data.participant.email}</p>
+                  )}
+                </div>
               </div>
 
-              <div className="flex items-center gap-3 flex-shrink-0">
+              <div className="flex items-center gap-2 flex-shrink-0">
                 {data.submitted && (
-                  <span className="text-3xl font-black text-green-600 leading-none">
+                  <span className="text-2xl font-black text-amber-500 leading-none">
                     {data.understandingScore}%
                   </span>
                 )}
@@ -262,35 +299,47 @@ const UnderstandingTab = memo<{ submissions: Record<string, UnderstandingSubmiss
               </div>
             </div>
 
-            {data.submitted && data.contributions.length > 0 ? (
-              <div className="mt-3 md:mt-4 pt-3 md:pt-4 border-t border-slate-200">
-                <div className="text-[10px] md:text-xs font-black text-slate-400 mb-2 md:mb-3">
-                  Вклад участников:
-                </div>
-                {data.contributions.map((contrib, idx) => (
+            {data.submitted && (
+              <div className="mt-1 mb-2">
+                <div className="w-full bg-slate-100 rounded-full h-1.5">
                   <div
-                    key={idx}
-                    className="flex justify-between items-center py-1 md:py-2 gap-2"
-                  >
-                    <span className="text-slate-600 font-medium text-xs md:text-sm truncate flex-1">
-                      {contrib.participant.fullName ?? 'Unknown'}
+                    className="h-1.5 rounded-full bg-amber-400 transition-all duration-700"
+                    style={{ width: `${data.understandingScore}%` }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {data.submitted && data.contributions.length > 0 ? (
+              <div className="mt-3 pt-3 border-t border-slate-100 space-y-2">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  Вклад участников
+                </p>
+                {data.contributions.map((c, idx) => (
+                  <div key={idx} className="flex items-center gap-2">
+                    <span className="text-xs text-slate-600 font-medium flex-1 truncate">
+                      {c.participant.fullName ?? 'Unknown'}
                     </span>
-                    <span className="font-black text-base md:text-lg text-blue-600 flex-shrink-0">
-                      {contrib.contributionPercentage}%
-                    </span>
+                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                      <div className="w-14 bg-slate-100 rounded-full h-1">
+                        <div
+                          className="h-1 rounded-full bg-indigo-400 transition-all"
+                          style={{ width: `${c.contributionPercentage}%` }}
+                        />
+                      </div>
+                      <span className="text-xs font-bold text-indigo-600 w-8 text-right">
+                        {c.contributionPercentage}%
+                      </span>
+                    </div>
                   </div>
                 ))}
               </div>
             ) : data.submitted ? (
-              <p className="text-xs md:text-sm text-slate-400 mt-2 md:mt-3 italic">
-                Вклад не указан
-              </p>
+              <p className="text-xs text-slate-400 mt-2 italic">Вклад не указан</p>
             ) : (
-              <p className="text-xs md:text-sm text-slate-400 mt-2 md:mt-3 italic">
-                Ожидание ответа...
-              </p>
+              <WaitingPulse />
             )}
-          </div>
+          </GlassCard>
         ))}
       </div>
     );
@@ -315,20 +364,13 @@ const TasksTab = memo<TasksTabProps>(function TasksTab({ submissions, onApprove,
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
       {entries.map(([authorId, data]) => (
-        <TaskCard
-          key={authorId}
-          data={data}
-          onApprove={onApprove}
-          isApproving={isApproving}
-        />
+        <TaskCard key={authorId} data={data} onApprove={onApprove} isApproving={isApproving} />
       ))}
     </div>
   );
 });
 
 // ─── Task card ────────────────────────────────────────────────────────────────
-// Extracted to its own memoised component so toggling one card's approval state
-// does not re-render the entire grid.
 
 interface TaskCardProps {
   data: TaskSubmission;
@@ -337,98 +379,95 @@ interface TaskCardProps {
 }
 
 const TaskCard = memo<TaskCardProps>(function TaskCard({ data, onApprove, isApproving }) {
-  const { approved, taskId, participant, description, contributionImportance, deadline, estimateHours } = data;
+  const {
+    approved,
+    taskId,
+    participant,
+    description,
+    contributionImportance,
+    deadline,
+    estimateHours,
+  } = data;
 
   return (
     <div
       className={[
-        'relative p-6 rounded-2xl border transition-all duration-300',
-        approved
-          ? 'bg-green-50/50 border-green-300 shadow-sm'
-          : 'bg-slate-50 border-slate-200',
+        'relative rounded-2xl overflow-hidden border transition-all duration-300',
+        approved ? 'border-emerald-200' : 'border-slate-200/70',
       ].join(' ')}
+      style={{
+        background: approved
+          ? 'linear-gradient(135deg, rgba(236,253,245,0.9) 0%, rgba(209,250,229,0.7) 100%)'
+          : 'rgba(255,255,255,0.85)',
+        backdropFilter: 'blur(12px)',
+      }}
     >
+      {/* Approved accent bar */}
       {approved && (
-        <div className="absolute left-0 top-6 bottom-6 w-1 bg-green-400 rounded-r-full" />
+        <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-emerald-400 to-teal-500" />
       )}
 
-      <div className="flex items-center justify-between mb-4 pl-2">
-        <div className="min-w-0 flex-1 mr-2">
-          <span
-            className={[
-              'font-black text-lg block truncate',
-              approved ? 'text-green-900' : 'text-slate-900',
-            ].join(' ')}
-          >
-            {participant.fullName ?? 'Unknown'}
-          </span>
-          {participant.email !== null && (
-            <p className="text-xs text-slate-400 mt-0.5 truncate">{participant.email}</p>
-          )}
-        </div>
+      <div className="px-5 py-4 pl-6">
+        <div className="flex items-start justify-between gap-2 mb-3">
+          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+            <Avatar name={participant.fullName} color={approved ? 'green' : 'default'} />
+            <div className="min-w-0">
+              <p
+                className={`font-bold text-sm md:text-base truncate leading-tight ${approved ? 'text-emerald-800' : 'text-slate-800'}`}
+              >
+                {participant.fullName ?? 'Unknown'}
+              </p>
+              {participant.email && (
+                <p className="text-[10px] text-slate-400 truncate">{participant.email}</p>
+              )}
+            </div>
+          </div>
 
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <ApprovalCheckbox
-            taskId={taskId}
-            approved={approved}
-            disabled={isApproving}
-            onToggle={onApprove}
-          />
-
-          <div className="flex flex-col items-end">
-            <span className="text-2xl font-black text-purple-600 leading-none">
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <ApprovalCheckbox
+              taskId={taskId}
+              approved={approved}
+              disabled={isApproving}
+              onToggle={onApprove}
+            />
+            <span
+              className={`text-xl font-black leading-none ${approved ? 'text-emerald-600' : 'text-indigo-500'}`}
+            >
               {contributionImportance}%
             </span>
           </div>
         </div>
-      </div>
 
-      <div className="pl-2">
         {data.submitted && description ? (
           <div
-            className={[
-              'mt-3 pt-3 border-t space-y-2',
-              approved ? 'border-green-100' : 'border-slate-200',
-            ].join(' ')}
+            className={`space-y-1.5 pt-3 border-t ${approved ? 'border-emerald-100' : 'border-slate-100'}`}
           >
             <p
-              className={[
-                'font-medium text-sm md:text-base',
-                approved ? 'text-green-900' : 'text-slate-700',
-              ].join(' ')}
+              className={`text-sm font-medium leading-snug ${approved ? 'text-emerald-900' : 'text-slate-700'}`}
             >
               {description}
             </p>
-
             {estimateHours > 0 && (
               <p
-                className={[
-                  'text-xs font-bold',
-                  approved ? 'text-green-700' : 'text-slate-500',
-                ].join(' ')}
+                className={`text-xs font-semibold ${approved ? 'text-emerald-600' : 'text-slate-400'}`}
               >
                 ~{estimateHours}ч
               </p>
             )}
-
             <div
-              className={[
-                'flex items-center gap-1.5 text-xs font-bold',
-                approved ? 'text-green-600' : 'text-slate-400',
-              ].join(' ')}
+              className={`flex items-center gap-1.5 text-xs font-semibold ${approved ? 'text-emerald-600' : 'text-slate-400'}`}
             >
-              <CalendarIcon className="w-4 h-4 flex-shrink-0" />
-              <span>Дедлайн: {new Date(deadline).toLocaleDateString('ru-RU')}</span>
+              <CalendarIcon className="w-3.5 h-3.5 flex-shrink-0" />
+              Дедлайн: {new Date(deadline).toLocaleDateString('ru-RU')}
             </div>
           </div>
         ) : data.submitted ? (
-          <p className="text-xs md:text-sm text-slate-400 mt-2 italic">Задача не описана</p>
+          <p className="text-xs text-slate-400 mt-2 italic pt-3 border-t border-slate-100">
+            Задача не описана
+          </p>
         ) : (
-          <div className="mt-3 pt-3 border-t border-slate-200">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 text-slate-500 text-xs font-bold">
-              <div className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-pulse" />
-              Ожидание ответа...
-            </span>
+          <div className="pt-3 border-t border-slate-100">
+            <WaitingPulse />
           </div>
         )}
       </div>
@@ -454,10 +493,10 @@ const ApprovalCheckbox = memo<ApprovalCheckboxProps>(function ApprovalCheckbox({
   return (
     <label
       className={[
-        'flex items-center gap-2 px-3 py-1.5 rounded-full border cursor-pointer transition-all select-none',
+        'flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border cursor-pointer transition-all select-none text-[11px] font-bold',
         approved
-          ? 'bg-white border-green-200 hover:border-green-300'
-          : 'bg-white border-slate-200 hover:border-blue-300 shadow-sm',
+          ? 'bg-emerald-50 border-emerald-200 text-emerald-600 hover:border-emerald-300'
+          : 'bg-white border-slate-200 text-slate-400 hover:border-indigo-300 shadow-sm',
         disabled ? 'opacity-50 cursor-not-allowed' : '',
       ].join(' ')}
     >
@@ -467,56 +506,146 @@ const ApprovalCheckbox = memo<ApprovalCheckboxProps>(function ApprovalCheckbox({
           checked={approved}
           disabled={disabled}
           onChange={() => onToggle(taskId, approved)}
-          className="peer appearance-none w-4 h-4 border-2 border-slate-300 rounded checked:bg-green-500 checked:border-green-500 transition-colors cursor-pointer disabled:opacity-50"
+          className="peer appearance-none w-3.5 h-3.5 border-2 border-slate-300 rounded checked:bg-emerald-500 checked:border-emerald-500 transition-colors cursor-pointer disabled:opacity-50"
         />
-        <CheckIcon className="absolute w-3 h-3 text-white pointer-events-none hidden peer-checked:block left-0.5" />
+        <CheckIcon className="absolute w-2.5 h-2.5 text-white pointer-events-none hidden peer-checked:block left-0.5" />
       </div>
-      <span
-        className={[
-          'text-[10px] uppercase tracking-wider font-black',
-          approved ? 'text-green-600' : 'text-slate-400',
-        ].join(' ')}
-      >
-        {approved ? 'Одобрено' : 'Одобрить'}
-      </span>
+      {approved ? 'Одобрено' : 'Одобрить'}
     </label>
   );
 });
 
 // ─── Shared primitives ────────────────────────────────────────────────────────
 
+type AvatarColor = 'default' | 'amber' | 'green';
+
+const AVATAR_COLORS: Record<AvatarColor, string> = {
+  default: 'bg-indigo-100 text-indigo-600',
+  amber: 'bg-amber-100 text-amber-600',
+  green: 'bg-emerald-100 text-emerald-700',
+};
+
+const Avatar: React.FC<{ name: string | null; color?: AvatarColor }> = ({
+  name,
+  color = 'default',
+}) => {
+  const initials = (name ?? '?')
+    .split(' ')
+    .map((w) => w[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
+  return (
+    <div
+      className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold flex-shrink-0 ${AVATAR_COLORS[color]}`}
+    >
+      {initials}
+    </div>
+  );
+};
+
+const EmotionRow: React.FC<{ name: string | null; value: number; toxic?: boolean }> = ({
+  name,
+  value,
+  toxic,
+}) => {
+  const normalized = Math.max(0, Math.min((value + 100) / 200, 1));
+  const isPos = value >= 0;
+  return (
+    <div className="flex items-center gap-2 py-0.5">
+      <span className="text-xs text-slate-600 flex-1 truncate">{name ?? 'Unknown'}</span>
+      <div className="flex items-center gap-1.5 flex-shrink-0">
+        <span
+          className={`text-sm font-bold w-7 text-right ${isPos ? 'text-emerald-600' : 'text-red-500'}`}
+        >
+          {value > 0 ? `+${value}` : value}
+        </span>
+        <div className="w-16 bg-slate-100 rounded-full h-1.5">
+          <div
+            className={`h-1.5 rounded-full transition-all ${isPos ? 'bg-emerald-400' : 'bg-red-400'}`}
+            style={{ width: `${normalized * 100}%` }}
+          />
+        </div>
+        {toxic && (
+          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-red-50 text-red-500 border border-red-100">
+            Toxic
+          </span>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const GlassCard: React.FC<{ submitted: boolean; children: React.ReactNode }> = ({
+  submitted,
+  children,
+}) => (
+  <div
+    className="rounded-2xl border p-4 md:p-5 transition-all"
+    style={{
+      background: submitted ? 'rgba(255,255,255,0.85)' : 'rgba(248,250,252,0.7)',
+      border: `1px solid ${submitted ? 'rgba(99,102,241,0.12)' : 'rgba(148,163,184,0.2)'}`,
+      backdropFilter: 'blur(8px)',
+    }}
+  >
+    {children}
+  </div>
+);
+
 const SubmissionBadge = memo<{ submitted: boolean }>(function SubmissionBadge({ submitted }) {
   return (
     <span
       className={[
-        'text-[10px] md:text-xs font-bold px-2 md:px-3 py-1 rounded-full whitespace-nowrap flex-shrink-0',
-        submitted ? 'bg-green-100 text-green-600' : 'bg-slate-200 text-slate-500',
+        'text-[10px] font-bold px-2 py-1 rounded-full whitespace-nowrap flex-shrink-0 flex items-center gap-1',
+        submitted
+          ? 'bg-emerald-50 text-emerald-600 border border-emerald-100'
+          : 'bg-slate-100 text-slate-400',
       ].join(' ')}
     >
-      {submitted ? '✓' : '○'}
-      <span className="hidden sm:inline ml-1">{submitted ? 'Отправлено' : 'Не отправлено'}</span>
+      {submitted ? (
+        <>
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
+          <span className="hidden sm:inline">Отправлено</span>
+        </>
+      ) : (
+        <>
+          <span className="w-1.5 h-1.5 rounded-full bg-slate-300 inline-block" />
+          <span className="hidden sm:inline">Ожидание</span>
+        </>
+      )}
     </span>
   );
 });
 
+const WaitingPulse = () => (
+  <span className="inline-flex items-center gap-1.5 text-xs text-slate-400 font-medium">
+    <span className="w-1.5 h-1.5 rounded-full bg-slate-300 animate-pulse inline-block" />
+    Ожидание ответа...
+  </span>
+);
+
 const LoadingState = () => (
-  <div className="text-center py-8 md:py-12">
-    <div className="animate-spin w-6 h-6 md:w-8 md:h-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-3 md:mb-4" />
-    <p className="text-slate-400 font-bold text-sm md:text-base">Загрузка...</p>
+  <div className="text-center py-10">
+    <div
+      className="w-8 h-8 border-3 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"
+      style={{ borderWidth: '3px' }}
+    />
+    <p className="text-slate-400 font-medium text-sm">Загрузка...</p>
   </div>
 );
 
 const EmptyState = memo<{ message: string }>(function EmptyState({ message }) {
   return (
     <div className="text-center py-12 md:py-16 text-slate-400">
-      <InboxIcon className="w-12 h-12 md:w-16 md:h-16 mx-auto mb-3 md:mb-4 opacity-50" />
-      <p className="font-bold text-base md:text-lg">{message}</p>
+      <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-3">
+        <InboxIcon className="w-7 h-7 opacity-50" />
+      </div>
+      <p className="font-semibold text-base">{message}</p>
     </div>
   );
 });
 
 // ─── Inline SVG icons ─────────────────────────────────────────────────────────
-// Inlined as typed components to avoid a dependency on an icon library.
 
 const ClipboardIcon = ({ className }: { className?: string }) => (
   <svg className={className} fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">

@@ -6,36 +6,33 @@ import type {
 } from '@/src/shared/api/generated/meetingsQualityAPI.schemas';
 import type { UseMeetingPresenceReturn, SocketParticipant } from '../state/meetingDetail.types';
 import type { ActiveParticipantsResponse } from '../api/meeting-room.api';
-import { useSocket } from './useSocket';
+import { useMeetingStore, selectParticipants, selectIsConnected } from '../store/useMeetingStore';
 
 /**
- * Derives the real-time participant lists from the Socket.IO connection.
+ * Derives the real-time participant lists from the Zustand store (populated by WS events).
  *
- * Responsibilities:
- *   - Owns the socket connection lifecycle via useSocket.
- *   - Derives `meetingParticipants` (UserResponseDto[]) by cross-referencing
- *     socket participants with the full user list.
- *   - Builds the legacy `activeParticipants` response shape expected by the view.
- *   - Ensures the current user is always included if they're active.
- *
- * Pure derivation — no side effects, no mutations.
+ * useMeetingSocket handles the socket connection; this hook only reads the store.
+ * No socket connection logic lives here — single responsibility.
  */
 export const useMeetingPresence = (
   meetingId: string,
   meeting: MeetingResponseDto | undefined,
   currentUserId: string | undefined,
 ): UseMeetingPresenceReturn => {
-  const { isConnected, participants: socketParticipants } = useSocket(meetingId);
+  const socketParticipants = useMeetingStore(selectParticipants);
+  const isConnected = useMeetingStore(selectIsConnected);
   const { data: allUsers = [] } = useUsersControllerFindAll();
 
   const meetingParticipants = useMemo<UserResponseDto[]>(() => {
     if (!socketParticipants.length || !allUsers.length) return [];
-
     const activeIds = new Set(socketParticipants.map((p) => p.userId));
     const active = allUsers.filter((u) => activeIds.has(u._id));
 
-    // Guarantee the current user is present if they are in the socket list.
-    if (currentUserId && activeIds.has(currentUserId) && !active.some((u) => u._id === currentUserId)) {
+    if (
+      currentUserId &&
+      activeIds.has(currentUserId) &&
+      !active.some((u) => u._id === currentUserId)
+    ) {
       const self = allUsers.find((u) => u._id === currentUserId);
       if (self) active.push(self);
     }
@@ -53,12 +50,8 @@ export const useMeetingPresence = (
         fullName: p.fullName ?? '',
         email: p.email ?? '',
         isActive: true,
-        joinedAt: p.joinedAt instanceof Date ? p.joinedAt.toISOString() : String(p.joinedAt),
-        lastSeen: p.lastSeen
-          ? p.lastSeen instanceof Date
-            ? p.lastSeen.toISOString()
-            : String(p.lastSeen)
-          : undefined,
+        joinedAt: p.joinedAt,
+        lastSeen: p.lastSeen,
       })),
       totalParticipants: meeting?.participantIds?.length ?? 0,
       activeCount: socketParticipants.length,

@@ -4,10 +4,9 @@
 
 import {
   MeetingResponseDto,
-  MeetingResponseDtoCurrentPhase,
   ChangePhaseDtoPhase,
 } from '@/src/shared/api/generated/meetingsQualityAPI.schemas';
-import { PHASE_ORDER } from '@/src/shared/constants/meetings';
+import { PHASE_ORDER, MeetingResponseDtoCurrentPhase } from '@/src/shared/constants/meetings';
 
 /**
  * Check if user is creator of the meeting

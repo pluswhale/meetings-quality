@@ -4,20 +4,30 @@
  */
 
 import {
-  MeetingResponseDtoCurrentPhase,
+  MeetingResponseDtoCurrentPhase as _GeneratedPhase,
   MeetingResponseDtoStatus,
   MeetingsControllerFindAllFilter,
 } from '@/src/shared/api/generated/meetingsQualityAPI.schemas';
 
-// Re-export generated enums for easy access
-export {
-  MeetingResponseDtoCurrentPhase,
-  MeetingResponseDtoStatus,
-  MeetingsControllerFindAllFilter,
-};
+/**
+ * Extended phase enum — includes `retrospective` and `task_evaluation` which
+ * were added after the API client was last generated.
+ * Import THIS enum everywhere instead of the generated one.
+ */
+export const MeetingResponseDtoCurrentPhase = {
+  ..._GeneratedPhase,
+  retrospective: 'retrospective',
+  task_evaluation: 'task_evaluation',
+} as const;
+
+export type MeetingResponseDtoCurrentPhase =
+  (typeof MeetingResponseDtoCurrentPhase)[keyof typeof MeetingResponseDtoCurrentPhase];
+
+export { MeetingResponseDtoStatus, MeetingsControllerFindAllFilter };
 
 // Phase display names
 export const PHASE_LABELS: Record<MeetingResponseDtoCurrentPhase, string> = {
+  [MeetingResponseDtoCurrentPhase.retrospective]: 'Ретроспектива',
   [MeetingResponseDtoCurrentPhase.emotional_evaluation]: 'Обсуждение',
   [MeetingResponseDtoCurrentPhase.understanding_contribution]: 'Вклад',
   [MeetingResponseDtoCurrentPhase.task_planning]: 'Задачи',
@@ -25,7 +35,7 @@ export const PHASE_LABELS: Record<MeetingResponseDtoCurrentPhase, string> = {
   [MeetingResponseDtoCurrentPhase.finished]: 'Завершено',
 } as const;
 
-// Phase order for navigation
+// Phase order for in-meeting navigation (retrospective is handled separately)
 export const PHASE_ORDER: MeetingResponseDtoCurrentPhase[] = [
   MeetingResponseDtoCurrentPhase.emotional_evaluation,
   MeetingResponseDtoCurrentPhase.understanding_contribution,

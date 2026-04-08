@@ -7,7 +7,7 @@ import { UserResponseDto } from '@/src/shared/api/generated/meetingsQualityAPI.s
 import { VotingStatusPanel } from '@/src/shared/components';
 import { PhaseSubmissionsDisplay } from './PhaseSubmissionsDisplay';
 import { VotingInfo, PhaseSubmissions } from '../types';
-import { MeetingResponseDtoCurrentPhase } from '@/src/shared/api/generated/meetingsQualityAPI.schemas';
+import { MeetingResponseDtoCurrentPhase } from '@/src/shared/constants';
 
 interface CreatorStatsPanelsProps {
   votingInfo: VotingInfo | null;

@@ -1,49 +1,25 @@
 /**
  * CreatorSubmissionsPanel
  *
- * Thin adapter that bridges the legacy meeting-detail feature with the new
- * meeting-submissions architecture. It re-exports MeetingSubmissionsView
- * using the domain types from src/features/meeting/types.ts.
- *
- * Migration path: replace usages of this component with
- * <MeetingSubmissionsContainer meetingId={...} onApproveTask={...} />
- * once the parent view is updated to use the new hook directly.
+ * Legacy adapter — routes to CreatorAdminPanel which reads from the votes map.
+ * Kept for backward compatibility with MeetingDetailView.
  */
 
-import type {
-  EmotionalSubmission,
-  MeetingSubmissions,
-  TaskSubmission,
-  UnderstandingSubmission,
-} from '@/src/features/meeting/types';
-import { MeetingSubmissionsView } from '@/src/features/meeting/components/MeetingSubmissionsView';
-
-export type { MeetingSubmissions };
+import React from 'react';
+import type { MeetingSubmissions } from '@/src/features/meeting/types';
+import { CreatorAdminPanel } from './CreatorAdminPanel';
+import type { UseMeetingSocketReturn } from '../hooks/useMeetingSocket';
 
 interface CreatorSubmissionsPanelProps {
+  meetingId: string;
   submissions: MeetingSubmissions | null;
   isLoading?: boolean;
-  isRefreshing?: boolean;
-  isApprovingTask?: boolean;
-  onApproveTask?: (taskId: string, currentApproved: boolean) => void;
+  socket: UseMeetingSocketReturn;
 }
 
 export const CreatorSubmissionsPanel: React.FC<CreatorSubmissionsPanelProps> = ({
-  submissions,
-  isLoading = false,
-  isRefreshing = false,
-  isApprovingTask = false,
-  onApproveTask = () => {},
-}) => (
-  <MeetingSubmissionsView
-    submissions={submissions}
-    isLoading={isLoading}
-    isRefreshing={isRefreshing}
-    isApprovingTask={isApprovingTask}
-    onApproveTask={onApproveTask}
-  />
-);
-
-// Named re-exports for any code that destructures individual submission types
-// from this module (avoids changing import sites during migration).
-export type { EmotionalSubmission, UnderstandingSubmission, TaskSubmission };
+  meetingId,
+  socket,
+}) => {
+  return <CreatorAdminPanel meetingId={meetingId} socket={socket} />;
+};

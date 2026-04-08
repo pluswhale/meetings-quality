@@ -18,19 +18,19 @@ interface TaskWithAuthor {
 
 interface TaskEvaluationFormProps {
   tasks: TaskWithAuthor[];
-  onEvaluationChange: (evaluations: Record<string, number>) => Promise<void>;
+  /** Called on every slider release with the authorId and new score. Fires user:update_live_vote. */
+  onLiveUpdate: (authorId: string, score: number) => void;
   existingEvaluation?: Record<string, number>;
 }
 
 export const TaskEvaluationForm: React.FC<TaskEvaluationFormProps> = ({
   tasks,
-  onEvaluationChange,
+  onLiveUpdate,
   existingEvaluation,
 }) => {
   const [evaluations, setEvaluations] = useState<Record<string, number>>(existingEvaluation || {});
 
   useEffect(() => {
-    // Initialize all tasks with default score of 50 if not already evaluated
     const initialEvaluations: Record<string, number> = {};
     tasks.forEach((task) => {
       initialEvaluations[task.authorId] = existingEvaluation?.[task.authorId] ?? 50;
@@ -39,16 +39,11 @@ export const TaskEvaluationForm: React.FC<TaskEvaluationFormProps> = ({
   }, [tasks, existingEvaluation]);
 
   const handleScoreChange = (authorId: string, score: number) => {
-    const newEvaluations = {
-      ...evaluations,
-      [authorId]: score,
-    };
-    setEvaluations(newEvaluations);
+    setEvaluations((prev) => ({ ...prev, [authorId]: score }));
   };
 
-  const handleScoreChangeEnd = () => {
-    // Auto-save when slider is released
-    onEvaluationChange(evaluations);
+  const handleScoreChangeEnd = (authorId: string, score: number) => {
+    onLiveUpdate(authorId, score);
   };
 
   const averageScore =
@@ -213,16 +208,8 @@ export const TaskEvaluationForm: React.FC<TaskEvaluationFormProps> = ({
                   <Slider
                     value={score}
                     onChange={(value) => handleScoreChange(task.authorId, value)}
-                    onChangeEnd={handleScoreChangeEnd}
-                    variant={
-                      score >= 75
-                        ? 'green'
-                        : score >= 50
-                          ? 'default'
-                          : score >= 25
-                            ? 'orange'
-                            : 'red'
-                    }
+                    onChangeEnd={(value) => handleScoreChangeEnd(task.authorId, value)}
+                    variant={score >= 50 ? 'green' : 'default'}
                   />
                   <div className="flex justify-between text-[10px] md:text-xs font-bold text-slate-400 mt-1 md:mt-2">
                     <span className="text-red-500">0 - Не важно</span>

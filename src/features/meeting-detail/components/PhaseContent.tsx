@@ -1,10 +1,13 @@
 /**
- * PhaseContent - Routes to appropriate phase content based on current phase
+ * PhaseContent — Routes to phase-specific live forms (Phases 1-4).
+ *
+ * Live-vote model: no submit buttons anywhere.
+ * Every slider release / field blur fires onLiveUpdate → user:update_live_vote.
  */
 
 import React, { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { MeetingResponseDtoCurrentPhase } from '@/src/shared/api/generated/meetingsQualityAPI.schemas';
+import { MeetingResponseDtoCurrentPhase } from '@/src/shared/constants';
 import { useAuthStore } from '@/src/shared/store/auth.store';
 import { EmotionalEvaluationTable } from './EmotionalEvaluationTable';
 import { UnderstandingScorePanel } from './UnderstandingScorePanel';
@@ -22,7 +25,6 @@ export const PhaseContent: React.FC<PhaseContentProps> = ({ vm }) => {
   const { currentUser } = useAuthStore();
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  // Scroll to bottom when phase changes
   useEffect(() => {
     if (bottomRef.current) {
       bottomRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
@@ -38,10 +40,11 @@ export const PhaseContent: React.FC<PhaseContentProps> = ({ vm }) => {
         onUpdateEvaluation={(id, update) =>
           vm.setEmotionalEvaluations((prev) => ({
             ...prev,
-            [id]: { ...prev[id], ...update },
+            // Always preserve emotionalScale: 0 so the payload field is never undefined.
+            [id]: { emotionalScale: 0, isToxic: false, ...prev[id], ...update },
           }))
         }
-        onAutoSave={vm.handleAutoSaveEmotionalEvaluation}
+        onLiveUpdate={vm.handleLiveUpdateEmotional}
       />
     </div>
   );
@@ -54,7 +57,7 @@ export const PhaseContent: React.FC<PhaseContentProps> = ({ vm }) => {
         onContributionChange={(id, value) =>
           vm.setContributions((prev) => ({ ...prev, [id]: value }))
         }
-        onAutoSave={vm.handleAutoSaveUnderstandingContribution}
+        onLiveUpdate={vm.handleLiveUpdateUnderstanding}
         totalContribution={vm.totalContribution}
       />
     </div>
@@ -73,16 +76,14 @@ export const PhaseContent: React.FC<PhaseContentProps> = ({ vm }) => {
         onDeadlineChange={vm.setDeadline}
         expectedContribution={vm.expectedContribution}
         onExpectedContributionChange={vm.setExpectedContribution}
-        onSubmit={vm.handleSubmitTaskPlanning}
-        isSubmitting={vm.isSubmittingTask || vm.isCreatingTask}
+        onLiveUpdate={vm.handleLiveUpdateTaskPlanning}
         isApproved={vm.isMyTaskApproved}
       />
 
-      {/* Emotional Scale Slider - Everyone can evaluate their emotional state */}
       <TaskEmotionalScaleSlider
         value={vm.taskEmotionalScale}
         onChange={vm.setTaskEmotionalScale}
-        onAutoSave={vm.handleAutoSaveTaskEmotionalScale}
+        onAutoSave={vm.handleLiveUpdateTaskPlanning}
         disabled={vm.isMyTaskApproved}
       />
     </div>
@@ -90,7 +91,7 @@ export const PhaseContent: React.FC<PhaseContentProps> = ({ vm }) => {
 
   return (
     <>
-      {/* Meeting Question Card */}
+      {/* Meeting question */}
       <div className="bg-white rounded-[40px] shadow-2xl shadow-slate-200/50 border border-slate-100 overflow-hidden group">
         <div className="p-10 md:p-14">
           <h3 className="text-[10px] font-black text-blue-600 mb-6 uppercase tracking-[0.3em]">
@@ -102,12 +103,13 @@ export const PhaseContent: React.FC<PhaseContentProps> = ({ vm }) => {
         </div>
       </div>
 
-      {/* Understanding Score Panel - Always visible for everyone (except finished) */}
-      {activePhase !== MeetingResponseDtoCurrentPhase.finished && (
+      {/* Understanding score — always visible in active phases */}
+      {activePhase !== MeetingResponseDtoCurrentPhase.finished &&
+       activePhase !== MeetingResponseDtoCurrentPhase.retrospective && (
         <UnderstandingScorePanel
           understandingScore={vm.understandingScore}
           onUnderstandingScoreChange={vm.setUnderstandingScore}
-          onAutoSave={vm.handleAutoSaveUnderstandingContribution}
+          onAutoSave={vm.handleLiveUpdateUnderstanding}
         />
       )}
 
@@ -118,7 +120,7 @@ export const PhaseContent: React.FC<PhaseContentProps> = ({ vm }) => {
         renderUnderstandingContributionPhase()}
       {activePhase === MeetingResponseDtoCurrentPhase.task_planning && renderTaskPlanningPhase()}
 
-      {/* Creator Controls */}
+      {/* Creator phase-advance control */}
       {isCreator && activePhase !== MeetingResponseDtoCurrentPhase.finished && (
         <motion.div
           ref={bottomRef}
@@ -149,7 +151,6 @@ export const PhaseContent: React.FC<PhaseContentProps> = ({ vm }) => {
         </motion.div>
       )}
 
-      {/* Bottom reference for non-creators */}
       {!isCreator && <div ref={bottomRef} />}
     </>
   );

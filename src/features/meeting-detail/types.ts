@@ -58,21 +58,21 @@ export interface MeetingDetailViewModel {
   isLoading: boolean;
   isLoadingSubmissions: boolean;
   isCreator: boolean;
-  activePhase: any; // The phase currently being viewed (could be previous for participants)
-  viewedPhase: any | null; // For participants viewing previous phases
+  activePhase: any;
+  viewedPhase: any | null;
 
-  // Phase 2 state
+  // Phase 1 state
   emotionalEvaluations: EmotionalEvaluationsMap;
   setEmotionalEvaluations: React.Dispatch<React.SetStateAction<EmotionalEvaluationsMap>>;
 
-  // Phase 3 state
+  // Phase 2 state
   understandingScore: number;
   setUnderstandingScore: React.Dispatch<React.SetStateAction<number>>;
   contributions: ContributionsMap;
   setContributions: React.Dispatch<React.SetStateAction<ContributionsMap>>;
   totalContribution: number;
 
-  // Phase 4 state
+  // Phase 3 state
   taskDescription: string;
   commonQuestion: string;
   estimateHours: string;
@@ -85,29 +85,24 @@ export interface MeetingDetailViewModel {
   setExpectedContribution: React.Dispatch<React.SetStateAction<number>>;
   taskEmotionalScale: number;
   setTaskEmotionalScale: React.Dispatch<React.SetStateAction<number>>;
-  handleAutoSaveTaskEmotionalScale: () => void;
 
-  // Phase 5 state (task evaluation)
+  // Phase 4 state
   taskEvaluations: Record<string, number>;
   setTaskEvaluations: React.Dispatch<React.SetStateAction<Record<string, number>>>;
 
   // Mutations
-  isSubmittingEmotional: boolean;
-  isSubmittingUnderstanding: boolean;
-  isSubmittingTask: boolean;
-  isSubmittingTaskEvaluation: boolean;
-  isCreatingTask: boolean;
   isChangingPhase: boolean;
 
-  // Handlers
+  // Phase navigation
   handleNextPhase: () => void;
   handleChangeToPhase: (phase: any) => void;
   handleReturnToCurrentPhase: () => void;
-  handleSubmitEmotionalEvaluation: () => void;
-  handleAutoSaveEmotionalEvaluation: () => void;
-  handleSubmitUnderstandingContribution: () => void;
-  handleAutoSaveUnderstandingContribution: () => void;
-  handleSubmitTaskPlanning: () => void;
-  handleSubmitTaskEvaluation: (evaluations: Record<string, number>) => Promise<void>;
+
+  // Live update handlers (fire user:update_live_vote on slider release / field blur)
+  handleLiveUpdateEmotional: () => void;
+  handleLiveUpdateUnderstanding: () => void;
+  handleLiveUpdateTaskPlanning: () => void;
+  handleLiveUpdateTaskEvaluation: (authorId: string, score: number) => void;
+
   handleNavigateBack: () => void;
 }

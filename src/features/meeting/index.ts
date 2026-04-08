@@ -25,12 +25,6 @@ export type {
 // Hooks
 export { useMeetingSubmissions, meetingQueryKeys } from './hooks';
 
-// Container (smart, owns data fetching)
-export {
-  MeetingSubmissionsContainer,
-  type MeetingSubmissionsContainerProps,
-} from './containers/MeetingSubmissionsContainer';
-
 // Presentational components (dumb, pure)
 export {
   MeetingSubmissionsView,

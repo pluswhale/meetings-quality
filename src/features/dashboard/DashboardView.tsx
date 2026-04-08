@@ -28,7 +28,6 @@ export const DashboardView: React.FC = () => {
 
       <main className="flex-1 overflow-y-auto">
         <div className="max-w-5xl mx-auto px-8 py-10">
-
           {/* ─── Projects tab ───────────────────────────────── */}
           {vm.currentTab === DashboardTab.PROJECTS && (
             <>
@@ -42,7 +41,12 @@ export const DashboardView: React.FC = () => {
                   className="flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-black text-white text-sm font-medium rounded-xl transition-all shadow-sm"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 4v16m8-8H4"
+                    />
                   </svg>
                   Новый проект
                 </Link>
@@ -100,24 +104,20 @@ export const DashboardView: React.FC = () => {
                   <h1 className="text-xl font-bold text-slate-900">Встречи</h1>
                   <p className="text-sm text-slate-500 mt-0.5">Все ваши встречи</p>
                 </div>
-                <Link
-                  to="/meeting/create"
-                  className="flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-black text-white text-sm font-medium rounded-xl transition-all shadow-sm"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                  </svg>
-                  Создать встречу
-                </Link>
               </div>
 
               <div className="mb-6">
-                <MeetingsFilter currentFilter={vm.meetingFilter} onFilterChange={vm.setMeetingFilter} />
+                <MeetingsFilter
+                  currentFilter={vm.meetingFilter}
+                  onFilterChange={vm.setMeetingFilter}
+                />
               </div>
 
               {vm.meetingsLoading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {[1, 2, 3].map((i) => <MeetingSkeleton key={i} />)}
+                  {[1, 2, 3].map((i) => (
+                    <MeetingSkeleton key={i} />
+                  ))}
                 </div>
               ) : vm.meetings.length === 0 ? (
                 <EmptyState
@@ -216,12 +216,22 @@ const MeetingSkeleton = () => (
 
 const FolderIcon = () => (
   <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={1.5}
+      d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z"
+    />
   </svg>
 );
 
 const CalendarIcon = () => (
   <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={1.5}
+      d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"
+    />
   </svg>
 );

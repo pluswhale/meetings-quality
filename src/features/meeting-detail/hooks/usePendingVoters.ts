@@ -1,43 +1,54 @@
 import { useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { getPendingVoters } from '../api/pending-voters.api';
-import { meetingDetailQueryKeys } from './queryKeys';
-import { POLLING_INTERVALS } from '@/src/shared/constants';
-import { MeetingResponseDtoCurrentPhase } from '@/src/shared/api/generated/meetingsQualityAPI.schemas';
-import type { SocketParticipant, UsePendingVotersReturn } from '../state/meetingDetail.types';
+import {
+  useMeetingStore,
+  selectPendingVoters,
+  selectParticipants,
+} from '../store/useMeetingStore';
+import type { MeetingResponseDtoCurrentPhase } from '@/src/shared/constants';
+import type { UsePendingVotersReturn } from '../state/meetingDetail.types';
 
 /**
- * Creator-only hook for the list of participants who haven't submitted yet.
+ * Derives the pending-voters list directly from the Zustand meeting store.
  *
- * Merges the REST response with the real-time socket participant list to
- * annotate each pending voter with an `isOnline` flag — avoids a separate
- * round-trip to determine online status.
+ * The store is kept in sync by the WebSocket events:
+ *   - room:pending_voters_updated  → setPendingVoters()
+ *   - room:participants_updated    → setParticipants()
+ *
+ * No REST polling. No refetchInterval.
  */
 export const usePendingVoters = (
-  meetingId: string,
-  isCreator: boolean,
+  _meetingId: string,
+  _isCreator: boolean,
   currentPhase: MeetingResponseDtoCurrentPhase | undefined,
-  socketParticipants: SocketParticipant[],
+  // socketParticipants is no longer needed — data comes from the store
+  _socketParticipants: unknown[],
 ): UsePendingVotersReturn => {
-  const isFinished = currentPhase === MeetingResponseDtoCurrentPhase.finished;
+  const storePending = useMeetingStore(selectPendingVoters);
+  const storeParticipants = useMeetingStore(selectParticipants);
+  const submittedIds = useMeetingStore((s) => s.submittedUserIds);
 
-  const { data: pendingVotersData } = useQuery({
-    queryKey: meetingDetailQueryKeys.pendingVoters(meetingId),
-    queryFn: () => getPendingVoters(meetingId),
-    enabled: Boolean(isCreator && !isFinished && meetingId),
-    refetchInterval: POLLING_INTERVALS.VOTING_INFO,
-  });
+  const isFinished = currentPhase === 'finished';
 
   const pendingVoters = useMemo(() => {
-    if (!pendingVotersData?.pendingParticipants) return [];
+    if (isFinished) return [];
 
-    const onlineIds = new Set(socketParticipants.map((p) => p.userId));
+    // If the WS store has pending data, use it directly (already annotated).
+    if (storePending.length > 0 || submittedIds.length > 0) {
+      const submittedSet = new Set(submittedIds);
+      return storeParticipants
+        .filter((p) => !submittedSet.has(p.userId))
+        .map((p) => ({
+          _id: p.userId,
+          fullName: p.fullName ?? '',
+          email: p.email ?? '',
+          isOnline: true,
+          joinedAt: p.joinedAt,
+          lastSeen: p.lastSeen ?? p.joinedAt,
+        }));
+    }
 
-    return pendingVotersData.pendingParticipants.map((participant) => ({
-      ...participant,
-      isOnline: onlineIds.has(participant._id),
-    }));
-  }, [pendingVotersData, socketParticipants]);
+    return [];
+  }, [storePending, storeParticipants, submittedIds, isFinished]);
 
   return { pendingVoters };
 };

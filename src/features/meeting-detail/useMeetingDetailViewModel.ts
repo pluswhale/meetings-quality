@@ -1,70 +1,56 @@
 /**
- * useMeetingDetailViewModel — thin composer.
+ * useMeetingDetailViewModel — composer for the live meeting room.
  *
- * This hook exists solely for backward compatibility with MeetingDetailView.tsx.
- * All logic has been extracted into focused hooks under ./hooks/.
- * New code should use MeetingDetailContainer instead of this hook.
- *
- * @see src/features/meeting-detail/containers/MeetingDetailContainer.tsx
+ * Architecture (v3 — live-vote):
+ *   - useMeetingSocket: connects Socket.IO, wires all WS events to Zustand,
+ *     and exposes emitUpdateLiveVote for all client→server live updates.
+ *   - Zustand (useMeetingStore): single source of truth for live state.
+ *   - React Query: REST data only (meeting metadata, statistics, task list).
+ *   - Phase hooks: read from Zustand, emit via socket. No submit buttons.
  */
 
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/src/shared/store/auth.store';
-import toast from 'react-hot-toast';
 import { MeetingDetailViewModel } from './types';
 import { isUserCreator } from './lib';
-import type { SocketUpdateType } from './state/meetingDetail.types';
 
 import { useMeetingData } from './hooks/useMeetingData';
 import { useMeetingPresence } from './hooks/useMeetingPresence';
 import { useMeetingSocket } from './hooks/useMeetingSocket';
 import { useMeetingSubmissions } from './hooks/useMeetingSubmissions';
-import { usePendingVoters } from './hooks/usePendingVoters';
 import { useMeetingPhase } from './hooks/useMeetingPhase';
 import { useEmotionalEvaluation } from './hooks/useEmotionalEvaluation';
 import { useUnderstandingContribution } from './hooks/useUnderstandingContribution';
 import { useTaskPlanning } from './hooks/useTaskPlanning';
 import { useTaskEvaluation } from './hooks/useTaskEvaluation';
 import { useTaskApproval } from './hooks/useTaskApproval';
-
-const SOCKET_NOTIFICATION_MESSAGES: Partial<Record<SocketUpdateType, string>> = {
-  emotional_evaluation_updated: 'Получена новая эмоциональная оценка!',
-  understanding_contribution_updated: 'Получена новая оценка понимания!',
-  task_planning_updated: 'Получена новая задача!',
-  task_evaluation_updated: 'Получена новая оценка задачи!',
-};
+import { usePendingVoters } from './hooks/usePendingVoters';
+import { useMeetingStore } from './store/useMeetingStore';
 
 export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewModel => {
   const navigate = useNavigate();
   const { currentUser } = useAuthStore();
   const handleNavigateBack = useCallback(() => navigate('/dashboard'), [navigate]);
 
-  // ─── Core data ─────────────────────────────────────────────────────────────
   const { meeting, statistics, isLoading } = useMeetingData(meetingId);
   const isCreator = isUserCreator(meeting ?? null, currentUser?._id);
 
-  // ─── Presence ───────────────────────────────────────────────────────────────
+  const socket = useMeetingSocket(meetingId);
+
   const { socketParticipants, meetingParticipants, activeParticipants, allUsers } =
     useMeetingPresence(meetingId, meeting, currentUser?._id);
 
-  // ─── Socket event → query invalidation ─────────────────────────────────────
-  const handleSocketNotification = useCallback((type: SocketUpdateType) => {
-    const message = SOCKET_NOTIFICATION_MESSAGES[type] ?? 'Получено новое обновление!';
-    toast.success(message, { icon: '✨', duration: 3000 });
-  }, []);
-
-  useMeetingSocket(meetingId, { isCreator, onNotification: handleSocketNotification });
-
-  // ─── Creator data ────────────────────────────────────────────────────────────
   const { submissions: phaseSubmissions, isLoading: isLoadingSubmissions } =
     useMeetingSubmissions(meetingId, isCreator);
 
   const { pendingVoters } = usePendingVoters(
-    meetingId, isCreator, meeting?.currentPhase, socketParticipants,
+    meetingId,
+    isCreator,
+    meeting?.currentPhase,
+    socketParticipants,
   );
 
-  // ─── Phase navigation ────────────────────────────────────────────────────────
   const {
     viewedPhase,
     activePhase,
@@ -72,16 +58,15 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
     handleNextPhase,
     handleChangeToPhase,
     handleReturnToCurrentPhase,
-  } = useMeetingPhase(meetingId, meeting?.currentPhase, isCreator);
+  } = useMeetingPhase(meetingId, meeting?.currentPhase, isCreator, socket);
 
-  // ─── Phase hooks ─────────────────────────────────────────────────────────────
+  // ─── Phase hooks ────────────────────────────────────────────────────────────
+
   const {
     emotionalEvaluations,
     setEmotionalEvaluations,
-    isSubmitting: isSubmittingEmotional,
-    handleSubmit: handleSubmitEmotionalEvaluation,
-    handleAutoSave: handleAutoSaveEmotionalEvaluation,
-  } = useEmotionalEvaluation(meetingId);
+    handleLiveUpdate: handleLiveUpdateEmotional,
+  } = useEmotionalEvaluation(meetingId, socket);
 
   const {
     understandingScore,
@@ -89,10 +74,8 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
     contributions,
     setContributions,
     totalContribution,
-    isSubmitting: isSubmittingUnderstanding,
-    handleSubmit: handleSubmitUnderstandingContribution,
-    handleAutoSave: handleAutoSaveUnderstandingContribution,
-  } = useUnderstandingContribution(meetingId);
+    handleLiveUpdate: handleLiveUpdateUnderstanding,
+  } = useUnderstandingContribution(meetingId, socket);
 
   const {
     taskDescription,
@@ -107,20 +90,20 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
     setExpectedContribution,
     taskEmotionalScale,
     setTaskEmotionalScale,
-    handleAutoSaveTaskEmotionalScale,
     isMyTaskApproved,
-    isSubmitting: isSubmittingTask,
-    handleSubmit: handleSubmitTaskPlanning,
-  } = useTaskPlanning(meetingId, currentUser?._id);
+    handleLiveUpdate: handleLiveUpdateTaskPlanning,
+  } = useTaskPlanning(meetingId, currentUser?._id, socket);
 
   const {
     taskEvaluations,
     setTaskEvaluations,
-    isSubmitting: isSubmittingTaskEvaluation,
-    handleSubmit: handleSubmitTaskEvaluation,
-  } = useTaskEvaluation(meetingId);
+    handleLiveUpdate: handleLiveUpdateTaskEvaluation,
+  } = useTaskEvaluation(meetingId, socket);
 
   const { isApprovingTask, handleApproveTask } = useTaskApproval(meetingId);
+
+  // Suppress unused variable warning — socketParticipants drives presence
+  void useMeetingStore;
 
   return {
     meeting,
@@ -160,7 +143,6 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
     setExpectedContribution,
     taskEmotionalScale,
     setTaskEmotionalScale,
-    handleAutoSaveTaskEmotionalScale,
     isMyTaskApproved,
     handleApproveTask,
     isApprovingTask,
@@ -168,22 +150,15 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
     taskEvaluations,
     setTaskEvaluations,
 
-    isSubmittingEmotional,
-    isSubmittingUnderstanding,
-    isSubmittingTask,
-    isSubmittingTaskEvaluation,
-    isCreatingTask: false,
     isChangingPhase,
 
     handleNextPhase,
     handleChangeToPhase,
     handleReturnToCurrentPhase,
-    handleSubmitEmotionalEvaluation,
-    handleAutoSaveEmotionalEvaluation,
-    handleSubmitUnderstandingContribution,
-    handleAutoSaveUnderstandingContribution,
-    handleSubmitTaskPlanning,
-    handleSubmitTaskEvaluation,
+    handleLiveUpdateEmotional,
+    handleLiveUpdateUnderstanding,
+    handleLiveUpdateTaskPlanning,
+    handleLiveUpdateTaskEvaluation,
     handleNavigateBack,
   };
 };

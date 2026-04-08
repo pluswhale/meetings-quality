@@ -11,7 +11,8 @@ interface ContributionDistributionPanelProps {
   participants: UserResponseDto[];
   contributions: Record<string, number>;
   onContributionChange: (participantId: string, value: number) => void;
-  onAutoSave?: () => void;
+  /** Called on every slider release. Fires user:update_live_vote. */
+  onLiveUpdate?: () => void;
   totalContribution: number;
 }
 
@@ -19,7 +20,7 @@ export const ContributionDistributionPanel: React.FC<ContributionDistributionPan
   participants,
   contributions,
   onContributionChange,
-  onAutoSave,
+  onLiveUpdate,
   totalContribution,
 }) => {
   const isValidTotal = Math.abs(totalContribution - 100) < 0.1;
@@ -86,7 +87,7 @@ export const ContributionDistributionPanel: React.FC<ContributionDistributionPan
                     if (isLocked && value > contribution) return;
                     onContributionChange(participant._id, value);
                   }}
-                  onChangeEnd={onAutoSave}
+                  onChangeEnd={onLiveUpdate}
                 />
               </div>
             );

@@ -4,17 +4,19 @@
 
 import {
   MeetingResponseDto,
-  MeetingResponseDtoCurrentPhase,
   ChangePhaseDtoPhase,
 } from '@/src/shared/api/generated/meetingsQualityAPI.schemas';
-import { PHASE_ORDER } from '@/src/shared/constants/meetings';
+import { PHASE_ORDER, MeetingResponseDtoCurrentPhase } from '@/src/shared/constants/meetings';
 
 /**
  * Check if user is creator of the meeting
  */
 export const isUserCreator = (meeting: MeetingResponseDto | null, userId: string | undefined): boolean => {
   if (!meeting || !userId) return false;
-  return meeting.creatorId === userId;
+  // creatorId may be a populated object or a plain id string
+  const creatorId = (meeting.creatorId as unknown as { _id?: string } | string);
+  const id = typeof creatorId === 'object' ? creatorId?._id : creatorId;
+  return id === userId;
 };
 
 /**

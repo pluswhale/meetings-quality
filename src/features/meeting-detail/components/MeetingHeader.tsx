@@ -4,7 +4,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { MeetingResponseDtoCurrentPhase } from '@/src/shared/api/generated/meetingsQualityAPI.schemas';
+import { MeetingResponseDtoCurrentPhase } from '@/src/shared/constants';
 import { PhaseIndicator } from '@/src/shared/components';
 
 interface MeetingHeaderProps {

@@ -6,7 +6,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useParams } from 'react-router-dom';
-import { MeetingResponseDtoCurrentPhase } from '@/src/shared/api/generated/meetingsQualityAPI.schemas';
+import { MeetingResponseDtoCurrentPhase } from '@/src/shared/constants';
 import { useMeetingDetailViewModel } from './useMeetingDetailViewModel';
 import { MeetingHeader } from './components/MeetingHeader';
 import { FinishedPhaseView } from './components/FinishedPhaseView';
@@ -35,7 +35,14 @@ export const MeetingDetailView: React.FC = () => {
 
   // Finished phase view (special layout)
   if (vm.meeting.currentPhase === MeetingResponseDtoCurrentPhase.finished) {
-    return <FinishedPhaseView meeting={vm.meeting} onBack={vm.handleNavigateBack} />;
+    return (
+      <FinishedPhaseView
+        meeting={vm.meeting}
+        meetingId={vm.meeting._id ?? ''}
+        isCreator={false}
+        onBack={vm.handleNavigateBack}
+      />
+    );
   }
 
   // Active meeting view
@@ -117,16 +124,7 @@ export const MeetingDetailView: React.FC = () => {
             />
           )}
 
-        {/* Creator Submissions Panel - Only visible for creators */}
-        {vm.isCreator && vm.meeting.currentPhase !== MeetingResponseDtoCurrentPhase.finished && (
-          <CreatorSubmissionsPanel
-            isApprovingTask={vm.isApprovingTask}
-            onApproveTask={vm.handleApproveTask}
-            submissions={vm.phaseSubmissions}
-            isLoading={!vm.phaseSubmissions}
-            isRefreshing={vm.isLoadingSubmissions && !!vm.phaseSubmissions}
-          />
-        )}
+        {/* Creator Admin Panel — live votes via WebSocket (socket injected from container) */}
 
         <PhaseContent vm={vm} />
       </motion.div>

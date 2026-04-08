@@ -132,6 +132,69 @@ export const CreateMeetingView: React.FC = () => {
           />
         </motion.div>
 
+        {/* Participant selector */}
+        {vm.allUsers.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.55 }}
+            className="space-y-3"
+          >
+            <Text variant="body" color="muted" className="text-lg italic mb-1">
+              Участники встречи
+            </Text>
+
+            <Input
+              type="text"
+              placeholder="Поиск по имени или email…"
+              value={vm.participantSearch}
+              onChange={(e) => vm.setParticipantSearch(e.target.value)}
+              fullWidth
+              disabled={vm.isPending}
+            />
+
+            <div className="max-h-52 overflow-y-auto rounded-2xl border border-gray-200 divide-y divide-gray-100">
+              {vm.allUsers
+                .filter(
+                  (u) =>
+                    !vm.participantSearch ||
+                    u.fullName.toLowerCase().includes(vm.participantSearch.toLowerCase()) ||
+                    u.email.toLowerCase().includes(vm.participantSearch.toLowerCase()),
+                )
+                .map((user) => {
+                  const checked = vm.selectedParticipantIds.includes(user._id);
+                  return (
+                    <label
+                      key={user._id}
+                      className={`flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors ${checked ? 'bg-indigo-50' : ''}`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => vm.toggleParticipant(user._id)}
+                        className="w-4 h-4 rounded accent-indigo-600"
+                        disabled={vm.isPending}
+                      />
+                      <div>
+                        <p className="text-sm font-semibold text-gray-800">{user.fullName}</p>
+                        <p className="text-xs text-gray-400">{user.email}</p>
+                      </div>
+                      {checked && (
+                        <span className="ml-auto text-xs font-medium text-indigo-600">✓</span>
+                      )}
+                    </label>
+                  );
+                })}
+            </div>
+
+            {vm.selectedParticipantIds.length > 0 && (
+              <p className="text-xs text-indigo-600 font-medium">
+                Выбрано: {vm.selectedParticipantIds.length} участник(ов)
+              </p>
+            )}
+          </motion.div>
+        )}
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

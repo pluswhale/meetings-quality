@@ -15,12 +15,11 @@
  *     not domain logic — the hook delivers the type, the container reacts.
  */
 
-import { useCallback } from 'react';
+import React, { useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import toast from 'react-hot-toast';
-import { MeetingResponseDtoCurrentPhase } from '@/src/shared/api/generated/meetingsQualityAPI.schemas';
+import { MeetingResponseDtoCurrentPhase } from '@/src/shared/constants';
 import { useAuthStore } from '@/src/shared/store/auth.store';
 
 // ─── Domain hooks ─────────────────────────────────────────────────────────────
@@ -40,19 +39,11 @@ import { useTaskApproval } from '../hooks/useTaskApproval';
 import { MeetingHeader } from '../components/MeetingHeader';
 import { FinishedPhaseView } from '../components/FinishedPhaseView';
 import { PhaseContent } from '../components/PhaseContent';
-import { CreatorSubmissionsPanel } from '../components/CreatorSubmissionsPanel';
-import { PendingVotersPanel } from '../components/PendingVotersPanel';
+import { RetroPhaseView } from '../components/RetroPhaseView';
+import { CreatorAdminPanel } from '../components/CreatorAdminPanel';
 
-import type { SocketUpdateType } from '../state/meetingDetail.types';
 import { isUserCreator } from '../lib';
-
-// Notification messages keyed by socket update type.
-const SOCKET_NOTIFICATION_MESSAGES: Partial<Record<SocketUpdateType, string>> = {
-  emotional_evaluation_updated: 'Получена новая эмоциональная оценка!',
-  understanding_contribution_updated: 'Получена новая оценка понимания!',
-  task_planning_updated: 'Получена новая задача!',
-  task_evaluation_updated: 'Получена новая оценка задачи!',
-};
+import { selectPhase, useMeetingStore } from '../store/useMeetingStore';
 
 export const MeetingDetailContainer: React.FC = () => {
   const { id: meetingId = '' } = useParams<{ id: string }>();
@@ -64,23 +55,28 @@ export const MeetingDetailContainer: React.FC = () => {
   const isCreator = isUserCreator(meeting ?? null, currentUser?._id);
 
   // ─── Presence ────────────────────────────────────────────────────────────
-  const { socketParticipants, isSocketConnected, meetingParticipants, activeParticipants, allUsers } =
-    useMeetingPresence(meetingId, meeting, currentUser?._id);
+  const {
+    socketParticipants,
+    isSocketConnected,
+    meetingParticipants,
+    activeParticipants,
+    allUsers,
+  } = useMeetingPresence(meetingId, meeting, currentUser?._id);
 
-  // ─── Socket events → query invalidation ──────────────────────────────────
-  const handleSocketNotification = useCallback((type: SocketUpdateType) => {
-    const message = SOCKET_NOTIFICATION_MESSAGES[type] ?? 'Получено новое обновление!';
-    toast.success(message, { icon: '✨', duration: 3000 });
-  }, []);
+  // ─── WebSocket (single connection for the entire meeting room) ──────────
+  const socket = useMeetingSocket(meetingId);
 
-  useMeetingSocket(meetingId, {
-    isCreator,
-    onNotification: handleSocketNotification,
-  });
+  // Live phase from WebSocket — null until first state_sync arrives
+  const livePhase = useMeetingStore(selectPhase);
+  const wsConnected = useMeetingStore((s) => s.isConnected);
+  const wsReconnecting = useMeetingStore((s) => s.isReconnecting);
 
   // ─── Creator-only data ───────────────────────────────────────────────────
-  const { submissions: phaseSubmissions, isLoading: isLoadingSubmissions, isRefreshing } =
-    useMeetingSubmissions(meetingId, isCreator);
+  const {
+    submissions: phaseSubmissions,
+    isLoading: isLoadingSubmissions,
+    isRefreshing,
+  } = useMeetingSubmissions(meetingId, isCreator);
 
   const { pendingVoters } = usePendingVoters(
     meetingId,
@@ -97,16 +93,14 @@ export const MeetingDetailContainer: React.FC = () => {
     handleNextPhase,
     handleChangeToPhase,
     handleReturnToCurrentPhase,
-  } = useMeetingPhase(meetingId, meeting?.currentPhase, isCreator);
+  } = useMeetingPhase(meetingId, meeting?.currentPhase, isCreator, socket);
 
   // ─── Phase form hooks ────────────────────────────────────────────────────
   const {
     emotionalEvaluations,
     setEmotionalEvaluations,
-    isSubmitting: isSubmittingEmotional,
-    handleSubmit: handleSubmitEmotionalEvaluation,
-    handleAutoSave: handleAutoSaveEmotionalEvaluation,
-  } = useEmotionalEvaluation(meetingId);
+    handleLiveUpdate: handleLiveUpdateEmotional,
+  } = useEmotionalEvaluation(meetingId, socket);
 
   const {
     understandingScore,
@@ -114,10 +108,8 @@ export const MeetingDetailContainer: React.FC = () => {
     contributions,
     setContributions,
     totalContribution,
-    isSubmitting: isSubmittingUnderstanding,
-    handleSubmit: handleSubmitUnderstandingContribution,
-    handleAutoSave: handleAutoSaveUnderstandingContribution,
-  } = useUnderstandingContribution(meetingId);
+    handleLiveUpdate: handleLiveUpdateUnderstanding,
+  } = useUnderstandingContribution(meetingId, socket);
 
   const {
     taskDescription,
@@ -132,18 +124,15 @@ export const MeetingDetailContainer: React.FC = () => {
     setExpectedContribution,
     taskEmotionalScale,
     setTaskEmotionalScale,
-    handleAutoSaveTaskEmotionalScale,
     isMyTaskApproved,
-    isSubmitting: isSubmittingTask,
-    handleSubmit: handleSubmitTaskPlanning,
-  } = useTaskPlanning(meetingId, currentUser?._id);
+    handleLiveUpdate: handleLiveUpdateTaskPlanning,
+  } = useTaskPlanning(meetingId, currentUser?._id, socket);
 
   const {
     taskEvaluations,
     setTaskEvaluations,
-    isSubmitting: isSubmittingTaskEvaluation,
-    handleSubmit: handleSubmitTaskEvaluation,
-  } = useTaskEvaluation(meetingId);
+    handleLiveUpdate: handleLiveUpdateTaskEvaluation,
+  } = useTaskEvaluation(meetingId, socket);
 
   const { isApprovingTask, handleApproveTask } = useTaskApproval(meetingId);
 
@@ -163,8 +152,20 @@ export const MeetingDetailContainer: React.FC = () => {
     return <div className="p-20 text-center text-slate-500 font-bold">Встреча не найдена</div>;
   }
 
-  if (meeting.currentPhase === MeetingResponseDtoCurrentPhase.finished) {
-    return <FinishedPhaseView meeting={meeting} onBack={handleNavigateBack} />;
+  // Check finished state from both REST and live Zustand phase to avoid a
+  // brief window where the socket says "finished" but the REST cache hasn't refreshed.
+  if (
+    meeting.currentPhase === MeetingResponseDtoCurrentPhase.finished ||
+    livePhase === MeetingResponseDtoCurrentPhase.finished
+  ) {
+    return (
+      <FinishedPhaseView
+        meeting={meeting}
+        meetingId={meetingId}
+        isCreator={isCreator}
+        onBack={handleNavigateBack}
+      />
+    );
   }
 
   // ─── Build the view-model shape expected by existing presentational components ──
@@ -208,7 +209,6 @@ export const MeetingDetailContainer: React.FC = () => {
     setExpectedContribution,
     taskEmotionalScale,
     setTaskEmotionalScale,
-    handleAutoSaveTaskEmotionalScale,
     isMyTaskApproved,
     handleApproveTask,
     isApprovingTask,
@@ -216,22 +216,15 @@ export const MeetingDetailContainer: React.FC = () => {
     taskEvaluations,
     setTaskEvaluations,
 
-    isSubmittingEmotional,
-    isSubmittingUnderstanding,
-    isSubmittingTask,
-    isSubmittingTaskEvaluation,
-    isCreatingTask: false,
     isChangingPhase,
 
     handleNextPhase,
     handleChangeToPhase,
     handleReturnToCurrentPhase,
-    handleSubmitEmotionalEvaluation,
-    handleAutoSaveEmotionalEvaluation,
-    handleSubmitUnderstandingContribution,
-    handleAutoSaveUnderstandingContribution,
-    handleSubmitTaskPlanning,
-    handleSubmitTaskEvaluation,
+    handleLiveUpdateEmotional,
+    handleLiveUpdateUnderstanding,
+    handleLiveUpdateTaskPlanning,
+    handleLiveUpdateTaskEvaluation,
     handleNavigateBack,
   };
 
@@ -253,6 +246,8 @@ export const MeetingDetailContainer: React.FC = () => {
         onPhaseClick={handleChangeToPhase}
       />
 
+      <SocketStatusBadge connected={wsConnected} reconnecting={wsReconnecting} />
+
       {!isCreator && viewedPhase && (
         <ViewingPreviousPhaseAlert onReturn={handleReturnToCurrentPhase} />
       )}
@@ -263,32 +258,48 @@ export const MeetingDetailContainer: React.FC = () => {
         transition={{ delay: 0.4 }}
         className="space-y-12"
       >
-        {isCreator &&
-          meeting.currentPhase !== MeetingResponseDtoCurrentPhase.emotional_evaluation && (
-            <PendingVotersPanel
-              pendingVoters={pendingVoters}
-              isLoading={!pendingVoters.length}
-              currentPhase={meeting.currentPhase}
-            />
-          )}
+        {isCreator && <CreatorAdminPanel meetingId={meetingId} socket={socket} />}
 
-        {isCreator && (
-          <CreatorSubmissionsPanel
-            isApprovingTask={isApprovingTask}
-            onApproveTask={handleApproveTask}
-            submissions={phaseSubmissions}
-            isLoading={!phaseSubmissions}
-            isRefreshing={isRefreshing}
-          />
+        {/* Phase 0 — Retrospective: rendered when previousMeetingId is set */}
+        {activePhase === MeetingResponseDtoCurrentPhase.retrospective ? (
+          <RetroPhaseView socket={socket} isCreator={isCreator} />
+        ) : (
+          <PhaseContent vm={vm} />
         )}
-
-        <PhaseContent vm={vm} />
       </motion.div>
     </motion.div>
   );
 };
 
-// ─── Inline sub-component ─────────────────────────────────────────────────────
+// ─── Inline sub-components ────────────────────────────────────────────────────
+
+const SocketStatusBadge: React.FC<{ connected: boolean; reconnecting: boolean }> = ({
+  connected,
+  reconnecting,
+}) => {
+  if (connected) {
+    return (
+      <div className="flex items-center gap-1.5 text-xs text-green-600 font-medium mb-4">
+        <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+        Live
+      </div>
+    );
+  }
+  if (reconnecting) {
+    return (
+      <div className="flex items-center gap-1.5 text-xs text-amber-600 font-medium mb-4">
+        <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+        Reconnecting…
+      </div>
+    );
+  }
+  return (
+    <div className="flex items-center gap-1.5 text-xs text-red-500 font-medium mb-4">
+      <span className="w-2 h-2 rounded-full bg-red-500" />
+      Disconnected
+    </div>
+  );
+};
 
 const ViewingPreviousPhaseAlert: React.FC<{ onReturn: () => void }> = ({ onReturn }) => (
   <motion.div

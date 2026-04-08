@@ -2,23 +2,26 @@ import {
   useMeetingsControllerFindOne,
   useMeetingsControllerGetStatistics,
 } from '@/src/shared/api/generated/meetings/meetings';
-import { MeetingResponseDtoCurrentPhase } from '@/src/shared/api/generated/meetingsQualityAPI.schemas';
-import { POLLING_INTERVALS } from '@/src/shared/constants';
+import { MeetingResponseDtoCurrentPhase } from '@/src/shared/constants';
 import type { UseMeetingDataReturn } from '../state/meetingDetail.types';
 
 /**
- * Fetches the core meeting document and, once finished, its statistics.
+ * Fetches the core meeting document once on mount.
  *
- * Polling at MEETING_DATA interval keeps the phase badge and participant list
- * in sync without a WebSocket. Statistics are only fetched in the finished phase
- * to avoid unnecessary load.
+ * There is NO refetchInterval here. Phase changes are pushed via the
+ * room:phase_sync WebSocket event which calls:
+ *   queryClient.invalidateQueries({ queryKey: meetingDetailQueryKeys.meeting(meetingId) })
+ *
+ * This keeps the meeting document in sync without any polling overhead.
+ * Statistics are only fetched after the meeting is finished.
  */
 export const useMeetingData = (meetingId: string): UseMeetingDataReturn => {
   const { data: meeting, isLoading } = useMeetingsControllerFindOne(meetingId, {
     query: {
       enabled: Boolean(meetingId),
-      refetchInterval: POLLING_INTERVALS.MEETING_DATA,
-      refetchIntervalInBackground: false,
+      staleTime: Infinity,
+      refetchOnWindowFocus: false,
+      // No refetchInterval — invalidated by room:phase_sync WS event
     },
   });
 
@@ -27,7 +30,8 @@ export const useMeetingData = (meetingId: string): UseMeetingDataReturn => {
   const { data: statistics } = useMeetingsControllerGetStatistics(meetingId, {
     query: {
       enabled: isFinished,
-      refetchInterval: isFinished ? POLLING_INTERVALS.STATISTICS : false,
+      staleTime: Infinity,
+      refetchOnWindowFocus: false,
     },
   });
 

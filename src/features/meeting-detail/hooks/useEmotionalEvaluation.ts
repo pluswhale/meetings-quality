@@ -1,81 +1,57 @@
-import { useState, useCallback } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
-import toast from 'react-hot-toast';
-import { useMeetingsControllerSubmitEmotionalEvaluation } from '@/src/shared/api/generated/meetings/meetings';
-import type { ParticipantEmotionalEvaluationDto } from '@/src/shared/api/generated/meetingsQualityAPI.schemas';
-import { meetingDetailQueryKeys } from './queryKeys';
-import type { EmotionalEvaluationsMap, UseEmotionalEvaluationReturn } from '../state/meetingDetail.types';
+import { useCallback } from 'react';
+import { useMeetingStore } from '../store/useMeetingStore';
+import type { UseMeetingSocketReturn } from './useMeetingSocket';
+import type { UseEmotionalEvaluationReturn } from '../state/meetingDetail.types';
 
 /**
- * Phase 2 — Emotional Evaluation.
+ * Phase 1 — Emotional Evaluation.
  *
- * Owns:
- *   - The `emotionalEvaluations` map state (keyed by participantId).
- *   - The explicit submit handler (shows validation toast on empty input).
- *   - The auto-save handler (silent — no toast, used on slider change).
+ * Every checkbox toggle fires handleLiveUpdate which calls emitUpdateLiveVote.
+ * No submit button, no manual confirmation.
  *
- * Does NOT own: participant list, phase routing, loading UI. Those belong
- * to `useMeetingPresence` and `useMeetingPhase` respectively.
+ * buildPayload reads directly from useMeetingStore.getState() to avoid the
+ * stale-closure problem: React re-renders are asynchronous, so a useCallback
+ * that captures `emotionalEvaluations` from a subscription could still hold the
+ * previous snapshot when setTimeout(onLiveUpdate, 0) fires.
  */
-export const useEmotionalEvaluation = (meetingId: string): UseEmotionalEvaluationReturn => {
-  const queryClient = useQueryClient();
-  const [emotionalEvaluations, setEmotionalEvaluations] = useState<EmotionalEvaluationsMap>({});
+export const useEmotionalEvaluation = (
+  _meetingId: string,
+  socket: UseMeetingSocketReturn,
+): UseEmotionalEvaluationReturn => {
+  const emotionalEvaluations = useMeetingStore((s) => s.emotionalEvaluations);
+  const setEmotionalEntry = useMeetingStore((s) => s.setEmotionalEntry);
 
-  const { mutate, isPending } = useMeetingsControllerSubmitEmotionalEvaluation({
-    mutation: {
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: meetingDetailQueryKeys.meeting(meetingId) });
-      },
+  const setEmotionalEvaluations = useCallback(
+    (updater: Parameters<UseEmotionalEvaluationReturn['setEmotionalEvaluations']>[0]) => {
+      const next =
+        typeof updater === 'function' ? updater(emotionalEvaluations) : updater;
+      Object.entries(next).forEach(([pid, entry]) => setEmotionalEntry(pid, entry));
     },
-  });
+    [emotionalEvaluations, setEmotionalEntry],
+  );
 
-  const buildEvaluationList = useCallback((): ParticipantEmotionalEvaluationDto[] =>
-    Object.entries(emotionalEvaluations).map(([participantId, ev]) => ({
-      targetParticipantId: participantId,
-      emotionalScale: ev.emotionalScale,
-      isToxic: ev.isToxic,
-    })), [emotionalEvaluations]);
+  // Always reads directly from the store (not from the React subscription
+  // snapshot), so it never sees stale data regardless of render timing.
+  const buildPayload = useCallback(() => {
+    const evals = useMeetingStore.getState().emotionalEvaluations;
+    return {
+      evaluations: Object.entries(evals).map(([participantId, ev]) => ({
+        targetParticipantId: participantId,
+        emotionalScale: ev.emotionalScale ?? 0,
+        isToxic: ev.isToxic,
+      })),
+    };
+  }, []);
 
-  const handleSubmit = useCallback(() => {
-    const evaluations = buildEvaluationList();
-
-    if (evaluations.length === 0) {
-      toast.error('Пожалуйста, оцените хотя бы одного участника');
-      return;
-    }
-
-    mutate(
-      { id: meetingId, data: { evaluations } },
-      {
-        onSuccess: () => toast.success('Эмоциональная оценка сохранена!'),
-        onError: (err) => toast.error(`Ошибка: ${extractMessage(err)}`),
-      },
-    );
-  }, [meetingId, mutate, buildEvaluationList]);
-
-  const handleAutoSave = useCallback(() => {
-    const evaluations = buildEvaluationList();
-    if (evaluations.length === 0) return;
-
-    mutate(
-      { id: meetingId, data: { evaluations } },
-      { onError: (err) => console.error('Auto-save failed:', err) },
-    );
-  }, [meetingId, mutate, buildEvaluationList]);
+  const handleLiveUpdate = useCallback(() => {
+    const payload = buildPayload();
+    if (payload.evaluations.length === 0) return;
+    socket.emitUpdateLiveVote('emotional_evaluation', payload);
+  }, [buildPayload, socket]);
 
   return {
     emotionalEvaluations,
     setEmotionalEvaluations,
-    isSubmitting: isPending,
-    handleSubmit,
-    handleAutoSave,
+    handleLiveUpdate,
   };
 };
-
-function extractMessage(err: unknown): string {
-  if (err && typeof err === 'object' && 'response' in err) {
-    const r = (err as { response?: { data?: { message?: string } } }).response;
-    return r?.data?.message ?? 'Не удалось сохранить оценку';
-  }
-  return 'Не удалось сохранить оценку';
-}

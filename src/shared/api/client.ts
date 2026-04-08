@@ -4,4 +4,3 @@
  */
 
 export { axios, customInstance } from './axios-instance';
-export * from './generated';

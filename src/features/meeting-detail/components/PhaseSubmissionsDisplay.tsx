@@ -3,7 +3,8 @@
  */
 
 import React from 'react';
-import { UserResponseDto, MeetingResponseDtoCurrentPhase } from '@/src/shared/api/generated/meetingsQualityAPI.schemas';
+import { UserResponseDto } from '@/src/shared/api/generated/meetingsQualityAPI.schemas';
+import { MeetingResponseDtoCurrentPhase } from '@/src/shared/constants';
 import { PhaseSubmissions } from '../types';
 
 interface PhaseSubmissionsDisplayProps {

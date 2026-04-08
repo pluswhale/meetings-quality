@@ -1,62 +1,48 @@
-import { useState, useCallback } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
-import toast from 'react-hot-toast';
-import { submitTaskEvaluation } from '../api/task-evaluation.api';
-import { meetingDetailQueryKeys } from './queryKeys';
+import { useCallback } from 'react';
+import { useMeetingStore } from '../store/useMeetingStore';
+import type { UseMeetingSocketReturn } from './useMeetingSocket';
 import type { UseTaskEvaluationReturn } from '../state/meetingDetail.types';
 
 /**
- * Phase 5 — Task Evaluation.
+ * Phase 4 — Task Evaluation.
  *
- * Owns the importance score map (keyed by authorId) and the submit handler.
- *
- * Why not use the generated mutation hook?
- * The Orval-generated client types the response as `void` for this endpoint.
- * The manual `submitTaskEvaluation` wrapper in task-evaluation.api.ts uses
- * the correct return type (MeetingResponseDto). This will be replaced with
- * the generated hook once the OpenAPI spec is updated.
+ * Every slider release fires handleLiveUpdate → emitUpdateLiveVote.
+ * No submit button.
  */
-export const useTaskEvaluation = (meetingId: string): UseTaskEvaluationReturn => {
-  const queryClient = useQueryClient();
-  const [taskEvaluations, setTaskEvaluations] = useState<Record<string, number>>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
+export const useTaskEvaluation = (
+  _meetingId: string,
+  socket: UseMeetingSocketReturn,
+): UseTaskEvaluationReturn => {
+  const taskEvaluations = useMeetingStore((s) => s.taskEvaluations);
+  const setTaskEvaluationEntry = useMeetingStore((s) => s.setTaskEvaluation);
 
-  const handleSubmit = useCallback(
-    async (evaluations: Record<string, number>) => {
-      if (!meetingId) return;
-
-      const evaluationList = Object.entries(evaluations).map(([authorId, score]) => ({
-        taskAuthorId: authorId,
-        importanceScore: score,
-      }));
-
-      if (evaluationList.length === 0) {
-        toast.error('Нет задач для оценки');
-        return;
-      }
-
-      setIsSubmitting(true);
-      try {
-        await submitTaskEvaluation(meetingId, { evaluations: evaluationList });
-        queryClient.invalidateQueries({ queryKey: meetingDetailQueryKeys.meeting(meetingId) });
-        toast.success('Оценки важности задач сохранены!');
-        setTaskEvaluations(evaluations);
-      } catch (err) {
-        toast.error(`Ошибка: ${extractMessage(err)}`);
-      } finally {
-        setIsSubmitting(false);
-      }
+  const setTaskEvaluations = useCallback(
+    (updater: React.SetStateAction<Record<string, number>>) => {
+      const next = typeof updater === 'function' ? updater(taskEvaluations) : updater;
+      Object.entries(next).forEach(([authorId, score]) =>
+        setTaskEvaluationEntry(authorId, score),
+      );
     },
-    [meetingId, queryClient],
+    [taskEvaluations, setTaskEvaluationEntry],
   );
 
-  return { taskEvaluations, setTaskEvaluations, isSubmitting, handleSubmit };
-};
+  const handleLiveUpdate = useCallback(
+    (authorId: string, score: number) => {
+      setTaskEvaluationEntry(authorId, score);
+      const updated = { ...taskEvaluations, [authorId]: score };
+      socket.emitUpdateLiveVote('task_evaluation', {
+        evaluations: Object.entries(updated).map(([taskAuthorId, importanceScore]) => ({
+          taskAuthorId,
+          importanceScore,
+        })),
+      });
+    },
+    [taskEvaluations, setTaskEvaluationEntry, socket],
+  );
 
-function extractMessage(err: unknown): string {
-  if (err && typeof err === 'object' && 'response' in err) {
-    const r = (err as { response?: { data?: { message?: string } } }).response;
-    return r?.data?.message ?? 'Не удалось сохранить оценки';
-  }
-  return 'Не удалось сохранить оценки';
-}
+  return {
+    taskEvaluations,
+    setTaskEvaluations,
+    handleLiveUpdate,
+  };
+};

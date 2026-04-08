@@ -10,10 +10,10 @@
 
 import type {
   MeetingResponseDto,
-  MeetingResponseDtoCurrentPhase,
   StatisticsResponseDto,
   UserResponseDto,
 } from '@/src/shared/api/generated/meetingsQualityAPI.schemas';
+import type { MeetingResponseDtoCurrentPhase } from '@/src/shared/constants';
 import type { MeetingSubmissions } from '@/src/features/meeting/types';
 import type { PendingParticipant } from '../api/pending-voters.api';
 import type { ActiveParticipantsResponse } from '../api/meeting-room.api';
@@ -24,8 +24,8 @@ export interface SocketParticipant {
   userId: string;
   fullName: string | null;
   email: string | null;
-  joinedAt: Date;
-  lastSeen?: Date;
+  joinedAt: string;
+  lastSeen?: string;
 }
 
 /** Subset of socket event types that trigger UI updates. */
@@ -111,9 +111,8 @@ export interface UseMeetingPhaseReturn {
 export interface UseEmotionalEvaluationReturn {
   emotionalEvaluations: EmotionalEvaluationsMap;
   setEmotionalEvaluations: React.Dispatch<React.SetStateAction<EmotionalEvaluationsMap>>;
-  isSubmitting: boolean;
-  handleSubmit: () => void;
-  handleAutoSave: () => void;
+  /** Fires on every slider release / checkbox change — persists immediately. */
+  handleLiveUpdate: () => void;
 }
 
 export interface UseUnderstandingContributionReturn {
@@ -122,9 +121,8 @@ export interface UseUnderstandingContributionReturn {
   contributions: ContributionsMap;
   setContributions: React.Dispatch<React.SetStateAction<ContributionsMap>>;
   totalContribution: number;
-  isSubmitting: boolean;
-  handleSubmit: () => void;
-  handleAutoSave: () => void;
+  /** Fires on every slider release — persists immediately. */
+  handleLiveUpdate: () => void;
 }
 
 export interface UseTaskPlanningReturn {
@@ -140,17 +138,16 @@ export interface UseTaskPlanningReturn {
   setExpectedContribution: React.Dispatch<React.SetStateAction<number>>;
   taskEmotionalScale: number;
   setTaskEmotionalScale: React.Dispatch<React.SetStateAction<number>>;
-  handleAutoSaveTaskEmotionalScale: () => void;
   isMyTaskApproved: boolean;
-  isSubmitting: boolean;
-  handleSubmit: () => void;
+  /** Fires on every field blur / slider release — persists immediately. */
+  handleLiveUpdate: () => void;
 }
 
 export interface UseTaskEvaluationReturn {
   taskEvaluations: Record<string, number>;
   setTaskEvaluations: React.Dispatch<React.SetStateAction<Record<string, number>>>;
-  isSubmitting: boolean;
-  handleSubmit: (evaluations: Record<string, number>) => Promise<void>;
+  /** Fires on every slider release — persists immediately. */
+  handleLiveUpdate: (authorId: string, score: number) => void;
 }
 
 export interface UseTaskApprovalReturn {
