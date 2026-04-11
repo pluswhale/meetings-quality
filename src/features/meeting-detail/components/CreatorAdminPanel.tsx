@@ -56,45 +56,45 @@ interface PhaseMeta {
 const PHASE_META: Record<MeetingPhase, PhaseMeta> = {
   retrospective: {
     label: 'Ретроспектива',
-    accent: '#7c3aed',
-    headerBg: 'from-violet-50 to-purple-50/60',
-    barColor: 'bg-violet-500',
-    dotColor: 'bg-violet-500',
+    accent: '#2563eb',
+    headerBg: 'from-blue-50 to-slate-50',
+    barColor: 'bg-blue-600',
+    dotColor: 'bg-blue-600',
   },
   emotional_evaluation: {
     label: 'Обсуждение',
-    accent: '#e11d48',
-    headerBg: 'from-rose-50 to-pink-50/60',
-    barColor: 'bg-rose-500',
-    dotColor: 'bg-rose-500',
+    accent: '#0f172a',
+    headerBg: 'from-slate-50 to-slate-50',
+    barColor: 'bg-slate-700',
+    dotColor: 'bg-slate-700',
   },
   understanding_contribution: {
     label: 'Вклад участников',
-    accent: '#d97706',
-    headerBg: 'from-amber-50 to-yellow-50/60',
-    barColor: 'bg-amber-500',
-    dotColor: 'bg-amber-500',
+    accent: '#2563eb',
+    headerBg: 'from-blue-50 to-slate-50',
+    barColor: 'bg-blue-600',
+    dotColor: 'bg-blue-600',
   },
   task_planning: {
     label: 'Планирование задач',
-    accent: '#059669',
-    headerBg: 'from-emerald-50 to-teal-50/60',
-    barColor: 'bg-emerald-500',
-    dotColor: 'bg-emerald-500',
+    accent: '#16a34a',
+    headerBg: 'from-green-50 to-slate-50',
+    barColor: 'bg-green-600',
+    dotColor: 'bg-green-600',
   },
   task_evaluation: {
     label: 'Оценка задач',
     accent: '#2563eb',
-    headerBg: 'from-blue-50 to-sky-50/60',
-    barColor: 'bg-blue-500',
-    dotColor: 'bg-blue-500',
+    headerBg: 'from-blue-50 to-slate-50',
+    barColor: 'bg-blue-600',
+    dotColor: 'bg-blue-600',
   },
   finished: {
     label: 'Завершено',
-    accent: '#64748b',
-    headerBg: 'from-slate-50 to-gray-50/60',
-    barColor: 'bg-slate-400',
-    dotColor: 'bg-slate-400',
+    accent: '#16a34a',
+    headerBg: 'from-green-50 to-slate-50',
+    barColor: 'bg-green-600',
+    dotColor: 'bg-green-600',
   },
 };
 
@@ -202,7 +202,7 @@ export const CreatorAdminPanel: React.FC<Props> = ({ meetingId: _meetingId, sock
                 onClick={handleAdvance}
                 className={`rounded-xl px-4 py-2 text-xs font-bold transition-all hover:scale-[1.02] active:scale-[0.98] ${
                   advanceConfirm
-                    ? 'bg-amber-500 hover:bg-amber-400 text-white shadow-md shadow-amber-200'
+                    ? 'bg-slate-900 hover:bg-black text-white shadow-md shadow-slate-900/20'
                     : nextPhase === 'finished'
                       ? 'bg-slate-800 hover:bg-slate-700 text-white shadow-sm'
                       : 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 shadow-sm'
@@ -364,8 +364,8 @@ const ParticipantCard: React.FC<CardProps> = ({
       : approvalState === 'rejected'
         ? 'border-red-200'
         : isPending
-          ? 'border-amber-200'
-          : 'border-slate-200';
+          ? 'border-blue-200'
+        : 'border-slate-200';
 
   const headerBg =
     approvalState === 'approved'
@@ -373,8 +373,8 @@ const ParticipantCard: React.FC<CardProps> = ({
       : approvalState === 'rejected'
         ? 'bg-red-50'
         : isPending
-          ? 'bg-amber-50/60'
-          : 'bg-slate-50';
+          ? 'bg-blue-50/60'
+        : 'bg-slate-50';
 
   return (
     <motion.div
@@ -413,7 +413,7 @@ const ParticipantCard: React.FC<CardProps> = ({
           />
         ) : (
           <div className="py-3 flex items-center gap-2 text-slate-400">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse flex-shrink-0" />
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse flex-shrink-0" />
             <span className="text-xs font-medium">Ожидание голоса…</span>
           </div>
         )}
@@ -453,7 +453,7 @@ const StatusBadge: React.FC<{
   }
   if (isPending) {
     return (
-      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-600 border border-amber-200 whitespace-nowrap">
+      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-600 border border-blue-200 whitespace-nowrap">
         Ожидает
       </span>
     );
@@ -559,10 +559,10 @@ const ContributionContent: React.FC<{
         <div>
           <div className="flex justify-between mb-1">
             <span className="text-[10px] font-semibold text-slate-500">Понимание задачи</span>
-            <span className="text-xs font-black text-amber-600">{score}%</span>
+            <span className="text-xs font-black text-blue-600">{score}%</span>
           </div>
           <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden">
-            <div className="h-full rounded-full bg-amber-400 transition-all duration-500" style={{ width: `${score}%` }} />
+            <div className="h-full rounded-full bg-blue-600 transition-all duration-500" style={{ width: `${score}%` }} />
           </div>
         </div>
       )}
@@ -578,11 +578,11 @@ const ContributionContent: React.FC<{
                 <div className="flex items-center gap-1.5">
                   <div className="w-14 h-1.5 bg-slate-200 rounded-full overflow-hidden">
                     <div
-                      className="h-full rounded-full bg-amber-400 transition-all duration-500"
+                      className="h-full rounded-full bg-blue-600 transition-all duration-500"
                       style={{ width: `${c.contributionPercentage}%` }}
                     />
                   </div>
-                  <span className="text-[10px] font-black text-amber-600 w-7 text-right tabular-nums">
+                  <span className="text-[10px] font-black text-blue-600 w-7 text-right tabular-nums">
                     {c.contributionPercentage}%
                   </span>
                 </div>

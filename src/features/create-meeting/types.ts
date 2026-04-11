@@ -36,4 +36,7 @@ export interface CreateMeetingViewModel {
   // Handlers
   handleSubmit: (e: React.FormEvent) => void;
   handleNavigateBack: () => void;
+
+  // Linked meeting flag — true when ?previousMeetingId= is present in the URL
+  isLinkedMeeting: boolean;
 }

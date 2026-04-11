@@ -137,6 +137,12 @@ interface MeetingRoomState {
   // Connection
   isConnected: boolean;
   isReconnecting: boolean;
+  /**
+   * True when the participant tried to join but the creator hasn't connected
+   * yet (backend rejects with 'creator_not_present').
+   * The socket hook retries automatically; this flag drives the waiting screen.
+   */
+  isWaitingForCreator: boolean;
 }
 
 interface MeetingRoomActions {
@@ -197,6 +203,7 @@ interface MeetingRoomActions {
 
   // Connection
   setConnected: (connected: boolean) => void;
+  setWaitingForCreator: (waiting: boolean) => void;
   setReconnecting: (reconnecting: boolean) => void;
 
   // Reset when leaving meeting
@@ -238,6 +245,7 @@ const initialState: MeetingRoomState = {
 
   isConnected: false,
   isReconnecting: false,
+  isWaitingForCreator: false,
 };
 
 // ─── Store ────────────────────────────────────────────────────────────────────
@@ -282,7 +290,17 @@ export const useMeetingStore = create<MeetingRoomState & MeetingRoomActions>()(
           state.votes = { ...state.votes, ...serverVotes };
         }
 
+        // Hydrate task approval flags — sent by the server in room:state_sync.
+        const serverApprovals = (payload as Record<string, unknown>).taskApprovals as
+          | Record<string, boolean>
+          | undefined;
+        if (serverApprovals && typeof serverApprovals === 'object') {
+          state.taskApprovals = { ...state.taskApprovals, ...serverApprovals };
+        }
+
         state.votingProgress = { submitted: 0, total: 0, percentage: 0 };
+        // Clear the waiting flag on successful state sync.
+        state.isWaitingForCreator = false;
       }),
 
     setParticipants: (participants) =>
@@ -402,6 +420,11 @@ export const useMeetingStore = create<MeetingRoomState & MeetingRoomActions>()(
     setReconnecting: (reconnecting) =>
       set((state) => {
         state.isReconnecting = reconnecting;
+      }),
+
+    setWaitingForCreator: (waiting) =>
+      set((state) => {
+        state.isWaitingForCreator = waiting;
       }),
 
     reset: () => set(initialState),

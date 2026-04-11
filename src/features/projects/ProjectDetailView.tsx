@@ -19,9 +19,9 @@ export const ProjectDetailView: React.FC = () => {
 
   if (vm.isLoading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="flex items-center justify-center py-32">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+          <div className="w-8 h-8 border-2 border-slate-900 border-t-transparent rounded-full animate-spin" />
           <p className="text-sm text-slate-500">Загрузка...</p>
         </div>
       </div>
@@ -30,7 +30,7 @@ export const ProjectDetailView: React.FC = () => {
 
   if (!vm.project) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="flex items-center justify-center py-32">
         <p className="text-slate-500 text-sm font-medium">Проект не найден</p>
       </div>
     );
@@ -39,12 +39,11 @@ export const ProjectDetailView: React.FC = () => {
   const isArchived = vm.project.status === ProjectDetailResponseDtoStatus.archived;
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="max-w-4xl mx-auto px-6 py-10 md:px-12">
+    <div className="max-w-4xl mx-auto px-6 py-8 md:px-12 md:py-10">
         {/* Back */}
         <button
           onClick={vm.handleNavigateBack}
-          className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-900 font-medium transition-colors mb-8"
+          className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-900 font-medium transition-colors mb-6"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -52,8 +51,8 @@ export const ProjectDetailView: React.FC = () => {
           Назад
         </button>
 
-        {/* Project header */}
-        <header className="bg-white border border-slate-100 rounded-2xl p-8 mb-8 shadow-sm">
+        {/* Project info card */}
+        <div className="bg-white border border-slate-100 rounded-2xl p-8 mb-8 shadow-sm">
           <div className="flex items-start justify-between gap-4 mb-4">
             <h1 className="text-2xl font-bold text-slate-900 leading-tight">{vm.project.title}</h1>
             {isArchived && (
@@ -94,7 +93,7 @@ export const ProjectDetailView: React.FC = () => {
               caption="задач"
             />
           </div>
-        </header>
+        </div>
 
         {/* Tabs + contextual action */}
         <div className="flex items-center justify-between mb-6 gap-4">
@@ -138,6 +137,7 @@ export const ProjectDetailView: React.FC = () => {
         {/* Tab content */}
         {vm.activeTab === 'meetings' && (
           <ProjectMeetingsTab
+            projectId={id}
             meetings={vm.meetings}
             isLoading={vm.meetingsLoading}
             filter={vm.meetingFilter}
@@ -153,7 +153,6 @@ export const ProjectDetailView: React.FC = () => {
             creatorId={vm.project.creatorId}
           />
         )}
-      </div>
     </div>
   );
 };

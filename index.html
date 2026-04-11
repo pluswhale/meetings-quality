@@ -6,14 +6,177 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MeetingQuality</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              mq: {
+                bg:        '#f8fafc',
+                surface:   '#ffffff',
+                border:    '#e8edf5',
+                primary:   '#2563eb',
+                'primary-soft': '#dbeafe',
+                accent:    '#0ea5e9',
+                'accent-soft': '#e0f2fe',
+                success:   '#10b981',
+                'success-soft': '#d1fae5',
+                warning:   '#f59e0b',
+                'warning-soft': '#fef3c7',
+                danger:    '#f43f5e',
+                'danger-soft': '#ffe4e6',
+                text:      '#0f172a',
+                secondary: '#475569',
+                muted:     '#94a3b8',
+              }
+            },
+            fontFamily: {
+              sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+            },
+            boxShadow: {
+              'glass':    '0 4px 24px -4px rgba(15, 23, 42, 0.06), 0 1px 4px rgba(15, 23, 42, 0.04)',
+              'glass-md': '0 8px 32px -8px rgba(15, 23, 42, 0.10), 0 2px 8px rgba(15, 23, 42, 0.05)',
+              'glass-lg': '0 16px 48px -12px rgba(15, 23, 42, 0.14), 0 4px 16px rgba(15, 23, 42, 0.06)',
+              'primary':  '0 8px 24px -6px rgba(37, 99, 235, 0.30)',
+              'accent':   '0 8px 24px -6px rgba(14, 165, 233, 0.35)',
+            },
+            backdropBlur: {
+              xs: '2px',
+            },
+            animation: {
+              'pulse-soft': 'pulse-soft 2.4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+              'slide-in':   'slide-in 0.24s cubic-bezier(0.22, 1, 0.36, 1)',
+              'fade-up':    'fade-up 0.28s cubic-bezier(0.22, 1, 0.36, 1)',
+            },
+            keyframes: {
+              'pulse-soft': {
+                '0%, 100%': { opacity: '1' },
+                '50%':      { opacity: '0.5' },
+              },
+              'slide-in': {
+                from: { transform: 'translateX(-100%)' },
+                to:   { transform: 'translateX(0)' },
+              },
+              'fade-up': {
+                from: { opacity: '0', transform: 'translateY(12px)' },
+                to:   { opacity: '1', transform: 'translateY(0)' },
+              },
+            },
+            borderRadius: {
+              '4xl': '2rem',
+            },
+          }
+        }
+      };
+    </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        /* Custom scrollbar for better aesthetics */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
+      /* ── Base ── */
+      *, *::before, *::after { box-sizing: border-box; }
+      html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+      body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background: #f8fafc; color: #0f172a; }
+
+      /* ── Scrollbar ── */
+      ::-webkit-scrollbar          { width: 6px; height: 6px; }
+      ::-webkit-scrollbar-track    { background: transparent; }
+      ::-webkit-scrollbar-thumb    { background: #e2e8f0; border-radius: 99px; }
+      ::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
+
+      /* ── Selection ── */
+      ::selection { background: #ede9fe; color: #5b21b6; }
+
+      /* ── Glass utility ── */
+      .glass {
+        background: rgba(255, 255, 255, 0.82);
+        backdrop-filter: blur(20px) saturate(1.6);
+        -webkit-backdrop-filter: blur(20px) saturate(1.6);
+        border: 1px solid rgba(255, 255, 255, 0.72);
+      }
+      .glass-dark {
+        background: rgba(15, 23, 42, 0.72);
+        backdrop-filter: blur(20px) saturate(1.4);
+        -webkit-backdrop-filter: blur(20px) saturate(1.4);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      .glass-primary {
+        background: rgba(124, 58, 237, 0.08);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(124, 58, 237, 0.18);
+      }
+
+      /* ── Liquid gradient background ── */
+      .bg-liquid {
+        background:
+          radial-gradient(ellipse 80% 50% at 20% 10%, rgba(124, 58, 237, 0.06) 0%, transparent 60%),
+          radial-gradient(ellipse 60% 40% at 80% 80%, rgba(14, 165, 233, 0.05) 0%, transparent 60%),
+          #f8fafc;
+      }
+
+      /* ── Focus ring ── */
+      :focus-visible { outline: 2px solid #7c3aed; outline-offset: 2px; border-radius: 6px; }
+
+      /* ── Sidebar ── */
+      .sidebar-item {
+        display: flex; align-items: center; gap: 12px;
+        padding: 10px 14px; border-radius: 12px;
+        font-size: 14px; font-weight: 500; color: #475569;
+        cursor: pointer; transition: all 0.15s ease;
+        text-decoration: none;
+      }
+      .sidebar-item:hover { background: #f1f5f9; color: #0f172a; }
+      .sidebar-item.active {
+        background: #ede9fe; color: #7c3aed; font-weight: 600;
+      }
+      .sidebar-item.active svg { color: #7c3aed; }
+
+      /* ── Bottom nav (mobile) ── */
+      .bottom-nav-item {
+        display: flex; flex-direction: column; align-items: center;
+        gap: 4px; padding: 8px 16px; font-size: 11px; font-weight: 500;
+        color: #94a3b8; cursor: pointer; flex: 1;
+        border-radius: 12px; transition: all 0.15s ease;
+        text-decoration: none;
+      }
+      .bottom-nav-item.active { color: #7c3aed; }
+      .bottom-nav-item.active svg { color: #7c3aed; }
+
+      /* ── Phase chip ── */
+      .phase-chip {
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 4px 12px; border-radius: 99px; font-size: 12px;
+        font-weight: 600; letter-spacing: 0.01em;
+      }
+      .phase-chip-live { background: #d1fae5; color: #065f46; }
+      .phase-chip-upcoming { background: #e0f2fe; color: #075985; }
+      .phase-chip-done { background: #f1f5f9; color: #475569; }
+
+      /* ── Live pulse dot ── */
+      .live-dot {
+        width: 7px; height: 7px; border-radius: 50%;
+        background: #10b981;
+        box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
+        animation: pulse-live 2s ease infinite;
+      }
+      @keyframes pulse-live {
+        0%, 100% { box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3); }
+        50%       { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0.0); }
+      }
+
+      /* ── Radix slider upgrade ── */
+      [data-radix-slider-thumb] {
+        transition: transform 0.12s cubic-bezier(0.22, 1, 0.36, 1),
+                    box-shadow 0.12s ease;
+      }
+      [data-radix-slider-thumb]:hover  { transform: scale(1.18); }
+      [data-radix-slider-thumb]:active { transform: scale(1.08); }
+
+      /* ── Card hover lift ── */
+      .card-lift { transition: transform 0.18s ease, box-shadow 0.18s ease; }
+      .card-lift:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 32px -8px rgba(15, 23, 42, 0.12), 0 4px 12px rgba(15, 23, 42, 0.06);
+      }
     </style>
     
     <!-- Start Single Page Apps for GitHub Pages -->
@@ -47,7 +210,7 @@
 }
 </script>
 </head>
-<body class="bg-slate-50 text-slate-900 overflow-x-hidden">
+<body class="bg-liquid text-mq-text overflow-x-hidden min-h-screen">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
 </body>

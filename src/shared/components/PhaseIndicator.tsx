@@ -51,7 +51,7 @@ export const PhaseIndicator: React.FC<PhaseIndicatorProps> = ({
                   onClick={isClickable ? () => onPhaseClick(phase) : undefined}
                   className={`w-10 h-10 rounded-xl flex items-center justify-center font-black transition-all duration-500 ${
                     isViewing && viewedPhase
-                      ? 'bg-amber-500 text-white shadow-xl shadow-amber-200 scale-110 ring-4 ring-amber-200'
+                      ? 'bg-blue-600 text-white shadow-xl shadow-blue-200 scale-110 ring-4 ring-blue-200'
                       : isCompleted
                       ? 'bg-green-500 text-white shadow-lg shadow-green-100'
                       : isCurrent
@@ -65,7 +65,7 @@ export const PhaseIndicator: React.FC<PhaseIndicatorProps> = ({
                 <span
                   className={`text-[9px] font-black uppercase tracking-widest ${
                     isViewing && viewedPhase
-                      ? 'text-amber-600'
+                      ? 'text-blue-600'
                       : isCurrent
                       ? 'text-blue-600'
                       : isCompleted && isClickable

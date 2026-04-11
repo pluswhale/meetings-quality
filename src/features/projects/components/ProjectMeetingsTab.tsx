@@ -12,6 +12,7 @@ import { PHASE_LABELS } from '@/src/shared/constants';
 import { formatDate } from '@/src/shared/lib';
 
 interface ProjectMeetingsTabProps {
+  projectId: string;
   meetings: MeetingResponseDto[];
   isLoading: boolean;
   filter: MeetingsControllerFindAllFilter;
@@ -25,6 +26,7 @@ const FILTER_OPTIONS: { value: MeetingsControllerFindAllFilter; label: string }[
 ];
 
 export const ProjectMeetingsTab: React.FC<ProjectMeetingsTabProps> = ({
+  projectId,
   meetings,
   isLoading,
   filter,
@@ -57,7 +59,7 @@ export const ProjectMeetingsTab: React.FC<ProjectMeetingsTabProps> = ({
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {meetings.map((m) => (
-            <MeetingRow key={m._id} meeting={m} />
+            <MeetingRow key={m._id} meeting={m} projectId={projectId} />
           ))}
         </div>
       )}
@@ -67,29 +69,52 @@ export const ProjectMeetingsTab: React.FC<ProjectMeetingsTabProps> = ({
 
 // ─── Meeting row card ─────────────────────────────────────────────────────────
 
-const MeetingRow: React.FC<{ meeting: MeetingResponseDto }> = ({ meeting }) => {
+const MeetingRow: React.FC<{ meeting: MeetingResponseDto; projectId: string }> = ({
+  meeting,
+  projectId,
+}) => {
   const isFinished = meeting.currentPhase === MeetingResponseDtoCurrentPhase.finished;
+  // Show "Create Linked Meeting" only when this meeting is finished AND doesn't have a successor yet.
+  const canLink = isFinished && !(meeting as MeetingResponseDto & { nextMeetingId?: string }).nextMeetingId;
+  const linkedUrl = `/meeting/create?projectId=${projectId}&previousMeetingId=${meeting._id}`;
 
   return (
-    <Link to={`/meeting/${meeting._id}`} className="block group">
-      <div className="bg-white border border-slate-100 rounded-xl p-5 hover:border-slate-200 hover:shadow-sm transition-all flex items-center justify-between gap-4">
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-slate-900 truncate group-hover:text-blue-600 transition-colors">
-            {meeting.title}
-          </p>
-          <p className="text-xs text-slate-400 mt-0.5">{formatDate(meeting.createdAt)}</p>
+    <div className="bg-white border border-slate-100 rounded-xl overflow-hidden hover:border-slate-200 hover:shadow-sm transition-all">
+      <Link to={`/meeting/${meeting._id}`} className="block group p-5">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-slate-900 truncate group-hover:text-blue-600 transition-colors">
+              {meeting.title}
+            </p>
+            <p className="text-xs text-slate-400 mt-0.5">{formatDate(meeting.createdAt)}</p>
+          </div>
+          <span
+            className={`shrink-0 text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full ${
+              isFinished
+                ? 'bg-slate-100 text-slate-500'
+                : 'bg-blue-50 text-blue-600'
+            }`}
+          >
+            {PHASE_LABELS[meeting.currentPhase]}
+          </span>
         </div>
-        <span
-          className={`shrink-0 text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full ${
-            isFinished
-              ? 'bg-slate-100 text-slate-500'
-              : 'bg-blue-50 text-blue-600'
-          }`}
-        >
-          {PHASE_LABELS[meeting.currentPhase]}
-        </span>
-      </div>
-    </Link>
+      </Link>
+
+      {/* Create linked meeting — only for finished meetings without a successor */}
+      {canLink && (
+        <div className="px-5 pb-4 border-t border-slate-50 pt-3">
+          <Link
+            to={linkedUrl}
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-blue-600 hover:text-blue-700 hover:underline transition-colors"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+            </svg>
+            Создать связанную встречу
+          </Link>
+        </div>
+      )}
+    </div>
   );
 };
 

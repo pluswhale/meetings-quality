@@ -42,7 +42,7 @@ export const Avatar: React.FC<AvatarProps> = ({
         rounded-full
         flex items-center justify-center
         font-bold
-        ${src ? '' : 'bg-gradient-to-br from-blue-500 to-purple-600 text-white'}
+        ${src ? '' : 'bg-slate-700 text-white'}
         ${className}
       `.trim().replace(/\s+/g, ' ')}
       {...props}

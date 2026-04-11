@@ -1,14 +1,12 @@
 /**
  * Public API surface for the meeting feature.
  *
- * Import directly from the specific module when you only need one piece,
- * to avoid pulling in the entire feature bundle:
- *
+ * Import directly from the specific module when you only need one piece:
  *   import { useMeetingSubmissions } from '@/src/features/meeting/hooks';
  *   import type { TaskSubmission } from '@/src/features/meeting/types';
  */
 
-// Domain types — the only types consumers should reference for submission data.
+// Domain types
 export type {
   MeetingSubmissions,
   MeetingSubmissionsResponse,
@@ -24,11 +22,3 @@ export type {
 
 // Hooks
 export { useMeetingSubmissions, meetingQueryKeys } from './hooks';
-
-// Presentational components (dumb, pure)
-export {
-  MeetingSubmissionsView,
-  type MeetingSubmissionsViewProps,
-} from './components/MeetingSubmissionsView';
-
-export { NumberInput, type NumberInputProps } from './components/NumberInput';

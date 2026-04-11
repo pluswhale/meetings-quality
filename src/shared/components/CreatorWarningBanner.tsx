@@ -6,9 +6,9 @@ import React from 'react';
 
 export const CreatorWarningBanner: React.FC = () => {
   return (
-    <div className="p-10 bg-gradient-to-br from-amber-50 to-yellow-50 border-2 border-amber-200 rounded-[40px] mb-8">
+    <div className="p-10 bg-slate-50 border border-slate-200 rounded-[40px] mb-8">
       <div className="flex items-center gap-4">
-        <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 flex-shrink-0">
+        <div className="w-12 h-12 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 flex-shrink-0">
           <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
             <path
               fillRule="evenodd"
@@ -18,8 +18,8 @@ export const CreatorWarningBanner: React.FC = () => {
           </svg>
         </div>
         <div>
-          <h4 className="font-black text-amber-900">Вы — организатор встречи</h4>
-          <p className="text-amber-700 text-sm font-bold">
+          <h4 className="font-black text-slate-900">Вы — организатор встречи</h4>
+          <p className="text-slate-600 text-sm font-bold">
             Только участники могут отправлять оценки. Вы можете просматривать статус их ответов ниже.
           </p>
         </div>

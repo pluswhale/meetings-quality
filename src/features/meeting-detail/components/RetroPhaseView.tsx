@@ -89,7 +89,7 @@ const ParticipantRetroView: React.FC<ParticipantRetroProps> = ({
       <div className="bg-white rounded-[28px] border border-slate-200 shadow-sm p-6">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-violet-600">
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-600">
               Фаза 0 · Ретроспектива
             </span>
             <h2 className="text-xl font-black text-slate-900 mt-1">Обзор предыдущих задач</h2>
@@ -98,14 +98,14 @@ const ParticipantRetroView: React.FC<ParticipantRetroProps> = ({
             </p>
           </div>
           <div className="shrink-0 text-right">
-            <p className="text-2xl font-black text-violet-600">{completedCount}</p>
+            <p className="text-2xl font-black text-blue-600">{completedCount}</p>
             <p className="text-xs text-slate-400">из {tasks.length} проверено</p>
           </div>
         </div>
 
         <div className="mt-4 h-2 bg-slate-100 rounded-full overflow-hidden">
           <motion.div
-            className="h-full rounded-full bg-violet-500"
+            className="h-full rounded-full bg-blue-600"
             animate={{ width: tasks.length > 0 ? `${(completedCount / tasks.length) * 100}%` : '0%' }}
             transition={{ type: 'spring', stiffness: 80, damping: 20 }}
           />
@@ -222,7 +222,7 @@ const RetroTaskCard: React.FC<RetroTaskCardProps> = ({ task, authorName, status,
       {showForm && (
         <div className="mt-4 space-y-2.5">
           <textarea
-            className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-700 placeholder-slate-400 resize-none focus:outline-none focus:ring-2 focus:ring-violet-300"
+            className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-700 placeholder-slate-400 resize-none focus:outline-none focus:ring-2 focus:ring-blue-200"
             rows={2}
             placeholder="Необязательно: добавьте комментарий…"
             value={note}
@@ -258,7 +258,7 @@ const RetroTaskCard: React.FC<RetroTaskCardProps> = ({ task, authorName, status,
       {hasStatus && !isEditing && (
         <button
           onClick={() => { setNote(status?.statusNote ?? ''); setIsEditing(true); }}
-          className="mt-2 text-xs text-violet-500 hover:text-violet-700 underline"
+          className="mt-2 text-xs text-blue-600 hover:text-blue-700 underline"
         >
           Изменить ответ
         </button>
@@ -310,7 +310,7 @@ const CreatorRetroView: React.FC<CreatorRetroViewProps> = ({
     >
       {/* Header */}
       <div className="bg-white rounded-[28px] border border-slate-200 shadow-sm p-6">
-        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-violet-600">
+        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-600">
           Фаза 0 · Ретроспектива
         </span>
         <h2 className="text-xl font-black text-slate-900 mt-1">Прогресс участников</h2>
@@ -353,7 +353,7 @@ const CreatorRetroView: React.FC<CreatorRetroViewProps> = ({
                   ? 'bg-slate-100 text-slate-400'
                   : reviewed === total
                     ? 'bg-green-100 text-green-700 border border-green-200'
-                    : 'bg-amber-100 text-amber-600 border border-amber-200'
+                    : 'bg-blue-100 text-blue-600 border border-blue-200'
               }`}
             >
               {total === 0 ? 'Нет задач' : reviewed === total ? '✓ Готово' : 'В процессе'}
@@ -394,7 +394,7 @@ const CreatorRetroView: React.FC<CreatorRetroViewProps> = ({
                       {status.status === 'completed' ? '✓ Выполнено' : '✗ Не выполнено'}
                     </span>
                   ) : (
-                    <span className="shrink-0 text-[10px] font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-600 border border-amber-200 whitespace-nowrap">
+                    <span className="shrink-0 text-[10px] font-bold px-2.5 py-1 rounded-full bg-blue-100 text-blue-600 border border-blue-200 whitespace-nowrap">
                       Ожидает
                     </span>
                   )}
@@ -410,7 +410,7 @@ const CreatorRetroView: React.FC<CreatorRetroViewProps> = ({
         onClick={() => socket.emitAdvancePhase('emotional_evaluation')}
         className={`w-full rounded-2xl py-3.5 text-sm font-bold transition-colors ${
           allDone
-            ? 'bg-violet-600 hover:bg-violet-700 text-white shadow-lg shadow-violet-200'
+            ? 'bg-slate-900 hover:bg-black text-white shadow-sm'
             : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
         }`}
       >

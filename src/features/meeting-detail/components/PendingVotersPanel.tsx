@@ -30,11 +30,11 @@ export const PendingVotersPanel: React.FC<PendingVotersPanelProps> = ({
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-gradient-to-r from-amber-50 to-yellow-50 border-2 border-amber-200 rounded-[32px] p-6 shadow-lg"
+        className="bg-slate-50 border border-slate-200 rounded-[32px] p-6 shadow-sm"
       >
         <div className="flex items-center gap-3">
-          <div className="animate-spin w-5 h-5 border-2 border-amber-600 border-t-transparent rounded-full" />
-          <span className="font-bold text-amber-700">Загрузка информации о голосовании...</span>
+          <div className="animate-spin w-5 h-5 border-2 border-slate-900 border-t-transparent rounded-full" />
+          <span className="font-bold text-slate-600">Загрузка информации о голосовании...</span>
         </div>
       </motion.div>
     );
@@ -78,7 +78,7 @@ export const PendingVotersPanel: React.FC<PendingVotersPanelProps> = ({
     <motion.div
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-[32px] p-6 shadow-lg"
+      className="bg-blue-50 border border-blue-200 rounded-[32px] p-6 shadow-sm"
     >
       <div className="flex items-start gap-4">
         <div className="w-12 h-12 bg-blue-400 rounded-full flex items-center justify-center flex-shrink-0">
@@ -113,7 +113,7 @@ export const PendingVotersPanel: React.FC<PendingVotersPanelProps> = ({
                 className="flex items-center gap-3 bg-white/80 backdrop-blur-sm rounded-2xl p-3 border border-blue-100"
               >
                 <div className="relative">
-                  <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-full flex items-center justify-center flex-shrink-0">
+                  <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
                     <span className="text-white font-black text-sm">
                       {voter.fullName?.charAt(0).toUpperCase() || '?'}
                     </span>

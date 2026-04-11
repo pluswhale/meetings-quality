@@ -42,7 +42,7 @@ export const CreateMeetingView: React.FC = () => {
         </Button>
       </motion.div>
 
-      <motion.header
+      <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
@@ -54,7 +54,22 @@ export const CreateMeetingView: React.FC = () => {
         <Text variant="body" color="muted" className="text-lg italic">
           Сформулируйте повестку для достижения максимальной прозрачности.
         </Text>
-      </motion.header>
+      </motion.div>
+
+      {vm.isLinkedMeeting && (
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-2xl flex items-center gap-3"
+        >
+          <svg className="w-5 h-5 text-blue-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+          </svg>
+          <Text variant="small" className="text-blue-700">
+            Связанная встреча — фаза 0 будет включать ретроспективу предыдущей встречи.
+          </Text>
+        </motion.div>
+      )}
 
       {vm.error && (
         <motion.div
@@ -166,21 +181,21 @@ export const CreateMeetingView: React.FC = () => {
                   return (
                     <label
                       key={user._id}
-                      className={`flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors ${checked ? 'bg-indigo-50' : ''}`}
+                      className={`flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-slate-50 transition-colors ${checked ? 'bg-blue-50' : ''}`}
                     >
                       <input
                         type="checkbox"
                         checked={checked}
                         onChange={() => vm.toggleParticipant(user._id)}
-                        className="w-4 h-4 rounded accent-indigo-600"
+                        className="w-4 h-4 rounded accent-blue-600"
                         disabled={vm.isPending}
                       />
                       <div>
-                        <p className="text-sm font-semibold text-gray-800">{user.fullName}</p>
-                        <p className="text-xs text-gray-400">{user.email}</p>
+                        <p className="text-sm font-semibold text-slate-800">{user.fullName}</p>
+                        <p className="text-xs text-slate-400">{user.email}</p>
                       </div>
                       {checked && (
-                        <span className="ml-auto text-xs font-medium text-indigo-600">✓</span>
+                        <span className="ml-auto text-xs font-medium text-blue-600">✓</span>
                       )}
                     </label>
                   );
@@ -188,7 +203,7 @@ export const CreateMeetingView: React.FC = () => {
             </div>
 
             {vm.selectedParticipantIds.length > 0 && (
-              <p className="text-xs text-indigo-600 font-medium">
+              <p className="text-xs text-blue-600 font-medium">
                 Выбрано: {vm.selectedParticipantIds.length} участник(ов)
               </p>
             )}

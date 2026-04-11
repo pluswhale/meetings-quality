@@ -18,7 +18,7 @@ export const UnderstandingScorePanel: React.FC<UnderstandingScorePanelProps> = (
   onAutoSave,
 }) => {
   return (
-    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-[20px] md:rounded-[32px] p-4 md:p-8 shadow-xl mb-8 md:mb-12">
+    <div className="bg-blue-50 border border-blue-200 rounded-[20px] md:rounded-[32px] p-4 md:p-8 shadow-sm mb-8 md:mb-12">
       <div className="flex flex-col sm:flex-row sm:items-center gap-2 md:gap-3 mb-4 md:mb-6 flex-wrap">
         <div className="w-8 h-8 md:w-10 md:h-10 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
           <svg className="w-4 h-4 md:w-5 md:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">

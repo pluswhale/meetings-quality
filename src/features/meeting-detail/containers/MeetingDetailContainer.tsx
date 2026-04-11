@@ -70,6 +70,7 @@ export const MeetingDetailContainer: React.FC = () => {
   const livePhase = useMeetingStore(selectPhase);
   const wsConnected = useMeetingStore((s) => s.isConnected);
   const wsReconnecting = useMeetingStore((s) => s.isReconnecting);
+  const isWaitingForCreator = useMeetingStore((s) => s.isWaitingForCreator);
 
   // ─── Creator-only data ───────────────────────────────────────────────────
   const {
@@ -142,7 +143,7 @@ export const MeetingDetailContainer: React.FC = () => {
   if (isLoading) {
     return (
       <div className="p-20 text-center">
-        <div className="animate-spin w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4" />
+        <div className="animate-spin w-12 h-12 border-4 border-slate-900 border-t-transparent rounded-full mx-auto mb-4" />
         <p className="text-slate-500 font-bold">Загрузка встречи...</p>
       </div>
     );
@@ -150,6 +151,10 @@ export const MeetingDetailContainer: React.FC = () => {
 
   if (!meeting) {
     return <div className="p-20 text-center text-slate-500 font-bold">Встреча не найдена</div>;
+  }
+
+  if (isWaitingForCreator && !isCreator) {
+    return <WaitingForCreatorScreen meeting={meeting} />;
   }
 
   // Check finished state from both REST and live Zustand phase to avoid a
@@ -287,8 +292,8 @@ const SocketStatusBadge: React.FC<{ connected: boolean; reconnecting: boolean }>
   }
   if (reconnecting) {
     return (
-      <div className="flex items-center gap-1.5 text-xs text-amber-600 font-medium mb-4">
-        <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+      <div className="flex items-center gap-1.5 text-xs text-blue-600 font-medium mb-4">
+        <span className="w-2 h-2 rounded-full bg-blue-400 animate-ping" />
         Reconnecting…
       </div>
     );
@@ -301,15 +306,56 @@ const SocketStatusBadge: React.FC<{ connected: boolean; reconnecting: boolean }>
   );
 };
 
+// ─── WaitingForCreatorScreen ──────────────────────────────────────────────────
+
+const WaitingForCreatorScreen: React.FC<{ meeting: { title: string } }> = ({ meeting }) => (
+  <motion.div
+    initial={{ opacity: 0, scale: 0.96 }}
+    animate={{ opacity: 1, scale: 1 }}
+    className="min-h-screen flex items-center justify-center bg-slate-50 p-8"
+  >
+    <div className="max-w-md w-full text-center space-y-8">
+      {/* Animated pulse indicator */}
+      <div className="relative mx-auto w-24 h-24">
+        <span className="absolute inset-0 rounded-full bg-blue-400 opacity-20 animate-ping" />
+        <span className="relative flex items-center justify-center w-24 h-24 rounded-full bg-blue-50 border-2 border-blue-100">
+          <svg className="w-10 h-10 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+              d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+        </span>
+      </div>
+
+      <div className="space-y-3">
+        <h2 className="text-2xl font-black text-slate-900">Ожидание организатора</h2>
+        <p className="text-slate-500 font-medium">
+          Встреча <span className="font-bold text-slate-700">«{meeting.title}»</span> ещё не началась.
+        </p>
+        <p className="text-sm text-slate-400">
+          Подключение возможно только после того, как организатор откроет встречу.
+          Страница автоматически обновится.
+        </p>
+      </div>
+
+      <div className="flex items-center justify-center gap-2 text-xs text-blue-500 font-medium">
+        <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-bounce" style={{ animationDelay: '0ms' }} />
+        <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-bounce" style={{ animationDelay: '150ms' }} />
+        <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+        <span className="ml-1">Повтор каждые 15 секунд</span>
+      </div>
+    </div>
+  </motion.div>
+);
+
 const ViewingPreviousPhaseAlert: React.FC<{ onReturn: () => void }> = ({ onReturn }) => (
   <motion.div
     initial={{ opacity: 0, y: -20 }}
     animate={{ opacity: 1, y: 0 }}
-    className="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 rounded-[32px] p-6 shadow-lg mb-12"
+    className="bg-blue-50 border border-blue-200 rounded-[32px] p-6 shadow-sm mb-12"
   >
     <div className="flex items-center justify-between gap-4">
       <div className="flex items-center gap-4">
-        <div className="w-12 h-12 bg-amber-400 rounded-full flex items-center justify-center flex-shrink-0">
+        <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
           <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinecap="round"
@@ -320,15 +366,15 @@ const ViewingPreviousPhaseAlert: React.FC<{ onReturn: () => void }> = ({ onRetur
           </svg>
         </div>
         <div>
-          <h3 className="font-black text-amber-900 text-lg">Вы просматриваете предыдущий этап</h3>
-          <p className="text-sm font-bold text-amber-700 mt-1">
+          <h3 className="font-black text-blue-900 text-lg">Вы просматриваете предыдущий этап</h3>
+          <p className="text-sm font-bold text-blue-700 mt-1">
             Вы можете изменить свой ответ. Изменения сохранятся при отправке.
           </p>
         </div>
       </div>
       <button
         onClick={onReturn}
-        className="px-6 py-3 bg-amber-400 hover:bg-amber-500 text-white font-black rounded-2xl transition-all hover:scale-105 whitespace-nowrap shadow-lg"
+        className="px-6 py-3 bg-slate-900 hover:bg-black text-white font-black rounded-2xl transition-all hover:scale-105 whitespace-nowrap shadow-sm"
       >
         Вернуться к текущему
       </button>

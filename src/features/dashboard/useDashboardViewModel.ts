@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '@/src/shared/store/auth.store';
 import { useMeetingsControllerFindAll } from '@/src/shared/api/generated/meetings/meetings';
 import { useProjectsControllerFindAll } from '@/src/shared/api/generated/projects/projects';
@@ -13,15 +13,18 @@ export const useDashboardViewModel = (): DashboardViewModel => {
   const { currentUser, logout } = useAuthStore();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const currentTab = (searchParams.get('tab') as DashboardTab) || DashboardTab.PROJECTS;
+  const { pathname } = useLocation();
+
+  const currentTab =
+    pathname === '/dashboard/projects' ? DashboardTab.PROJECTS : DashboardTab.MEETINGS;
 
   const setTab = (newTab: DashboardTab) => {
     setSearchParams({ tab: newTab });
   };
 
-  const [projectStatus, setProjectStatus] = useState<
-    ProjectsControllerFindAllStatus | undefined
-  >(undefined);
+  const [projectStatus, setProjectStatus] = useState<ProjectsControllerFindAllStatus | undefined>(
+    undefined,
+  );
 
   const [meetingFilter, setMeetingFilter] = useState<MeetingsControllerFindAllFilter>(
     MeetingsControllerFindAllFilter.current,

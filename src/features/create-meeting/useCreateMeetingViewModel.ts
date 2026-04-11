@@ -14,6 +14,7 @@ export const useCreateMeetingViewModel = (): CreateMeetingViewModel => {
   const { currentUser } = useAuthStore();
 
   const projectId = searchParams.get('projectId') ?? undefined;
+  const previousMeetingId = searchParams.get('previousMeetingId') ?? undefined;
 
   const [title, setTitle] = useState('');
   const [question, setQuestion] = useState('');
@@ -51,7 +52,7 @@ export const useCreateMeetingViewModel = (): CreateMeetingViewModel => {
     }
 
     createMeeting(
-      { data: { title, question, participantIds: selectedParticipantIds, upcomingDate, projectId } },
+      { data: { title, question, participantIds: selectedParticipantIds, upcomingDate, projectId, previousMeetingId } as Parameters<typeof createMeeting>[0]['data'] },
       {
         onSuccess: (data) => {
           queryClient.invalidateQueries({ queryKey: getMeetingsControllerFindAllQueryKey() });
@@ -95,5 +96,6 @@ export const useCreateMeetingViewModel = (): CreateMeetingViewModel => {
     isPending,
     handleSubmit,
     handleNavigateBack,
+    isLinkedMeeting: !!previousMeetingId,
   };
 };

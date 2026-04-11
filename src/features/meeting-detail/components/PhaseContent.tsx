@@ -132,7 +132,7 @@ export const PhaseContent: React.FC<PhaseContentProps> = ({ vm }) => {
           <button
             onClick={vm.handleNextPhase}
             disabled={vm.isChangingPhase}
-            className="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full font-black uppercase tracking-[0.2em] text-sm shadow-2xl shadow-blue-300/50 hover:shadow-3xl hover:-translate-y-1 transition-all disabled:opacity-50 flex items-center gap-3"
+            className="px-8 py-4 bg-slate-900 hover:bg-black text-white rounded-full font-black uppercase tracking-[0.2em] text-sm shadow-lg shadow-slate-900/20 hover:shadow-xl hover:-translate-y-1 transition-all disabled:opacity-50 flex items-center gap-3"
           >
             {vm.isChangingPhase
               ? 'Переключение...'

@@ -55,6 +55,7 @@ export const useMeetingSocket = (meetingId: string): UseMeetingSocketReturn => {
     setVotingProgress,
     setConnected,
     setReconnecting,
+    setWaitingForCreator,
     reset,
   } = useMeetingStore();
 
@@ -83,19 +84,46 @@ export const useMeetingSocket = (meetingId: string): UseMeetingSocketReturn => {
 
     // ── Connection events ────────────────────────────────────────────────────
 
+    // Retry interval handle for creator_not_present case.
+    let creatorWaitInterval: ReturnType<typeof setInterval> | null = null;
+
+    const emitJoin = () => {
+      socket.emit('room:join', { meetingId }, (res: { success: boolean; error?: string }) => {
+        if (!res.success) {
+          if (res.error === 'creator_not_present') {
+            // Block participant — creator hasn't connected yet.
+            setWaitingForCreator(true);
+            console.debug('[WS] room:join — waiting for creator');
+            // Schedule a retry every 15 seconds.
+            if (!creatorWaitInterval) {
+              creatorWaitInterval = setInterval(() => {
+                if (socket.connected) {
+                  console.debug('[WS] retrying room:join (creator wait)');
+                  emitJoin();
+                }
+              }, 15_000);
+            }
+          } else {
+            console.error('[WS] room:join failed', res.error);
+            toast.error(`Failed to join room: ${res.error ?? 'Unknown error'}`);
+          }
+        } else {
+          // Successful join — clear any pending retry timer.
+          if (creatorWaitInterval) {
+            clearInterval(creatorWaitInterval);
+            creatorWaitInterval = null;
+          }
+          setWaitingForCreator(false);
+          console.debug('[WS] room:join ok');
+        }
+      });
+    };
+
     socket.on('connect', () => {
       setConnected(true);
       setReconnecting(false);
       console.debug('[WS] connected', socket.id);
-
-      socket.emit('room:join', { meetingId }, (res: { success: boolean; error?: string }) => {
-        if (!res.success) {
-          console.error('[WS] room:join failed', res.error);
-          toast.error(`Failed to join room: ${res.error ?? 'Unknown error'}`);
-        } else {
-          console.debug('[WS] room:join ok');
-        }
-      });
+      emitJoin();
     });
 
     socket.on('connect_error', (err) => {
@@ -257,6 +285,7 @@ export const useMeetingSocket = (meetingId: string): UseMeetingSocketReturn => {
     // ── Cleanup ──────────────────────────────────────────────────────────────
 
     return () => {
+      if (creatorWaitInterval) clearInterval(creatorWaitInterval);
       socket.emit('room:leave', { meetingId });
       socket.removeAllListeners();
       socket.disconnect();

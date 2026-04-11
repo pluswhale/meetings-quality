@@ -1,5 +1,8 @@
 import * as RadixSlider from '@radix-ui/react-slider';
-import React from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState } from 'react';
+
+export type SliderVariant = 'default' | 'green' | 'emotional' | 'importance';
 
 interface SliderProps {
   value: number;
@@ -8,10 +11,40 @@ interface SliderProps {
   step?: number;
   onChange: (value: number) => void;
   onChangeEnd?: (value: number) => void;
-  variant?: 'default' | 'green' | 'emotional' | 'importance';
+  variant?: SliderVariant;
   disabled?: boolean;
+  showValue?: boolean;
+  valueFormatter?: (v: number) => string;
   className?: string;
 }
+
+const trackColors: Record<SliderVariant, string> = {
+  default: 'bg-blue-100',
+  green: 'bg-green-100',
+  importance: 'bg-slate-200',
+  emotional: 'bg-slate-100',
+};
+
+const rangeColors: Record<SliderVariant, string> = {
+  default: 'bg-blue-600',
+  green: 'bg-green-600',
+  importance: 'bg-slate-700',
+  emotional: 'hidden',
+};
+
+const thumbColors: Record<SliderVariant, string> = {
+  default: 'border-blue-600 focus:ring-blue-200',
+  green: 'border-green-600 focus:ring-green-200',
+  importance: 'border-slate-700 focus:ring-slate-200',
+  emotional: 'border-blue-500 focus:ring-blue-200',
+};
+
+const shadowColors: Record<SliderVariant, string> = {
+  default: 'shadow-[0_4px_12px_rgba(37,99,235,0.30)]',
+  green: 'shadow-[0_4px_12px_rgba(22,163,74,0.30)]',
+  importance: 'shadow-[0_4px_12px_rgba(15,23,42,0.20)]',
+  emotional: 'shadow-[0_4px_12px_rgba(37,99,235,0.25)]',
+};
 
 export const Slider: React.FC<SliderProps> = ({
   value,
@@ -22,49 +55,61 @@ export const Slider: React.FC<SliderProps> = ({
   onChangeEnd,
   variant = 'default',
   disabled = false,
+  showValue = true,
+  valueFormatter,
   className = '',
 }) => {
-  const trackClass = {
-    default: 'bg-slate-200',
-    green: 'bg-green-200',
-    importance: 'bg-orange-200',
-    emotional: 'bg-gradient-to-r from-red-400 via-yellow-300 to-green-400',
-  }[variant];
-
-  const rangeClass = {
-    default: 'bg-purple-600',
-    green: 'bg-green-600',
-    importance: 'bg-orange-500',
-    emotional: 'hidden',
-  }[variant];
+  const [dragging, setDragging] = useState(false);
+  const pct = ((value - min) / (max - min)) * 100;
+  const displayVal = valueFormatter ? valueFormatter(value) : `${value}`;
 
   return (
-    <RadixSlider.Root
-      value={[value]}
-      min={min}
-      max={max}
-      step={step}
-      disabled={disabled}
-      onValueChange={([v]) => onChange(v)}
-      onValueCommit={([v]) => onChangeEnd?.(v)}
-      className={`relative flex items-center select-none touch-none h-6 ${className}`}
-    >
-      <RadixSlider.Track
-        className={`relative grow rounded-full h-2 ${trackClass}`}
+    <div className={`relative select-none ${className}`}>
+      <RadixSlider.Root
+        value={[value]}
+        min={min}
+        max={max}
+        step={step}
+        disabled={disabled}
+        onValueChange={([v]) => {
+          onChange(v);
+        }}
+        onValueCommit={([v]) => {
+          setDragging(false);
+          onChangeEnd?.(v);
+        }}
+        onPointerDown={() => setDragging(true)}
+        className="relative flex items-center touch-none h-8 w-full"
       >
-        <RadixSlider.Range
-          className={`absolute h-full rounded-full ${rangeClass}`}
-        />
-      </RadixSlider.Track>
+        <RadixSlider.Track
+          className={`relative grow rounded-full h-2.5 overflow-hidden ${trackColors[variant]}`}
+        >
+          <RadixSlider.Range
+            className={`absolute h-full rounded-full transition-all ${rangeColors[variant]}`}
+          />
+        </RadixSlider.Track>
 
-      <RadixSlider.Thumb
-        className="
-          block w-5 h-5 bg-white border-2 border-purple-600
-          rounded-full shadow transition
-          focus:outline-none focus:ring-2 focus:ring-purple-400
-          disabled:opacity-50
-        "
-      />
-    </RadixSlider.Root>
+        <RadixSlider.Thumb
+          data-radix-slider-thumb
+          className={[
+            'block w-5 h-5 bg-white rounded-full border-2',
+            'transition-transform duration-100 ease-out',
+            'focus:outline-none focus:ring-2 focus:ring-offset-2',
+            'disabled:opacity-40 disabled:cursor-not-allowed',
+            thumbColors[variant],
+            shadowColors[variant],
+            dragging ? 'scale-110' : '',
+          ]
+            .filter(Boolean)
+            .join(' ')}
+        />
+      </RadixSlider.Root>
+
+      {/* Min/max labels */}
+      <div className="flex justify-between mt-1">
+        <span className="text-[10px] text-mq-muted font-medium">{min}</span>
+        <span className="text-[10px] text-mq-muted font-medium">{max}</span>
+      </div>
+    </div>
   );
 };

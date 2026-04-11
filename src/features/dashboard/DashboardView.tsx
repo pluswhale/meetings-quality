@@ -9,7 +9,6 @@ import {
 import { PHASE_LABELS } from '@/src/shared/constants';
 import { formatDate } from '@/src/shared/lib';
 import { useDashboardViewModel } from './useDashboardViewModel';
-import { DashboardSidebar } from './components/DashboardSidebar';
 import { MeetingsFilter } from './components/MeetingsFilter';
 import { DashboardTab } from './types';
 import { ProjectCard } from '../projects/components/ProjectCard';
@@ -18,16 +17,8 @@ export const DashboardView: React.FC = () => {
   const vm = useDashboardViewModel();
 
   return (
-    <div className="flex h-screen bg-slate-50">
-      <DashboardSidebar
-        currentTab={vm.currentTab}
-        onTabChange={vm.setTab}
-        onLogout={vm.handleLogout}
-        userName={vm.currentUser?.fullName}
-      />
-
-      <main className="flex-1 overflow-y-auto">
-        <div className="max-w-5xl mx-auto px-8 py-10">
+    <div className="flex-1 overflow-y-auto">
+      <div className="max-w-5xl mx-auto px-8 py-10">
           {/* ─── Projects tab ───────────────────────────────── */}
           {vm.currentTab === DashboardTab.PROJECTS && (
             <>
@@ -153,7 +144,6 @@ export const DashboardView: React.FC = () => {
             </>
           )}
         </div>
-      </main>
     </div>
   );
 };
