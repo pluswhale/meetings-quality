@@ -29,9 +29,10 @@ export const useTaskDetailViewModel = (taskId: string): TaskDetailViewModel => {
 
   useEffect(() => {
     if (task) {
-      setDescription(task.description);
-      setDeadline(new Date(task.deadline).toISOString().split('T')[0]);
-      setIsCompleted(task.isCompleted);
+      setDescription(task.description ?? '');
+      const dl = task.deadline ? new Date(task.deadline) : null;
+      setDeadline(dl && !isNaN(dl.getTime()) ? dl.toISOString().split('T')[0] : '');
+      setIsCompleted(task.isCompleted ?? false);
     }
   }, [task]);
 

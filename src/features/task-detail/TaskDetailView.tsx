@@ -34,7 +34,12 @@ export const TaskDetailView: React.FC = () => {
           className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-900 font-medium transition-colors mb-8"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M10 19l-7-7m0 0l7-7m-7 7h18"
+            />
           </svg>
           Назад
         </button>
@@ -45,7 +50,8 @@ export const TaskDetailView: React.FC = () => {
             <StatusBadge isCompleted={vm.isCompleted} />
           </div>
           <p className="text-sm text-slate-500">
-            из встречи: <span className="font-medium text-slate-700">{vm.task.meetingId.title}</span>
+            из встречи:{' '}
+            <span className="font-medium text-slate-700">{vm.task.meetingId.title}</span>
           </p>
         </header>
 
@@ -172,8 +178,10 @@ const StatusBadge: React.FC<{ isCompleted: boolean }> = ({ isCompleted }) => (
 );
 
 const Field: React.FC<{ label: string; children: React.ReactNode }> = ({ label, children }) => (
-  <div className="space-y-1.5">
-    <label className="text-xs font-semibold text-slate-400 uppercase tracking-widest">{label}</label>
+  <div className="space-y-1.5 flex flex-col gap-1">
+    <label className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
+      {label}
+    </label>
     {children}
   </div>
 );

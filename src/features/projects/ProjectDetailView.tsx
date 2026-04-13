@@ -40,119 +40,116 @@ export const ProjectDetailView: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-8 md:px-12 md:py-10">
-        {/* Back */}
-        <button
-          onClick={vm.handleNavigateBack}
-          className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-900 font-medium transition-colors mb-6"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-          </svg>
-          Назад
-        </button>
+      {/* Back */}
+      <button
+        onClick={vm.handleNavigateBack}
+        className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-900 font-medium transition-colors mb-6"
+      >
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M10 19l-7-7m0 0l7-7m-7 7h18"
+          />
+        </svg>
+        Назад
+      </button>
 
-        {/* Project info card */}
-        <div className="bg-white border border-slate-100 rounded-2xl p-8 mb-8 shadow-sm">
-          <div className="flex items-start justify-between gap-4 mb-4">
-            <h1 className="text-2xl font-bold text-slate-900 leading-tight">{vm.project.title}</h1>
-            {isArchived && (
-              <span className="shrink-0 text-xs font-semibold uppercase tracking-wider text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
-                Архив
-              </span>
-            )}
-          </div>
-
-          {vm.project.goal && (
-            <p className="text-base text-slate-700 font-medium mb-3">{vm.project.goal}</p>
-          )}
-
-          {vm.project.description && (
-            <p className="text-sm text-slate-500 leading-relaxed mb-5">{vm.project.description}</p>
-          )}
-
-          {/* Meta row */}
-          <div className="flex items-center gap-5 pt-5 border-t border-slate-100">
-            <MetaStat
-              icon={<CreatorIcon />}
-              label={`${vm.project.creatorId.fullName}`}
-              caption="создатель"
-            />
-            <MetaStat
-              icon={<PeopleIcon />}
-              label={`${vm.project.participantIds.length}`}
-              caption="участников"
-            />
-            <MetaStat
-              icon={<MeetingIcon />}
-              label={`${vm.project.meetingCount}`}
-              caption="встреч"
-            />
-            <MetaStat
-              icon={<TaskIcon />}
-              label={`${vm.project.taskCount}`}
-              caption="задач"
-            />
-          </div>
-        </div>
-
-        {/* Tabs + contextual action */}
-        <div className="flex items-center justify-between mb-6 gap-4">
-          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
-            {TABS.map((tab) => (
-              <button
-                key={tab.key}
-                onClick={() => vm.setActiveTab(tab.key)}
-                className={`px-5 py-2 rounded-lg text-sm font-medium transition-all ${
-                  vm.activeTab === tab.key
-                    ? 'bg-white text-slate-900 shadow-sm'
-                    : 'text-slate-500 hover:text-slate-700'
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-
-          {vm.activeTab === 'meetings' && (
-            <Link
-              to={`/meeting/create?projectId=${id}`}
-              className="flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-black text-white text-sm font-medium rounded-xl transition-all shadow-sm shrink-0"
-            >
-              <PlusIcon />
-              Новая встреча
-            </Link>
-          )}
-
-          {vm.activeTab === 'tasks' && (
-            <Link
-              to={`/task/create?projectId=${id}`}
-              className="flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-black text-white text-sm font-medium rounded-xl transition-all shadow-sm shrink-0"
-            >
-              <PlusIcon />
-              Новая задача
-            </Link>
+      {/* Project info card */}
+      <div className="bg-white border border-slate-100 rounded-2xl p-8 mb-8 shadow-sm">
+        <div className="flex items-start justify-between gap-4 mb-4">
+          <h1 className="text-2xl font-bold text-slate-900 leading-tight">{vm.project.title}</h1>
+          {isArchived && (
+            <span className="shrink-0 text-xs font-semibold uppercase tracking-wider text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
+              Архив
+            </span>
           )}
         </div>
 
-        {/* Tab content */}
+        {vm.project.goal && (
+          <p className="text-base text-slate-700 font-medium mb-3">{vm.project.goal}</p>
+        )}
+
+        {vm.project.description && (
+          <p className="text-sm text-slate-500 leading-relaxed mb-5">{vm.project.description}</p>
+        )}
+
+        {/* Meta row */}
+        <div className="flex items-start gap-5 pt-5  border-t border-slate-100 md:flex-row flex-col">
+          <MetaStat
+            icon={<CreatorIcon />}
+            label={`${vm.project.creatorId.fullName}`}
+            caption="создатель"
+          />
+          <MetaStat
+            icon={<PeopleIcon />}
+            label={`${vm.project.participantIds.length}`}
+            caption="участников"
+          />
+          <MetaStat icon={<MeetingIcon />} label={`${vm.project.meetingCount}`} caption="встреч" />
+          <MetaStat icon={<TaskIcon />} label={`${vm.project.taskCount}`} caption="задач" />
+        </div>
+      </div>
+
+      {/* Tabs + contextual action */}
+      <div className="flex items-start justify-between mb-6 gap-4 md:flex-row flex-col">
+        <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
+          {TABS.map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => vm.setActiveTab(tab.key)}
+              className={`px-5 py-2 rounded-lg text-sm font-medium transition-all ${
+                vm.activeTab === tab.key
+                  ? 'bg-white text-slate-900 shadow-sm'
+                  : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
         {vm.activeTab === 'meetings' && (
-          <ProjectMeetingsTab
-            projectId={id}
-            meetings={vm.meetings}
-            isLoading={vm.meetingsLoading}
-            filter={vm.meetingFilter}
-            onFilterChange={vm.setMeetingFilter}
-          />
+          <Link
+            to={`/meeting/create?projectId=${id}`}
+            className="flex items-center gap-2 px-4 py-2 bg-green-400 hover:bg-green-600 text-white text-sm font-medium rounded-xl transition-all shadow-sm shrink-0"
+          >
+            <PlusIcon />
+            Новая встреча
+          </Link>
         )}
+
         {vm.activeTab === 'tasks' && (
-          <ProjectTasksTab tasks={vm.tasks} isLoading={vm.tasksLoading} />
+          <Link
+            to={`/task/create?projectId=${id}`}
+            className="flex items-center gap-2 px-4 py-2 bg-green-400 hover:bg-green-600 text-white text-sm font-medium rounded-xl transition-all shadow-sm shrink-0"
+          >
+            <PlusIcon />
+            Новая задача
+          </Link>
         )}
-        {vm.activeTab === 'participants' && (
-          <ProjectParticipantsTab
-            participants={vm.project.participantIds}
-            creatorId={vm.project.creatorId}
-          />
+      </div>
+
+      {/* Tab content */}
+      {vm.activeTab === 'meetings' && (
+        <ProjectMeetingsTab
+          projectId={id}
+          meetings={vm.meetings}
+          isLoading={vm.meetingsLoading}
+          filter={vm.meetingFilter}
+          onFilterChange={vm.setMeetingFilter}
+        />
+      )}
+      {vm.activeTab === 'tasks' && (
+          <ProjectTasksTab tasks={vm.tasks} isLoading={vm.tasksLoading} projectId={id} />
         )}
+      {vm.activeTab === 'participants' && (
+        <ProjectParticipantsTab
+          participants={vm.project.participantIds}
+          creatorId={vm.project.creatorId}
+        />
+      )}
     </div>
   );
 };
@@ -181,21 +178,37 @@ const PlusIcon = () => (
 
 const CreatorIcon = () => (
   <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.8}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"
+    />
   </svg>
 );
 const PeopleIcon = () => (
   <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.8}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z"
+    />
   </svg>
 );
 const MeetingIcon = () => (
   <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.8}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"
+    />
   </svg>
 );
 const TaskIcon = () => (
   <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.8}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+    />
   </svg>
 );

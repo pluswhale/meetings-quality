@@ -162,7 +162,7 @@ export const TaskPlanningForm: React.FC<TaskPlanningFormProps> = ({
           />
         </div>
 
-        <div>
+        {/* <div>
           <div className="flex justify-between items-center mb-4">
             <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
               Ожидаемый процент вклада
@@ -182,7 +182,7 @@ export const TaskPlanningForm: React.FC<TaskPlanningFormProps> = ({
               disabled={isApproved}
             />
           </div>
-        </div>
+        </div> */}
       </div>
     </section>
   );
