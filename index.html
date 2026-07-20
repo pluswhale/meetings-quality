@@ -68,6 +68,12 @@
           }
         }
       };
+      (function () {
+        const base = "/meetings-quality";
+        if (location.pathname === "/" || location.pathname === "") {
+          location.replace(base + "/");
+        }
+      })();
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
@@ -210,7 +216,7 @@
   }
 }
 </script>
-  <script type="module" crossorigin src="/meetings-quality/assets/index-CIAh_s72.js"></script>
+  <script type="module" crossorigin src="/meetings-quality/assets/index-BYimKUOd.js"></script>
   <link rel="stylesheet" crossorigin href="/meetings-quality/assets/index-g_MQoa-r.css">
 </head>
 <body class="bg-liquid text-mq-text overflow-x-hidden min-h-screen">
