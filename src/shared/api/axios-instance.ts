@@ -39,7 +39,7 @@ axios.interceptors.response.use(
       localStorage.removeItem('mq_user');
 
       // Redirect to login
-      window.location.href = '/login';
+      window.location.href = '/meetings-quality/login';
     }
 
     // Handle 403 Forbidden

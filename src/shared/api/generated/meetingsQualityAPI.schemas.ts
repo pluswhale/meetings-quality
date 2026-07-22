@@ -53,7 +53,7 @@ export interface ProjectParticipantRefDto {
 }
 
 export type ProjectResponseDtoStatus =
-  typeof ProjectResponseDtoStatus[keyof typeof ProjectResponseDtoStatus];
+  (typeof ProjectResponseDtoStatus)[keyof typeof ProjectResponseDtoStatus];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ProjectResponseDtoStatus = {
@@ -74,7 +74,7 @@ export interface ProjectResponseDto {
 }
 
 export type ProjectDetailResponseDtoStatus =
-  typeof ProjectDetailResponseDtoStatus[keyof typeof ProjectDetailResponseDtoStatus];
+  (typeof ProjectDetailResponseDtoStatus)[keyof typeof ProjectDetailResponseDtoStatus];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ProjectDetailResponseDtoStatus = {
@@ -99,7 +99,7 @@ export interface ProjectDetailResponseDto {
 }
 
 export type UpdateProjectDtoStatus =
-  typeof UpdateProjectDtoStatus[keyof typeof UpdateProjectDtoStatus];
+  (typeof UpdateProjectDtoStatus)[keyof typeof UpdateProjectDtoStatus];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const UpdateProjectDtoStatus = {
@@ -189,7 +189,7 @@ export interface TaskEvaluationDto {
 }
 
 export type MeetingResponseDtoCurrentPhase =
-  typeof MeetingResponseDtoCurrentPhase[keyof typeof MeetingResponseDtoCurrentPhase];
+  (typeof MeetingResponseDtoCurrentPhase)[keyof typeof MeetingResponseDtoCurrentPhase];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const MeetingResponseDtoCurrentPhase = {
@@ -200,7 +200,7 @@ export const MeetingResponseDtoCurrentPhase = {
 } as const;
 
 export type MeetingResponseDtoStatus =
-  typeof MeetingResponseDtoStatus[keyof typeof MeetingResponseDtoStatus];
+  (typeof MeetingResponseDtoStatus)[keyof typeof MeetingResponseDtoStatus];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const MeetingResponseDtoStatus = {
@@ -219,6 +219,7 @@ export interface MeetingResponseDto {
   currentPhase: MeetingResponseDtoCurrentPhase;
   status: MeetingResponseDtoStatus;
   emotionalEvaluations: EmotionalEvaluationDto[];
+  projectId: string | null;
   understandingContributions: UnderstandingContributionDto[];
   taskEvaluations: TaskEvaluationDto[];
   createdAt: string;
@@ -237,7 +238,7 @@ export interface UpdateMeetingDto {
 /**
  * Новая фаза встречи
  */
-export type ChangePhaseDtoPhase = typeof ChangePhaseDtoPhase[keyof typeof ChangePhaseDtoPhase];
+export type ChangePhaseDtoPhase = (typeof ChangePhaseDtoPhase)[keyof typeof ChangePhaseDtoPhase];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ChangePhaseDtoPhase = {
@@ -434,7 +435,7 @@ export type ProjectsControllerFindAllParams = {
 };
 
 export type ProjectsControllerFindAllStatus =
-  typeof ProjectsControllerFindAllStatus[keyof typeof ProjectsControllerFindAllStatus];
+  (typeof ProjectsControllerFindAllStatus)[keyof typeof ProjectsControllerFindAllStatus];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ProjectsControllerFindAllStatus = {
@@ -454,7 +455,7 @@ export type MeetingsControllerFindAllParams = {
 };
 
 export type MeetingsControllerFindAllFilter =
-  typeof MeetingsControllerFindAllFilter[keyof typeof MeetingsControllerFindAllFilter];
+  (typeof MeetingsControllerFindAllFilter)[keyof typeof MeetingsControllerFindAllFilter];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const MeetingsControllerFindAllFilter = {
@@ -479,7 +480,7 @@ export type TasksControllerFindAllParams = {
 };
 
 export type TasksControllerFindAllFilter =
-  typeof TasksControllerFindAllFilter[keyof typeof TasksControllerFindAllFilter];
+  (typeof TasksControllerFindAllFilter)[keyof typeof TasksControllerFindAllFilter];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const TasksControllerFindAllFilter = {

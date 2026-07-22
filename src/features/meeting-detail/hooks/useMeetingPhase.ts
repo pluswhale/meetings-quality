@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import type { MeetingResponseDtoCurrentPhase } from '@/src/shared/constants';
@@ -19,15 +19,25 @@ import { useMeetingStore } from '../store/useMeetingStore';
  *
  * The Zustand store is the source of truth for `phase` during a live meeting.
  * `currentPhase` (from REST) is only used for initial render and statistics.
+ *
+ *
  */
+
+export type UseMeetingPhaseParams = {
+  meetingId: string;
+  currentPhase: MeetingResponseDtoCurrentPhase | undefined;
+  projectId: string | null;
+  isCreator: boolean;
+  socket: UseMeetingSocketReturn;
+};
+
 export const useMeetingPhase = (
-  meetingId: string,
-  currentPhase: MeetingResponseDtoCurrentPhase | undefined,
-  isCreator: boolean,
-  socket: UseMeetingSocketReturn,
+  useMeetingPhaseParams: UseMeetingPhaseParams,
 ): UseMeetingPhaseReturn => {
+  const { meetingId, currentPhase, projectId, isCreator, socket } = useMeetingPhaseParams;
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { id = '' } = useParams<{ id: string }>();
 
   // Participants may "view" past phases without changing the live phase.
   const [viewedPhase, setViewedPhase] = useState<MeetingResponseDtoCurrentPhase | null>(null);
@@ -38,22 +48,21 @@ export const useMeetingPhase = (
   const activePhase = viewedPhase ?? livePhase ?? currentPhase;
 
   const handleNextPhase = () => {
-    if (!isCreator) return;
-    const source = livePhase ?? currentPhase;
-    if (!source) return;
-
-    const next = getNextPhase(source);
-    if (!next) return;
-
-    if (next === 'finished') {
-      socket.emitFinishMeeting();
-      queryClient.invalidateQueries({ queryKey: meetingDetailQueryKeys.meeting(meetingId) });
-      navigate('/meeting/create');
-      return;
-    }
-
-    socket.emitAdvancePhase(next as MeetingPhase);
-    queryClient.invalidateQueries({ queryKey: meetingDetailQueryKeys.meeting(meetingId) });
+    // console.log('projectId', projectId);
+    // console.log('meetingId', meetingId);
+    // if (!isCreator) return;
+    // const source = livePhase ?? currentPhase;
+    // if (!source) return;
+    // const next = getNextPhase(source);
+    // if (!next) return;
+    // if (next === 'finished') {
+    //   socket.emitFinishMeeting();
+    //   queryClient.invalidateQueries({ queryKey: meetingDetailQueryKeys.meeting(meetingId) });
+    //   navigate(`/meeting/create?projectId=${projectId}&previousMeetingId=${meetingId}`);
+    //   return;
+    // }
+    // socket.emitAdvancePhase(next as MeetingPhase);
+    // queryClient.invalidateQueries({ queryKey: meetingDetailQueryKeys.meeting(meetingId) });
   };
 
   const handleChangeToPhase = (targetPhase: MeetingResponseDtoCurrentPhase) => {

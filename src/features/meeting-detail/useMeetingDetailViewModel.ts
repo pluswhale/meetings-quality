@@ -41,8 +41,10 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
   const { socketParticipants, meetingParticipants, activeParticipants, allUsers } =
     useMeetingPresence(meetingId, meeting, currentUser?._id);
 
-  const { submissions: phaseSubmissions, isLoading: isLoadingSubmissions } =
-    useMeetingSubmissions(meetingId, isCreator);
+  const { submissions: phaseSubmissions, isLoading: isLoadingSubmissions } = useMeetingSubmissions(
+    meetingId,
+    isCreator,
+  );
 
   const { pendingVoters } = usePendingVoters(
     meetingId,
@@ -58,7 +60,13 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
     handleNextPhase,
     handleChangeToPhase,
     handleReturnToCurrentPhase,
-  } = useMeetingPhase(meetingId, meeting?.currentPhase, isCreator, socket);
+  } = useMeetingPhase({
+    meetingId,
+    currentPhase: meeting?.currentPhase,
+    projectId: meeting?.projectId,
+    isCreator,
+    socket,
+  });
 
   // ─── Phase hooks ────────────────────────────────────────────────────────────
 
