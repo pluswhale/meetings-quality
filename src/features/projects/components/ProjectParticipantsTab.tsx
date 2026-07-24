@@ -57,12 +57,15 @@ export const ProjectParticipantsTab: React.FC<ProjectParticipantsTabProps> = ({
 
   // Display data: known participants + anyone newly added from the user directory.
   const displayList = useMemo(() => {
-    const byId = new Map(participants.map((p) => [p._id, p]));
     return selectedIds.map((id) => {
-      const known = byId.get(id);
-      if (known) return known;
+      const participant = participants.find((p) => p._id === id);
       const user = allUsers.find((u) => u._id === id);
-      return { _id: id, fullName: user?.fullName ?? '—', email: user?.email ?? '' };
+
+      return {
+        ...participant,
+        fullName: participant?.fullName || user?.fullName || '—',
+        email: participant?.email || user?.email || '',
+      };
     });
   }, [selectedIds, participants, allUsers]);
 
