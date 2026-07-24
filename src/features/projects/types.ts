@@ -51,5 +51,8 @@ export interface ProjectDetailViewModel {
   setActiveTab: (tab: ProjectTab) => void;
   meetingFilter: MeetingsControllerFindAllFilter;
   setMeetingFilter: (f: MeetingsControllerFindAllFilter) => void;
+  isCreator: boolean;
+  isDeleting: boolean;
+  handleDeleteProject: () => void;
   handleNavigateBack: () => void;
 }

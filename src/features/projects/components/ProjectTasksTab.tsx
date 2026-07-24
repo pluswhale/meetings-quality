@@ -46,6 +46,7 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
             <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider w-8" />
             <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Описание</th>
             <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider hidden md:table-cell">Автор</th>
+            <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider hidden lg:table-cell">Встреча</th>
             <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider hidden sm:table-cell">Дедлайн</th>
             <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider hidden lg:table-cell">Часы</th>
             <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider hidden lg:table-cell">Вклад</th>
@@ -145,6 +146,11 @@ const TaskTableRow: React.FC<TaskTableRowProps> = ({ task, isOwner, projectId })
         <span className="text-slate-600 whitespace-nowrap">
           {task.authorId.fullName ?? '—'}
         </span>
+      </td>
+
+      {/* Meeting */}
+      <td className="px-4 py-3 hidden lg:table-cell">
+        <span className="text-slate-500 line-clamp-1">{task.meetingId?.title ?? '—'}</span>
       </td>
 
       {/* Deadline */}

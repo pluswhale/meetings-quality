@@ -6,6 +6,7 @@ import { useAuthStore } from '@/src/shared/store/auth.store';
 import {
   useTasksControllerFindOne,
   useTasksControllerUpdate,
+  useTasksControllerRemove,
   getTasksControllerFindOneQueryKey,
   getTasksControllerFindAllQueryKey,
 } from '@/src/shared/api/generated/tasks/tasks';
@@ -22,6 +23,8 @@ export const useTaskDetailViewModel = (taskId: string): TaskDetailViewModel => {
   });
 
   const { mutate: updateTask, isPending: isUpdating } = useTasksControllerUpdate();
+
+  const { mutate: removeTask, isPending: isDeleting } = useTasksControllerRemove();
 
   const [description, setDescription] = useState('');
   const [deadline, setDeadline] = useState('');
@@ -72,6 +75,25 @@ export const useTaskDetailViewModel = (taskId: string): TaskDetailViewModel => {
     );
   };
 
+  const handleDeleteTask = () => {
+    if (!taskId) return;
+
+    removeTask(
+      { id: taskId },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getTasksControllerFindAllQueryKey() });
+          queryClient.invalidateQueries({ queryKey: getTasksControllerFindOneQueryKey(taskId) });
+          toast.success('Задача удалена');
+          navigate(-1);
+        },
+        onError: () => {
+          toast.error('Не удалось удалить задачу');
+        },
+      },
+    );
+  };
+
   return {
     task: task ?? null,
     isLoading,
@@ -84,6 +106,8 @@ export const useTaskDetailViewModel = (taskId: string): TaskDetailViewModel => {
     setIsCompleted,
     isUpdating,
     handleSave,
+    isDeleting,
+    handleDeleteTask,
     handleNavigateBack: () => navigate(-1),
   };
 };

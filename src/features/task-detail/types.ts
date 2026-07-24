@@ -22,8 +22,10 @@ export interface TaskDetailViewModel {
 
   // Mutation state
   isUpdating: boolean;
+  isDeleting: boolean;
 
   // Handlers
   handleSave: () => void;
+  handleDeleteTask: () => void;
   handleNavigateBack: () => void;
 }

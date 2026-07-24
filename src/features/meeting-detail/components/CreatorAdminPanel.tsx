@@ -100,12 +100,24 @@ const PHASE_META: Record<MeetingPhase, PhaseMeta> = {
 
 // ─── Корневой компонент ───────────────────────────────────────────────────────
 
+/** Зарегистрированный участник, не присоединившийся к live-комнате. */
+export interface AbsentParticipant {
+  userId: string;
+  fullName: string | null;
+  email: string | null;
+}
+
 interface Props {
   meetingId: string;
   socket: UseMeetingSocketReturn;
+  absentParticipants?: AbsentParticipant[];
 }
 
-export const CreatorAdminPanel: React.FC<Props> = ({ meetingId: _meetingId, socket }) => {
+export const CreatorAdminPanel: React.FC<Props> = ({
+  meetingId: _meetingId,
+  socket,
+  absentParticipants = [],
+}) => {
   const rawPhase = useMeetingStore((s) => s.phase);
   const phase: MeetingPhase = rawPhase ?? 'emotional_evaluation';
   const votes = useMeetingStore(selectVotes);
@@ -147,14 +159,16 @@ export const CreatorAdminPanel: React.FC<Props> = ({ meetingId: _meetingId, sock
   }, [participants, search]);
 
   const handleAdvance = useCallback(() => {
-    if (pending.length > 0 && !advanceConfirm) {
+    // Joined-but-not-voted + registered-but-absent both require a conscious confirm.
+    const blockingCount = pending.length + absentParticipants.length;
+    if (blockingCount > 0 && !advanceConfirm) {
       setAdvanceConfirm(true);
       return;
     }
     if (nextPhase === 'finished') socket.emitFinishMeeting();
     else if (nextPhase) socket.emitAdvancePhase(nextPhase);
     setAdvanceConfirm(false);
-  }, [pending.length, advanceConfirm, nextPhase, socket]);
+  }, [pending.length, absentParticipants.length, advanceConfirm, nextPhase, socket]);
 
   const handleApprove = useCallback(
     (userId: string, approved: boolean) => socket.emitApproveTask(userId, approved),
@@ -209,7 +223,7 @@ export const CreatorAdminPanel: React.FC<Props> = ({ meetingId: _meetingId, sock
                 }`}
               >
                 {advanceConfirm
-                  ? `⚠ Подтвердить (${pending.length} не голосовали)`
+                  ? `⚠ Подтвердить (${pending.length + absentParticipants.length} не голосовали)`
                   : nextPhase === 'finished'
                     ? '✓ Завершить встречу'
                     : `→ ${nextLabel}`}
@@ -322,6 +336,20 @@ export const CreatorAdminPanel: React.FC<Props> = ({ meetingId: _meetingId, sock
                   })}
                 </div>
               )}
+
+              {/* ── Отсутствующие: зарегистрированы, но не в live-комнате ── */}
+              {absentParticipants.length > 0 && (
+                <div className="pt-4 border-t border-slate-200">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400 mb-3">
+                    Не присоединились ({absentParticipants.length})
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+                    {absentParticipants.map((p) => (
+                      <AbsentParticipantCard key={p.userId} participant={p} />
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </motion.div>
         )}
@@ -419,6 +447,34 @@ const ParticipantCard: React.FC<CardProps> = ({
         )}
       </div>
     </motion.div>
+  );
+};
+
+// ─── Карточка отсутствующего участника ────────────────────────────────────────
+
+const AbsentParticipantCard: React.FC<{ participant: AbsentParticipant }> = ({ participant }) => {
+  const displayName = participant.fullName ?? 'Нет данных';
+  const initials = displayName === 'Нет данных'
+    ? '?'
+    : displayName.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase();
+
+  return (
+    <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50/60 overflow-hidden opacity-70">
+      <div className="flex items-center gap-3 px-4 py-3">
+        <div className="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-black flex-shrink-0 bg-slate-300 text-white">
+          {initials}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-bold text-slate-500 truncate">{displayName}</p>
+          {participant.email && (
+            <p className="text-[10px] text-slate-400 truncate">{participant.email}</p>
+          )}
+        </div>
+        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-200 text-slate-500 border border-slate-300 whitespace-nowrap">
+          Отсутствует
+        </span>
+      </div>
+    </div>
   );
 };
 

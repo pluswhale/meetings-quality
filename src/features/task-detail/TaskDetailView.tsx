@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useTaskDetailViewModel } from './useTaskDetailViewModel';
 
 export const TaskDetailView: React.FC = () => {
   const { id = '' } = useParams<{ id: string }>();
   const vm = useTaskDetailViewModel(id);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   if (vm.isLoading) {
     return (

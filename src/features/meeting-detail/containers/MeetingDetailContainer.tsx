@@ -15,7 +15,7 @@
  *     not domain logic — the hook delivers the type, the container reacts.
  */
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -41,6 +41,7 @@ import { FinishedPhaseView } from '../components/FinishedPhaseView';
 import { PhaseContent } from '../components/PhaseContent';
 import { RetroPhaseView } from '../components/RetroPhaseView';
 import { CreatorAdminPanel } from '../components/CreatorAdminPanel';
+import { MeetingManageControls } from '../components/MeetingManageControls';
 
 import { isUserCreator } from '../lib';
 import { selectPhase, useMeetingStore } from '../store/useMeetingStore';
@@ -137,7 +138,27 @@ export const MeetingDetailContainer: React.FC = () => {
 
   const { isApprovingTask, handleApproveTask } = useTaskApproval(meetingId);
 
-  const handleNavigateBack = useCallback(() => navigate('/dashboard'), [navigate]);
+  // Registered participants (REST) who have NOT joined the live room (Zustand).
+  // Shown to the creator in the admin panel so absence is explicit.
+  const absentParticipants = useMemo(() => {
+    if (!meeting) return [];
+    const joinedIds = new Set(socketParticipants.map((p) => p.userId));
+    const registeredIds = new Set([meeting.creatorId._id, ...meeting.participantIds]);
+    return allUsers
+      .filter((u) => registeredIds.has(u._id) && !joinedIds.has(u._id))
+      .map((u) => ({ userId: u._id, fullName: u.fullName, email: u.email }));
+  }, [meeting, socketParticipants, allUsers]);
+
+  // Go back in-app when possible; on direct-link visits fall back to the
+  // meeting's project page (or dashboard when the meeting has no project).
+  const handleNavigateBack = useCallback(() => {
+    const historyIdx = (window.history.state as { idx?: number } | null)?.idx;
+    if (typeof historyIdx === 'number' && historyIdx > 0) {
+      navigate(-1);
+      return;
+    }
+    navigate(meeting?.projectId ? `/project/${meeting.projectId}` : '/dashboard');
+  }, [navigate, meeting?.projectId]);
 
   // ─── Render guards ────────────────────────────────────────────────────────
   if (isLoading) {
@@ -253,6 +274,8 @@ export const MeetingDetailContainer: React.FC = () => {
 
       <SocketStatusBadge connected={wsConnected} reconnecting={wsReconnecting} />
 
+      {isCreator && <MeetingManageControls meeting={meeting} />}
+
       {!isCreator && viewedPhase && (
         <ViewingPreviousPhaseAlert onReturn={handleReturnToCurrentPhase} />
       )}
@@ -263,7 +286,13 @@ export const MeetingDetailContainer: React.FC = () => {
         transition={{ delay: 0.4 }}
         className="space-y-12"
       >
-        {isCreator && <CreatorAdminPanel meetingId={meetingId} socket={socket} />}
+        {isCreator && (
+          <CreatorAdminPanel
+            meetingId={meetingId}
+            socket={socket}
+            absentParticipants={absentParticipants}
+          />
+        )}
 
         {/* Phase 0 — Retrospective: rendered when previousMeetingId is set */}
         {activePhase === MeetingResponseDtoCurrentPhase.retrospective ? (

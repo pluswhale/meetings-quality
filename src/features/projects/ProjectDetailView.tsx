@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useProjectDetailViewModel } from './useProjectDetailViewModel';
 import { ProjectMeetingsTab } from './components/ProjectMeetingsTab';
@@ -16,6 +16,7 @@ const TABS: { key: ProjectTab; label: string }[] = [
 export const ProjectDetailView: React.FC = () => {
   const { id = '' } = useParams<{ id: string }>();
   const vm = useProjectDetailViewModel(id);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   if (vm.isLoading) {
     return (
@@ -40,21 +41,53 @@ export const ProjectDetailView: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-8 md:px-12 md:py-10">
-      {/* Back */}
-      <button
-        onClick={vm.handleNavigateBack}
-        className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-900 font-medium transition-colors mb-6"
-      >
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M10 19l-7-7m0 0l7-7m-7 7h18"
-          />
-        </svg>
-        Назад
-      </button>
+      {/* Back + delete (creator only) */}
+      <div className="flex items-center justify-between gap-4 mb-6">
+        <button
+          onClick={vm.handleNavigateBack}
+          className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-900 font-medium transition-colors"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M10 19l-7-7m0 0l7-7m-7 7h18"
+            />
+          </svg>
+          Назад
+        </button>
+
+        {vm.isCreator && (
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => {
+                if (!confirmDelete) {
+                  setConfirmDelete(true);
+                  return;
+                }
+                vm.handleDeleteProject();
+              }}
+              disabled={vm.isDeleting}
+              className={`px-4 py-2 text-sm font-medium rounded-xl transition-all shadow-sm disabled:opacity-40 ${
+                confirmDelete
+                  ? 'bg-red-600 hover:bg-red-700 text-white'
+                  : 'bg-white border border-red-200 text-red-600 hover:bg-red-50'
+              }`}
+            >
+              {vm.isDeleting ? 'Удаление...' : confirmDelete ? '⚠ Подтвердить удаление' : 'Удалить проект'}
+            </button>
+            {confirmDelete && !vm.isDeleting && (
+              <button
+                onClick={() => setConfirmDelete(false)}
+                className="text-sm text-slate-400 hover:text-slate-600 font-medium transition-colors"
+              >
+                Отмена
+              </button>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Project info card */}
       <div className="bg-white border border-slate-100 rounded-2xl p-8 mb-8 shadow-sm">
@@ -148,6 +181,7 @@ export const ProjectDetailView: React.FC = () => {
         <ProjectParticipantsTab
           participants={vm.project.participantIds}
           creatorId={vm.project.creatorId}
+          projectId={id}
         />
       )}
     </div>
