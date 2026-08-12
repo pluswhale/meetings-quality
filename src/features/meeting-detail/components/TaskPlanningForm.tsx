@@ -126,7 +126,7 @@ export const TaskPlanningForm: React.FC<TaskPlanningFormProps> = ({
 
         <div>
           <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">
-            Время на задачу
+            Время на задачу(часы)
           </label>
           <input
             value={estimateHours}
@@ -138,7 +138,7 @@ export const TaskPlanningForm: React.FC<TaskPlanningFormProps> = ({
                 ? 'bg-slate-100 border-slate-200 text-slate-500 cursor-not-allowed'
                 : 'bg-slate-50 border-slate-100 focus:ring-4 focus:ring-blue-100 focus:border-blue-400 focus:bg-white text-slate-900'
             }`}
-            placeholder="Оцените время на выполнение задачи..."
+            placeholder="Оцените время в часах"
           />
         </div>
 

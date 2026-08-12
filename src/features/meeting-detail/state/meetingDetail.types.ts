@@ -106,6 +106,8 @@ export interface UseMeetingPhaseReturn {
   handleNextPhase: () => void;
   handleChangeToPhase: (phase: MeetingResponseDtoCurrentPhase) => void;
   handleReturnToCurrentPhase: () => void;
+  handleViewPrevPhase: () => void;
+  handleViewNextPhase: () => void;
 }
 
 export interface UseEmotionalEvaluationReturn {

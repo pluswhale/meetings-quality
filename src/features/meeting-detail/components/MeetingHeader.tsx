@@ -11,11 +11,15 @@ interface MeetingHeaderProps {
   meetingId: string;
   title: string;
   createdAt: string;
+  /** Live phase (Zustand), with REST phase as fallback. */
   currentPhase: MeetingResponseDtoCurrentPhase;
-  actualCurrentPhase?: MeetingResponseDtoCurrentPhase; // For showing actual phase when participant views previous
+  /** Phase being viewed, when the user stepped back into a past phase. */
+  viewedPhase?: MeetingResponseDtoCurrentPhase;
   onBack: () => void;
   isCreator?: boolean;
   onPhaseClick: (phase: MeetingResponseDtoCurrentPhase) => void;
+  onPrevPhase: () => void;
+  onNextPhase: () => void;
 }
 
 export const MeetingHeader: React.FC<MeetingHeaderProps> = ({
@@ -23,10 +27,12 @@ export const MeetingHeader: React.FC<MeetingHeaderProps> = ({
   title,
   createdAt,
   currentPhase,
-  actualCurrentPhase,
+  viewedPhase,
   onBack,
   isCreator = false,
   onPhaseClick,
+  onPrevPhase,
+  onNextPhase,
 }) => {
   return (
     <motion.div
@@ -63,11 +69,13 @@ export const MeetingHeader: React.FC<MeetingHeaderProps> = ({
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: 0.3 }}
       >
-        <PhaseIndicator 
-          currentPhase={actualCurrentPhase || currentPhase}
-          viewedPhase={actualCurrentPhase ? currentPhase : undefined}
+        <PhaseIndicator
+          currentPhase={currentPhase}
+          viewedPhase={viewedPhase}
           isCreator={isCreator}
           onPhaseClick={onPhaseClick}
+          onPrevPhase={onPrevPhase}
+          onNextPhase={onNextPhase}
         />
       </motion.div>
     </motion.div>

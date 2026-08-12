@@ -1,11 +1,7 @@
 import { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import type { MeetingResponseDtoCurrentPhase } from '@/src/shared/constants';
 import { PHASE_LABELS, PHASE_ORDER } from '@/src/shared/constants';
-import { getNextPhase } from '../lib';
-import { meetingDetailQueryKeys } from './queryKeys';
 import type { UseMeetingPhaseReturn } from '../state/meetingDetail.types';
 import type { UseMeetingSocketReturn } from './useMeetingSocket';
 import type { MeetingPhase } from '../store/useMeetingStore';
@@ -23,6 +19,13 @@ import { useMeetingStore } from '../store/useMeetingStore';
  *
  */
 
+const NEXT_PHASE: Partial<Record<MeetingPhase, MeetingPhase>> = {
+  retrospective: 'emotional_evaluation',
+  emotional_evaluation: 'understanding_contribution',
+  understanding_contribution: 'task_planning',
+  task_planning: 'finished',
+};
+
 export type UseMeetingPhaseParams = {
   meetingId: string;
   currentPhase: MeetingResponseDtoCurrentPhase | undefined;
@@ -34,10 +37,7 @@ export type UseMeetingPhaseParams = {
 export const useMeetingPhase = (
   useMeetingPhaseParams: UseMeetingPhaseParams,
 ): UseMeetingPhaseReturn => {
-  const { meetingId, currentPhase, projectId, isCreator, socket } = useMeetingPhaseParams;
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const { id = '' } = useParams<{ id: string }>();
+  const { currentPhase, isCreator, socket } = useMeetingPhaseParams;
 
   // Participants may "view" past phases without changing the live phase.
   const [viewedPhase, setViewedPhase] = useState<MeetingResponseDtoCurrentPhase | null>(null);
@@ -47,22 +47,11 @@ export const useMeetingPhase = (
   const livePhase = useMeetingStore((s) => s.phase) as MeetingResponseDtoCurrentPhase | null;
   const activePhase = viewedPhase ?? livePhase ?? currentPhase;
 
+  const nextPhase = NEXT_PHASE[activePhase as MeetingPhase] ?? null;
+
   const handleNextPhase = () => {
-    // console.log('projectId', projectId);
-    // console.log('meetingId', meetingId);
-    // if (!isCreator) return;
-    // const source = livePhase ?? currentPhase;
-    // if (!source) return;
-    // const next = getNextPhase(source);
-    // if (!next) return;
-    // if (next === 'finished') {
-    //   socket.emitFinishMeeting();
-    //   queryClient.invalidateQueries({ queryKey: meetingDetailQueryKeys.meeting(meetingId) });
-    //   navigate(`/meeting/create?projectId=${projectId}&previousMeetingId=${meetingId}`);
-    //   return;
-    // }
-    // socket.emitAdvancePhase(next as MeetingPhase);
-    // queryClient.invalidateQueries({ queryKey: meetingDetailQueryKeys.meeting(meetingId) });
+    if (nextPhase === 'finished') socket.emitFinishMeeting();
+    else if (nextPhase) socket.emitAdvancePhase(nextPhase);
   };
 
   const handleChangeToPhase = (targetPhase: MeetingResponseDtoCurrentPhase) => {
@@ -76,13 +65,38 @@ export const useMeetingPhase = (
     const currentIndex = PHASE_ORDER.indexOf(source);
     const targetIndex = PHASE_ORDER.indexOf(targetPhase);
 
-    if (targetIndex >= currentIndex) {
-      // Already at or ahead of target — nothing to view
+    if (targetIndex === currentIndex) {
+      // Clicking the live phase chip exits view mode (returns to the live phase).
+      if (viewedPhase) handleReturnToCurrentPhase();
+      return;
+    }
+
+    if (targetIndex > currentIndex) {
+      // Ahead of the live phase — nothing to view
       return;
     }
 
     setViewedPhase(targetPhase);
     toast.success(`Просмотр: ${PHASE_LABELS[targetPhase]}`);
+  };
+
+  // Step view mode one phase back from the currently displayed phase.
+  const handleViewPrevPhase = () => {
+    const activeIndex = PHASE_ORDER.indexOf(activePhase as MeetingPhase);
+    if (activeIndex <= 0) return;
+    setViewedPhase(PHASE_ORDER[activeIndex - 1]);
+  };
+
+  // Step view mode one phase forward; reaching the live phase exits view mode.
+  const handleViewNextPhase = () => {
+    const source = livePhase ?? currentPhase;
+    if (!viewedPhase || !source) return;
+
+    const viewedIndex = PHASE_ORDER.indexOf(viewedPhase);
+    const liveIndex = PHASE_ORDER.indexOf(source);
+
+    if (viewedIndex + 1 >= liveIndex) setViewedPhase(null);
+    else setViewedPhase(PHASE_ORDER[viewedIndex + 1]);
   };
 
   const handleReturnToCurrentPhase = () => {
@@ -98,5 +112,7 @@ export const useMeetingPhase = (
     handleNextPhase,
     handleChangeToPhase,
     handleReturnToCurrentPhase,
+    handleViewPrevPhase,
+    handleViewNextPhase,
   };
 };

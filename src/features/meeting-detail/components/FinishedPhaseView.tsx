@@ -6,11 +6,45 @@
  * Новая встреча автоматически начинается с Phase 0 (Ретроспектива).
  */
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { formatDate } from '@/src/shared/lib';
 import { useMeetingsControllerCreate } from '@/src/shared/api/generated/meetings/meetings';
+import { useUsersControllerFindAll } from '@/src/shared/api/generated/users/users';
+
+/**
+ * Resolves participant display names for a finished meeting.
+ *
+ * The meetings API returns participantIds and nested refs (targetParticipantId,
+ * contributions[].participantId, taskAuthorId) as bare ID strings, so names are
+ * resolved against the users list. Populated refs (with fullName) are used
+ * directly when present.
+ */
+const useParticipantNameResolver = (meeting: any) => {
+  const { data: allUsers = [] } = useUsersControllerFindAll();
+
+  return useMemo(() => {
+    const names = new Map<string, string>();
+    allUsers.forEach((u) => {
+      if (u.fullName) names.set(u._id, u.fullName);
+    });
+    (meeting?.participantIds ?? []).forEach((p: any) => {
+      if (p && typeof p === 'object' && p.fullName) names.set(p._id, p.fullName);
+    });
+
+    return (ref: any): string => {
+      if (!ref) return 'Участник';
+      if (typeof ref === 'object') {
+        if (ref.fullName) return ref.fullName;
+        return names.get(String(ref._id)) ?? 'Участник';
+      }
+      return names.get(String(ref)) ?? 'Участник';
+    };
+  }, [allUsers, meeting]);
+};
+
+type NameResolver = (ref: any) => string;
 
 interface FinishedPhaseViewProps {
   meeting: any;
@@ -25,6 +59,8 @@ export function FinishedPhaseView({
   isCreator,
   onBack,
 }: FinishedPhaseViewProps) {
+  const resolveName = useParticipantNameResolver(meeting);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -62,7 +98,7 @@ export function FinishedPhaseView({
       )}
 
       {/* ── Analytics Dashboard ── */}
-      <AnalyticsDashboard meeting={meeting} />
+      <AnalyticsDashboard meeting={meeting} resolveName={resolveName} />
 
       {/* Emotional Evaluations */}
       {meeting.emotionalEvaluations?.length > 0 && (
@@ -82,10 +118,7 @@ export function FinishedPhaseView({
                     className="flex items-center justify-between bg-slate-50 rounded-xl px-4 py-3"
                   >
                     <span className="text-sm text-slate-700">
-                      →{' '}
-                      {meeting.participantIds?.find(
-                        (p: any) => (p._id ?? p) === e.targetParticipantId,
-                      )?.fullName ?? 'Участник'}
+                      → {resolveName(e.targetParticipantId)}
                     </span>
                     <div className="flex items-center gap-4">
                       {e.isToxic && (
@@ -118,10 +151,7 @@ export function FinishedPhaseView({
               <div className="space-y-2">
                 {uc.contributions?.map((c: any, idx: number) => (
                   <div key={idx} className="flex justify-between text-sm text-slate-600">
-                    <span>
-                      {meeting.participantIds?.find((p: any) => (p._id ?? p) === c.participantId)
-                        ?.fullName ?? 'Участник'}
-                    </span>
+                    <span>{resolveName(c.participantId)}</span>
                     <span>{c.contributionPercentage}%</span>
                   </div>
                 ))}
@@ -165,10 +195,7 @@ export function FinishedPhaseView({
               <UserBadge user={te.participant} />
               {te.evaluations?.map((e: any, idx: number) => (
                 <div key={idx} className="flex justify-between text-sm">
-                  <span>
-                    {meeting.participantIds?.find((p: any) => (p._id ?? p) === e.taskAuthorId)
-                      ?.fullName ?? 'Участник'}
-                  </span>
+                  <span>{resolveName(e.taskAuthorId)}</span>
                   <span className="font-black">{e.importanceScore}%</span>
                 </div>
               ))}
@@ -234,9 +261,8 @@ const CreateNextMeetingSection: React.FC<CreateNextMeetingSectionProps> = ({
           navigate(`/meeting/${data._id}`);
         },
         onError: (err: unknown) => {
-          const msg =
-            (err as { response?: { data?: { message?: string | string[] } } })
-              ?.response?.data?.message;
+          const msg = (err as { response?: { data?: { message?: string | string[] } } })?.response
+            ?.data?.message;
           setError(Array.isArray(msg) ? msg.join(', ') : (msg ?? 'Ошибка создания встречи'));
         },
       },
@@ -351,7 +377,10 @@ const CreateNextMeetingSection: React.FC<CreateNextMeetingSectionProps> = ({
 
 // ─── Analytics Dashboard ──────────────────────────────────────────────────────
 
-const AnalyticsDashboard: React.FC<{ meeting: any }> = ({ meeting }) => {
+const AnalyticsDashboard: React.FC<{ meeting: any; resolveName: NameResolver }> = ({
+  meeting,
+  resolveName,
+}) => {
   // ── Task stats ───────────────────────────────────────────────────────────
   const tasks: any[] = meeting.taskPlannings ?? [];
   const approved = tasks.filter((t) => t.approved === true).length;
@@ -361,19 +390,11 @@ const AnalyticsDashboard: React.FC<{ meeting: any }> = ({ meeting }) => {
   // ── Toxicity summary ────────────────────────────────────────────────────
   // Build map: participantName → how many people marked them toxic
   const toxicCounts: Record<string, number> = {};
-  const participantNames: Record<string, string> = {};
-
-  (meeting.participantIds ?? []).forEach((p: any) => {
-    if (p && typeof p === 'object') {
-      participantNames[p._id] = p.fullName ?? 'Участник';
-    }
-  });
 
   (meeting.emotionalEvaluations ?? []).forEach((ev: any) => {
     (ev.evaluations ?? []).forEach((e: any) => {
       if (e.isToxic) {
-        const name =
-          participantNames[e.targetParticipantId] ?? e.targetParticipantId?.slice(-6) ?? '?';
+        const name = resolveName(e.targetParticipantId);
         toxicCounts[name] = (toxicCounts[name] ?? 0) + 1;
       }
     });
@@ -387,7 +408,7 @@ const AnalyticsDashboard: React.FC<{ meeting: any }> = ({ meeting }) => {
   const contribCount: Record<string, number> = {};
   (meeting.understandingContributions ?? []).forEach((uc: any) => {
     (uc.contributions ?? []).forEach((c: any) => {
-      const name = participantNames[c.participantId] ?? c.participantId?.slice(-6) ?? '?';
+      const name = resolveName(c.participantId);
       contribSum[name] = (contribSum[name] ?? 0) + (c.contributionPercentage ?? 0);
       contribCount[name] = (contribCount[name] ?? 0) + 1;
     });
@@ -400,8 +421,7 @@ const AnalyticsDashboard: React.FC<{ meeting: any }> = ({ meeting }) => {
   // ── Understanding scores ─────────────────────────────────────────────────
   const understandingEntries = (meeting.understandingContributions ?? [])
     .map((uc: any) => ({
-      name:
-        uc.participant?.fullName ?? participantNames[(uc.participant as any)?._id] ?? 'Участник',
+      name: uc.participant?.fullName ?? resolveName(uc.participant?._id ?? uc.participantId),
       score: uc.understandingScore ?? 0,
     }))
     .sort((a: any, b: any) => b.score - a.score);
