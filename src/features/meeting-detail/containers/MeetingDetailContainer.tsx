@@ -135,6 +135,7 @@ export const MeetingDetailContainer: React.FC = () => {
     taskEmotionalScale,
     setTaskEmotionalScale,
     isMyTaskApproved,
+    isTaskPlanningValid,
     handleLiveUpdate: handleLiveUpdateTaskPlanning,
   } = useTaskPlanning(meetingId, currentUser?._id, socket);
 
@@ -244,6 +245,7 @@ export const MeetingDetailContainer: React.FC = () => {
     taskEmotionalScale,
     setTaskEmotionalScale,
     isMyTaskApproved,
+    isTaskPlanningValid,
     handleApproveTask,
     isApprovingTask,
 

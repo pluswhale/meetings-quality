@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
 import type { TaskResponseDto } from '@/src/shared/api/generated/meetingsQualityAPI.schemas';
 import {
   useTasksControllerUpdate,
@@ -8,6 +9,16 @@ import {
 } from '@/src/shared/api/generated/tasks/tasks';
 import { useAuthStore } from '@/src/shared/store/auth.store';
 import { formatDate } from '@/src/shared/lib';
+
+/**
+ * authorId is normally a populated ref ({ _id, fullName, email }), but when the
+ * referenced user can't be populated (e.g. orphaned legacy rows) Mongo returns
+ * the raw ObjectId, which serializes as a plain string.
+ */
+const resolveAuthorId = (task: TaskResponseDto): string | undefined => {
+  const author = task.authorId as unknown as string | { _id?: string };
+  return typeof author === 'string' ? author : author?._id;
+};
 
 interface ProjectTasksTabProps {
   tasks: TaskResponseDto[];
@@ -59,7 +70,7 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
             <TaskTableRow
               key={task._id}
               task={task}
-              isOwner={task.authorId._id === currentUser?._id}
+              isOwner={resolveAuthorId(task) === currentUser?._id}
               projectId={projectId}
             />
           ))}
@@ -86,6 +97,9 @@ const TaskTableRow: React.FC<TaskTableRowProps> = ({ task, isOwner, projectId })
         queryClient.invalidateQueries({
           queryKey: getTasksControllerFindAllQueryKey({ projectId }),
         });
+      },
+      onError: () => {
+        toast.error('Не удалось обновить задачу');
       },
     },
   });

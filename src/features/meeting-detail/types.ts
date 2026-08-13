@@ -85,6 +85,7 @@ export interface MeetingDetailViewModel {
   setExpectedContribution: React.Dispatch<React.SetStateAction<number>>;
   taskEmotionalScale: number;
   setTaskEmotionalScale: React.Dispatch<React.SetStateAction<number>>;
+  isTaskPlanningValid: boolean;
 
   // Phase 4 state
   taskEvaluations: Record<string, number>;

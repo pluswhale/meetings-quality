@@ -58,9 +58,20 @@ export const useTaskPlanning = (
     [taskDescription, commonQuestion, deadline, expectedContribution, estimateHours],
   );
 
+  // A task is persisted only once all required fields are filled.
+  // Partial drafts stay local — they are never emitted to the room, so an
+  // unfinished task can never reach Redis/MongoDB.
+  const isTaskPlanningValid =
+    taskDescription.trim().length > 0 &&
+    commonQuestion.trim().length > 0 &&
+    deadline !== '' &&
+    estimateHours !== '' &&
+    Number(estimateHours) > 0;
+
   const handleLiveUpdate = useCallback(() => {
+    if (!isTaskPlanningValid) return;
     socket.emitUpdateLiveVote('task_planning', buildPayload());
-  }, [buildPayload, socket]);
+  }, [isTaskPlanningValid, buildPayload, socket]);
 
   const onChangeEstimateHours = useCallback((v: string) => {
     if (v === '' || /^\d*\.?\d*$/.test(v)) {
@@ -82,6 +93,7 @@ export const useTaskPlanning = (
     taskEmotionalScale,
     setTaskEmotionalScale,
     isMyTaskApproved,
+    isTaskPlanningValid,
     handleLiveUpdate,
   };
 };

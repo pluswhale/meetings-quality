@@ -23,6 +23,8 @@ interface TaskPlanningFormProps {
   /** Called on every field blur / slider release. Fires user:update_live_vote. */
   onLiveUpdate: () => void;
   isApproved?: boolean;
+  /** True when all required fields are filled — until then the task is not persisted. */
+  isValid?: boolean;
 }
 
 export const TaskPlanningForm: React.FC<TaskPlanningFormProps> = ({
@@ -38,6 +40,7 @@ export const TaskPlanningForm: React.FC<TaskPlanningFormProps> = ({
   onExpectedContributionChange,
   onLiveUpdate,
   isApproved = false,
+  isValid = false,
 }) => {
   return (
     <section>
@@ -54,9 +57,15 @@ export const TaskPlanningForm: React.FC<TaskPlanningFormProps> = ({
             {isApproved ? 'Одобрено' : 'Ожидает одобрения'}
           </span>
         )}
-        <span className="text-xs font-bold px-3 py-1 bg-green-100 text-green-700 rounded-full whitespace-nowrap ml-auto">
-          ● Автосохранение
-        </span>
+        {isValid ? (
+          <span className="text-xs font-bold px-3 py-1 bg-green-100 text-green-700 rounded-full whitespace-nowrap ml-auto">
+            ● Автосохранение
+          </span>
+        ) : (
+          <span className="text-xs font-bold px-3 py-1 bg-amber-100 text-amber-700 rounded-full whitespace-nowrap ml-auto">
+            ● Заполните обязательные поля
+          </span>
+        )}
         <div className="h-px bg-slate-200 flex-1" />
       </h2>
 
@@ -86,9 +95,31 @@ export const TaskPlanningForm: React.FC<TaskPlanningFormProps> = ({
           </div>
         )}
 
+        {!isApproved && !isValid && (
+          <div className="bg-amber-50 border border-amber-100 p-4 rounded-2xl flex items-start gap-3">
+            <svg
+              className="w-5 h-5 text-amber-500 mt-0.5 flex-shrink-0"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 9v2m0 4h.01M12 3l9.5 16.5H2.5L12 3z"
+              />
+            </svg>
+            <p className="text-sm text-amber-800 font-medium">
+              Задача сохранится автоматически, когда все поля отмеченные{' '}
+              <span className="text-red-500 font-black">*</span> будут заполнены.
+            </p>
+          </div>
+        )}
+
         <div>
           <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">
-            Глобальное понимание задачи
+            Глобальное понимание задачи <span className="text-red-500">*</span>
           </label>
           <textarea
             rows={4}
@@ -107,7 +138,7 @@ export const TaskPlanningForm: React.FC<TaskPlanningFormProps> = ({
 
         <div>
           <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">
-            Описание вашей задачи
+            Описание вашей задачи <span className="text-red-500">*</span>
           </label>
           <textarea
             rows={4}
@@ -126,7 +157,7 @@ export const TaskPlanningForm: React.FC<TaskPlanningFormProps> = ({
 
         <div>
           <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">
-            Время на задачу(часы)
+            Время на задачу(часы) <span className="text-red-500">*</span>
           </label>
           <input
             value={estimateHours}
@@ -144,7 +175,7 @@ export const TaskPlanningForm: React.FC<TaskPlanningFormProps> = ({
 
         <div>
           <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">
-            Дедлайн
+            Дедлайн <span className="text-red-500">*</span>
           </label>
           <DateTimePicker
             selected={deadline ? new Date(deadline) : null}

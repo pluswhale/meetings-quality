@@ -99,6 +99,7 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
     taskEmotionalScale,
     setTaskEmotionalScale,
     isMyTaskApproved,
+    isTaskPlanningValid,
     handleLiveUpdate: handleLiveUpdateTaskPlanning,
   } = useTaskPlanning(meetingId, currentUser?._id, socket);
 
@@ -152,6 +153,7 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
     taskEmotionalScale,
     setTaskEmotionalScale,
     isMyTaskApproved,
+    isTaskPlanningValid,
     handleApproveTask,
     isApprovingTask,
 

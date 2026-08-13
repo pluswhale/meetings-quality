@@ -141,6 +141,8 @@ export interface UseTaskPlanningReturn {
   taskEmotionalScale: number;
   setTaskEmotionalScale: React.Dispatch<React.SetStateAction<number>>;
   isMyTaskApproved: boolean;
+  /** True only when all required task fields are filled — until then nothing is persisted. */
+  isTaskPlanningValid: boolean;
   /** Fires on every field blur / slider release — persists immediately. */
   handleLiveUpdate: () => void;
 }

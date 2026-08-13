@@ -78,6 +78,7 @@ export const PhaseContent: React.FC<PhaseContentProps> = ({ vm }) => {
         onExpectedContributionChange={vm.setExpectedContribution}
         onLiveUpdate={vm.handleLiveUpdateTaskPlanning}
         isApproved={vm.isMyTaskApproved}
+        isValid={vm.isTaskPlanningValid}
       />
 
       <TaskEmotionalScaleSlider
