@@ -109,8 +109,8 @@ export const useTasksControllerCreate = <TError = void | void, TContext = unknow
   return useMutation(mutationOptions, queryClient);
 };
 /**
- * Returns tasks authored by the current user. Supports optional filters: status (filter), project scope (projectId), and keyword search on description (search).
- * @summary Get tasks for the current user
+ * When `projectId` is supplied: returns ALL tasks for that project regardless of author. Without `projectId`: returns only the caller's own tasks. Supports optional filters: status (filter) and keyword search on description (search).
+ * @summary Get tasks
  */
 export const tasksControllerFindAll = (
   params?: TasksControllerFindAllParams,
@@ -206,7 +206,7 @@ export function useTasksControllerFindAll<
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 /**
- * @summary Get tasks for the current user
+ * @summary Get tasks
  */
 
 export function useTasksControllerFindAll<
@@ -358,7 +358,7 @@ export function useTasksControllerFindByMeeting<
 }
 
 /**
- * @summary Получить задачу по ID
+ * @summary Получить задачу по ID (доступно всем авторизованным)
  */
 export const tasksControllerFindOne = (id: string, signal?: AbortSignal) => {
   return customInstance<TaskResponseDto>({ url: `/tasks/${id}`, method: 'GET', signal });
@@ -370,7 +370,7 @@ export const getTasksControllerFindOneQueryKey = (id?: string) => {
 
 export const getTasksControllerFindOneQueryOptions = <
   TData = Awaited<ReturnType<typeof tasksControllerFindOne>>,
-  TError = void | void | void,
+  TError = void | void,
 >(
   id: string,
   options?: {
@@ -396,11 +396,11 @@ export const getTasksControllerFindOneQueryOptions = <
 export type TasksControllerFindOneQueryResult = NonNullable<
   Awaited<ReturnType<typeof tasksControllerFindOne>>
 >;
-export type TasksControllerFindOneQueryError = void | void | void;
+export type TasksControllerFindOneQueryError = void | void;
 
 export function useTasksControllerFindOne<
   TData = Awaited<ReturnType<typeof tasksControllerFindOne>>,
-  TError = void | void | void,
+  TError = void | void,
 >(
   id: string,
   options: {
@@ -420,7 +420,7 @@ export function useTasksControllerFindOne<
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 export function useTasksControllerFindOne<
   TData = Awaited<ReturnType<typeof tasksControllerFindOne>>,
-  TError = void | void | void,
+  TError = void | void,
 >(
   id: string,
   options?: {
@@ -440,7 +440,7 @@ export function useTasksControllerFindOne<
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 export function useTasksControllerFindOne<
   TData = Awaited<ReturnType<typeof tasksControllerFindOne>>,
-  TError = void | void | void,
+  TError = void | void,
 >(
   id: string,
   options?: {
@@ -451,12 +451,12 @@ export function useTasksControllerFindOne<
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 /**
- * @summary Получить задачу по ID
+ * @summary Получить задачу по ID (доступно всем авторизованным)
  */
 
 export function useTasksControllerFindOne<
   TData = Awaited<ReturnType<typeof tasksControllerFindOne>>,
-  TError = void | void | void,
+  TError = void | void,
 >(
   id: string,
   options?: {

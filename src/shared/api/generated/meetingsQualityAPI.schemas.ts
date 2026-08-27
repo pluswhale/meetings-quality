@@ -53,7 +53,7 @@ export interface ProjectParticipantRefDto {
 }
 
 export type ProjectResponseDtoStatus =
-  (typeof ProjectResponseDtoStatus)[keyof typeof ProjectResponseDtoStatus];
+  typeof ProjectResponseDtoStatus[keyof typeof ProjectResponseDtoStatus];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ProjectResponseDtoStatus = {
@@ -74,7 +74,7 @@ export interface ProjectResponseDto {
 }
 
 export type ProjectDetailResponseDtoStatus =
-  (typeof ProjectDetailResponseDtoStatus)[keyof typeof ProjectDetailResponseDtoStatus];
+  typeof ProjectDetailResponseDtoStatus[keyof typeof ProjectDetailResponseDtoStatus];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ProjectDetailResponseDtoStatus = {
@@ -99,7 +99,7 @@ export interface ProjectDetailResponseDto {
 }
 
 export type UpdateProjectDtoStatus =
-  (typeof UpdateProjectDtoStatus)[keyof typeof UpdateProjectDtoStatus];
+  typeof UpdateProjectDtoStatus[keyof typeof UpdateProjectDtoStatus];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const UpdateProjectDtoStatus = {
@@ -117,16 +117,18 @@ export interface UpdateProjectDto {
 }
 
 export interface CreateMeetingDto {
-  /** Project this meeting belongs to */
-  projectId?: string;
+  /** Project this meeting belongs to (required) */
+  projectId: string;
   /** Название встречи */
   title: string;
   /** Вопрос для обсуждения */
   question: string;
-  /** Дата и время встречи */
-  upcomingDate: string;
+  /** Дата и время встречи. Если не указано — встреча начинается сразу. */
+  upcomingDate?: string;
   /** ID участников встречи */
   participantIds?: string[];
+  /** Link to a previous meeting for Phase 0 retrospective review */
+  previousMeetingId?: string;
 }
 
 export interface MeetingParticipantRefDto {
@@ -189,18 +191,20 @@ export interface TaskEvaluationDto {
 }
 
 export type MeetingResponseDtoCurrentPhase =
-  (typeof MeetingResponseDtoCurrentPhase)[keyof typeof MeetingResponseDtoCurrentPhase];
+  typeof MeetingResponseDtoCurrentPhase[keyof typeof MeetingResponseDtoCurrentPhase];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const MeetingResponseDtoCurrentPhase = {
+  retrospective: 'retrospective',
   emotional_evaluation: 'emotional_evaluation',
   understanding_contribution: 'understanding_contribution',
   task_planning: 'task_planning',
+  task_evaluation: 'task_evaluation',
   finished: 'finished',
 } as const;
 
 export type MeetingResponseDtoStatus =
-  (typeof MeetingResponseDtoStatus)[keyof typeof MeetingResponseDtoStatus];
+  typeof MeetingResponseDtoStatus[keyof typeof MeetingResponseDtoStatus];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const MeetingResponseDtoStatus = {
@@ -215,13 +219,19 @@ export interface MeetingResponseDto {
   question: string;
   creatorId: MeetingParticipantRefDto;
   participantIds: string[];
+  participants: MeetingParticipantRefDto[];
   activeParticipantIds: MeetingParticipantRefDto[];
   currentPhase: MeetingResponseDtoCurrentPhase;
   status: MeetingResponseDtoStatus;
+  upcomingDate: string;
   emotionalEvaluations: EmotionalEvaluationDto[];
-  projectId: string | null;
   understandingContributions: UnderstandingContributionDto[];
   taskEvaluations: TaskEvaluationDto[];
+  /** @nullable */
+  projectId: string | null;
+  /** @nullable */
+  previousMeetingId: string | null;
+  hasRetrospectivePhase: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -233,95 +243,8 @@ export interface UpdateMeetingDto {
   question?: string;
   /** ID участников встречи */
   participantIds?: string[];
-}
-
-/**
- * Новая фаза встречи
- */
-export type ChangePhaseDtoPhase = (typeof ChangePhaseDtoPhase)[keyof typeof ChangePhaseDtoPhase];
-
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export const ChangePhaseDtoPhase = {
-  emotional_evaluation: 'emotional_evaluation',
-  understanding_contribution: 'understanding_contribution',
-  task_planning: 'task_planning',
-  finished: 'finished',
-} as const;
-
-export interface ChangePhaseDto {
-  /** Новая фаза встречи */
-  phase: ChangePhaseDtoPhase;
-}
-
-export interface ParticipantEmotionalEvaluationDto {
-  /** ID участника, которого оценивают */
-  targetParticipantId: string;
-  /**
-   * Эмоциональная оценка от -100 (негативная) до 100 (позитивная)
-   * @minimum -100
-   * @maximum 100
-   */
-  emotionalScale: number;
-  /** Флаг токсичности участника */
-  isToxic: boolean;
-}
-
-export interface SubmitEmotionalEvaluationDto {
-  /** Эмоциональные оценки других участников (можно отправить пустой массив - голосование полностью опциональное) */
-  evaluations: ParticipantEmotionalEvaluationDto[];
-}
-
-export interface ContributionInfluenceDto {
-  /** ID участника */
-  participantId: string;
-  /**
-   * Процент вклада участника в обсуждение (0-100)
-   * @minimum 0
-   * @maximum 100
-   */
-  contributionPercentage: number;
-}
-
-export interface SubmitUnderstandingContributionDto {
-  /**
-   * Самооценка понимания задачи (0-100)
-   * @minimum 0
-   * @maximum 100
-   */
-  understandingScore: number;
-  /** Распределение вклада участников в обсуждение (можно отправить пустой массив - голосование полностью опциональное) */
-  contributions: ContributionInfluenceDto[];
-}
-
-export interface SubmitTaskPlanningDto {
-  /** Описание задачи */
-  taskDescription: string;
-  /** Общий вопрос задачи */
-  commonQuestion: string;
-  /** Дедлайн задачи (ISO формат) */
-  deadline: string;
-  /**
-   * Ожидаемый процент вклада в задачу (0-100)
-   * @minimum 0
-   * @maximum 100
-   */
-  expectedContributionPercentage: number;
-}
-
-export interface TaskImportanceEvaluationDto {
-  /** ID автора задачи, которую оценивают */
-  taskAuthorId: string;
-  /**
-   * Оценка важности задачи (0-100)
-   * @minimum 0
-   * @maximum 100
-   */
-  importanceScore: number;
-}
-
-export interface SubmitTaskEvaluationDto {
-  /** Массив оценок важности задач (можно отправить пустой массив - голосование полностью опциональное) */
-  evaluations: TaskImportanceEvaluationDto[];
+  /** Новая дата и время встречи. Статус пересчитывается: будущая дата возвращает встречу в upcoming, прошедшая — в active. */
+  upcomingDate?: string;
 }
 
 export type ParticipantStatDtoParticipant = {
@@ -435,7 +358,7 @@ export type ProjectsControllerFindAllParams = {
 };
 
 export type ProjectsControllerFindAllStatus =
-  (typeof ProjectsControllerFindAllStatus)[keyof typeof ProjectsControllerFindAllStatus];
+  typeof ProjectsControllerFindAllStatus[keyof typeof ProjectsControllerFindAllStatus];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ProjectsControllerFindAllStatus = {
@@ -455,7 +378,7 @@ export type MeetingsControllerFindAllParams = {
 };
 
 export type MeetingsControllerFindAllFilter =
-  (typeof MeetingsControllerFindAllFilter)[keyof typeof MeetingsControllerFindAllFilter];
+  typeof MeetingsControllerFindAllFilter[keyof typeof MeetingsControllerFindAllFilter];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const MeetingsControllerFindAllFilter = {
@@ -480,7 +403,7 @@ export type TasksControllerFindAllParams = {
 };
 
 export type TasksControllerFindAllFilter =
-  (typeof TasksControllerFindAllFilter)[keyof typeof TasksControllerFindAllFilter];
+  typeof TasksControllerFindAllFilter[keyof typeof TasksControllerFindAllFilter];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const TasksControllerFindAllFilter = {

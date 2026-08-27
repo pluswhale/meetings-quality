@@ -199,6 +199,19 @@ When a participant is viewing a past phase, a yellow **"Viewing previous phase"*
 
 #### 4.5.2 Creator-only panels (always visible to creator during an active meeting)
 
+**Meeting Management Controls** (`MeetingManageControls`, below the header)
+- «Участники» — edit the invited participant list
+- «Дата и время» — reschedule the meeting. Prefilled with the current scheduled
+  time; a future date returns the meeting to *upcoming*, a past date makes it
+  active. Participants, submissions, and the current phase are preserved.
+  Connected participants are told over the socket and see the new time without
+  reloading; a participant whose meeting moves back to *upcoming* sees the
+  waiting screen instead of a phase form.
+- «Удалить встречу» — two-step confirm destructive action
+
+The scheduled date and time itself is shown in the meeting header to **all**
+participants, not just the creator.
+
 **Pending Voters Panel**
 - Shows a list of participants who haven't submitted for the current phase yet
 - Each entry shows the participant's name and an online indicator (green dot = currently connected)
@@ -233,8 +246,8 @@ What the participant sees:
 
 ```
 PhaseContent → EmotionalEvaluationTable
-  └── (one row per participant)
-        └── Participant name + avatar
+  └── (one row per participant, excluding yourself)
+        └── Presence dot + participant name
         └── Slider (−100 → +100)
         └── Checkbox "Toxic"
 ```
@@ -248,17 +261,25 @@ PhaseContent → EmotionalEvaluationTable
 What the participant sees:
 - **Understanding score slider** (always visible across all active phases — top of page) — self-assessment of how well they understood the meeting topic (0–100%)
 - **Contribution table** — distribute percentage credit across all other participants; the total must equal exactly 100%
+- The current user is not listed: you rate what *others* contributed to your understanding. A meeting with no other participants shows «Нет других участников для оценки» instead of rows.
 - Validation error shown if total ≠ 100% when submitting
 
 ```
 PhaseContent
   └── UnderstandingScorePanel   (self-assessment, always visible)
   └── ContributionDistributionPanel
-        └── (one row per participant)
-              └── Participant name
+        └── (one row per participant, excluding yourself)
+              └── Presence dot + participant name
               └── % input slider / number field
         └── Total % indicator (shows current sum, turns green at 100%)
 ```
+
+**Where the participant list comes from.** Both Phase 1 and Phase 2 list everyone
+**invited** to the meeting, read from `participants` on the meeting document —
+not from who is currently connected. Presence and membership are separate: an
+invited participant who has never opened the meeting must still be listed and
+ratable, and a participant whose phone dropped the socket must not vanish
+mid-phase. Live presence is shown only as a dot next to the name.
 
 ---
 
@@ -270,7 +291,9 @@ What the participant sees:
 - **Global understanding** — text area: how the participant understood the meeting's main goal
 - **My task** — text area: what task they are personally committing to
 - **Time estimate** — numeric field (hours)
-- **Deadline** — date picker
+- **Deadline** — date picker, calendar date only. There is deliberately no
+  exact-time control: a task deadline is meaningful to the day, and the time
+  portion was never used downstream.
 - **Expected contribution %** — slider (0–100%)
 - **Emotional state slider** — self-reported emotional state about the task
 - "Save changes" button
@@ -283,7 +306,7 @@ PhaseContent
         └── Textarea (global understanding)
         └── Textarea (task description)
         └── Input (estimate hours)
-        └── DateTimePicker (deadline)
+        └── DateTimePicker (deadline — date only, no time)
         └── Slider (expected contribution %)
         └── "Approved" badge (if approved)
         └── Button "Save changes" (hidden if approved)

@@ -81,6 +81,8 @@ export interface UseMeetingPresenceReturn {
   socketParticipants: SocketParticipant[];
   isSocketConnected: boolean;
   meetingParticipants: UserResponseDto[];
+  /** Ids of participants currently connected to the room. */
+  onlineUserIds: Set<string>;
   activeParticipants: ActiveParticipantsResponse | null;
   allUsers: UserResponseDto[];
 }

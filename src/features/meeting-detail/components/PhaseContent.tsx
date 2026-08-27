@@ -36,6 +36,7 @@ export const PhaseContent: React.FC<PhaseContentProps> = ({ vm }) => {
       <EmotionalEvaluationTable
         currentUser={currentUser}
         participants={vm.meetingParticipants}
+        onlineUserIds={vm.onlineUserIds}
         evaluations={vm.emotionalEvaluations}
         onUpdateEvaluation={(id, update) =>
           vm.setEmotionalEvaluations((prev) => ({
@@ -52,7 +53,9 @@ export const PhaseContent: React.FC<PhaseContentProps> = ({ vm }) => {
   const renderUnderstandingContributionPhase = () => (
     <div className="space-y-8 md:space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-700">
       <ContributionDistributionPanel
+        currentUser={currentUser}
         participants={vm.meetingParticipants}
+        onlineUserIds={vm.onlineUserIds}
         contributions={vm.contributions}
         onContributionChange={(id, value) =>
           vm.setContributions((prev) => ({ ...prev, [id]: value }))

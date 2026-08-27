@@ -19,8 +19,9 @@ import React, { useCallback, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { MeetingResponseDtoCurrentPhase } from '@/src/shared/constants';
+import { MeetingResponseDtoCurrentPhase, MeetingResponseDtoStatus } from '@/src/shared/constants';
 import { useAuthStore } from '@/src/shared/store/auth.store';
+import { formatDate, formatTime } from '@/src/shared/lib';
 
 // ─── Domain hooks ─────────────────────────────────────────────────────────────
 import { useMeetingData } from '../hooks/useMeetingData';
@@ -60,6 +61,7 @@ export const MeetingDetailContainer: React.FC = () => {
     socketParticipants,
     isSocketConnected,
     meetingParticipants,
+    onlineUserIds,
     activeParticipants,
     allUsers,
   } = useMeetingPresence(meetingId, meeting, currentUser?._id);
@@ -147,16 +149,15 @@ export const MeetingDetailContainer: React.FC = () => {
 
   const { isApprovingTask, handleApproveTask } = useTaskApproval(meetingId);
 
-  // Registered participants (REST) who have NOT joined the live room (Zustand).
+  // Invited participants who have NOT joined the live room.
   // Shown to the creator in the admin panel so absence is explicit.
-  const absentParticipants = useMemo(() => {
-    if (!meeting) return [];
-    const joinedIds = new Set(socketParticipants.map((p) => p.userId));
-    const registeredIds = new Set([meeting.creatorId._id, ...meeting.participantIds]);
-    return allUsers
-      .filter((u) => registeredIds.has(u._id) && !joinedIds.has(u._id))
-      .map((u) => ({ userId: u._id, fullName: u.fullName, email: u.email }));
-  }, [meeting, socketParticipants, allUsers]);
+  const absentParticipants = useMemo(
+    () =>
+      meetingParticipants
+        .filter((u) => !onlineUserIds.has(u._id))
+        .map((u) => ({ userId: u._id, fullName: u.fullName, email: u.email })),
+    [meetingParticipants, onlineUserIds],
+  );
 
   // Go back in-app when possible; on direct-link visits fall back to the
   // meeting's project page (or dashboard when the meeting has no project).
@@ -187,6 +188,14 @@ export const MeetingDetailContainer: React.FC = () => {
     return <WaitingForCreatorScreen meeting={meeting} />;
   }
 
+  // Rescheduling to a future date moves the meeting back to `upcoming` while
+  // participants may still be in the room. Rendering a phase form for a meeting
+  // that has not started would be incoherent, so show the waiting screen with
+  // the new time instead. The creator keeps access in order to manage it.
+  if (!isCreator && meeting.status === MeetingResponseDtoStatus.upcoming) {
+    return <WaitingForCreatorScreen meeting={meeting} />;
+  }
+
   // Check finished state from both REST and live Zustand phase to avoid a
   // brief window where the socket says "finished" but the REST cache hasn't refreshed.
   if (
@@ -212,6 +221,7 @@ export const MeetingDetailContainer: React.FC = () => {
     statistics,
     allUsers,
     meetingParticipants,
+    onlineUserIds,
     votingInfo: null,
     phaseSubmissions,
     activeParticipants,
@@ -275,6 +285,7 @@ export const MeetingDetailContainer: React.FC = () => {
         meetingId={meetingId}
         title={meeting.title}
         createdAt={meeting.createdAt}
+        upcomingDate={meeting.upcomingDate}
         currentPhase={livePhase ?? meeting.currentPhase}
         viewedPhase={viewedPhase ?? undefined}
         onBack={handleNavigateBack}
@@ -349,7 +360,13 @@ const SocketStatusBadge: React.FC<{ connected: boolean; reconnecting: boolean }>
 
 // ─── WaitingForCreatorScreen ──────────────────────────────────────────────────
 
-const WaitingForCreatorScreen: React.FC<{ meeting: { title: string } }> = ({ meeting }) => (
+const WaitingForCreatorScreen: React.FC<{
+  meeting: { title: string; upcomingDate?: string };
+}> = ({ meeting }) => {
+  const scheduled = meeting.upcomingDate ? new Date(meeting.upcomingDate) : null;
+  const hasSchedule = scheduled !== null && !isNaN(scheduled.getTime());
+
+  return (
   <motion.div
     initial={{ opacity: 0, scale: 0.96 }}
     animate={{ opacity: 1, scale: 1 }}
@@ -382,6 +399,11 @@ const WaitingForCreatorScreen: React.FC<{ meeting: { title: string } }> = ({ mee
           Встреча <span className="font-bold text-slate-700">«{meeting.title}»</span> ещё не
           началась.
         </p>
+        {hasSchedule && (
+          <p className="text-sm font-bold text-slate-600">
+            Назначена на {formatDate(scheduled)}, {formatTime(scheduled)}
+          </p>
+        )}
         <p className="text-sm text-slate-400">
           Подключение возможно только после того, как организатор откроет встречу. Страница
           автоматически обновится.
@@ -405,7 +427,8 @@ const WaitingForCreatorScreen: React.FC<{ meeting: { title: string } }> = ({ mee
       </div>
     </div>
   </motion.div>
-);
+  );
+};
 
 const ViewingPreviousPhaseAlert: React.FC<{ onReturn: () => void }> = ({ onReturn }) => (
   <motion.div

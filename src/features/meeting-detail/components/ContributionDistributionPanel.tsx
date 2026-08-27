@@ -6,9 +6,13 @@
 import React from 'react';
 import { UserResponseDto } from '@/src/shared/api/generated/meetingsQualityAPI.schemas';
 import { Slider } from '@/src/shared/ui';
+import { PresenceDot } from './PresenceDot';
 
 interface ContributionDistributionPanelProps {
+  currentUser?: UserResponseDto | null;
   participants: UserResponseDto[];
+  /** Ids of participants currently connected, for the presence dot. */
+  onlineUserIds?: Set<string>;
   contributions: Record<string, number>;
   onContributionChange: (participantId: string, value: number) => void;
   /** Called on every slider release. Fires user:update_live_vote. */
@@ -17,13 +21,18 @@ interface ContributionDistributionPanelProps {
 }
 
 export const ContributionDistributionPanel: React.FC<ContributionDistributionPanelProps> = ({
+  currentUser,
   participants,
+  onlineUserIds,
   contributions,
   onContributionChange,
   onLiveUpdate,
   totalContribution,
 }) => {
   const isValidTotal = Math.abs(totalContribution - 100) < 0.1;
+  // You rate what others contributed to your own understanding, so rating
+  // yourself is meaningless — mirrors the Phase 1 form.
+  const others = participants.filter((p) => p._id !== currentUser?._id);
 
   return (
     <div className="bg-white border border-slate-200 rounded-[20px] md:rounded-[32px] p-4 md:p-8 shadow-sm mb-8 md:mb-12">
@@ -48,17 +57,24 @@ export const ContributionDistributionPanel: React.FC<ContributionDistributionPan
       </div>
 
       <div className="space-y-3 md:space-y-4">
-        {participants.map((participant) => {
+        {others.length === 0 && (
+          <p className="p-8 text-center text-slate-400 font-medium">
+            Нет других участников для оценки
+          </p>
+        )}
+        {others.map((participant) => {
           const contribution = Number(contributions[participant._id] || 0);
 
           const isLocked = totalContribution >= 100;
+          const isOnline = onlineUserIds?.has(participant._id) ?? false;
 
           return (
             <div key={participant._id} className="bg-slate-50 rounded-xl p-4">
               <div className="flex justify-between items-center mb-3 gap-2">
                 <div className="flex-1 min-w-0">
-                  <span className="font-bold text-slate-900 block truncate">
-                    {participant.fullName}
+                  <span className="font-bold text-slate-900 flex items-center gap-2">
+                    <PresenceDot isOnline={isOnline} />
+                    <span className="truncate">{participant.fullName}</span>
                   </span>
                   <span className="text-xs text-slate-400 block truncate">
                     {participant.email}

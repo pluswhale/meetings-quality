@@ -9,10 +9,14 @@ import type { ActiveParticipantsResponse } from '../api/meeting-room.api';
 import { useMeetingStore, selectParticipants, selectIsConnected } from '../store/useMeetingStore';
 
 /**
- * Derives the real-time participant lists from the Zustand store (populated by WS events).
+ * Derives the meeting roster and live presence.
+ *
+ * Roster membership comes from the meeting document, not from the socket:
+ * being invited and being currently connected are different things, and the
+ * phase forms need everyone who was invited. Presence is exposed separately as
+ * `onlineUserIds` so it can be displayed without affecting who is listed.
  *
  * useMeetingSocket handles the socket connection; this hook only reads the store.
- * No socket connection logic lives here — single responsibility.
  */
 export const useMeetingPresence = (
   meetingId: string,
@@ -21,9 +25,36 @@ export const useMeetingPresence = (
 ): UseMeetingPresenceReturn => {
   const socketParticipants = useMeetingStore(selectParticipants);
   const isConnected = useMeetingStore(selectIsConnected);
-  const { data: allUsers = [] } = useUsersControllerFindAll();
+
+  const invited = meeting?.participants;
+  const hasInvitedRoster = Boolean(invited?.length);
+
+  // Only the fallback path below needs the full user list, so the meeting room
+  // does not request it when the meeting document already carries the roster.
+  const { data: allUsers = [] } = useUsersControllerFindAll({
+    query: { enabled: !hasInvitedRoster },
+  });
+
+  const onlineUserIds = useMemo(
+    () => new Set(socketParticipants.map((p) => p.userId)),
+    [socketParticipants],
+  );
 
   const meetingParticipants = useMemo<UserResponseDto[]>(() => {
+    if (invited?.length) {
+      // fullName and email are nullable on the ref, so fall back to something
+      // renderable rather than an empty row.
+      return invited.map((ref) => ({
+        _id: ref._id,
+        fullName: ref.fullName ?? ref.email ?? 'Участник',
+        email: ref.email ?? '',
+      }));
+    }
+
+    // Fallback for a backend that predates `participants` on the response: the
+    // roster degrades to whoever is currently connected. Drops invited-but-
+    // absent participants, which is the bug this field was added to fix, but it
+    // keeps the room usable while the two sides deploy independently.
     if (!socketParticipants.length || !allUsers.length) return [];
     const activeIds = new Set(socketParticipants.map((p) => p.userId));
     const active = allUsers.filter((u) => activeIds.has(u._id));
@@ -38,7 +69,7 @@ export const useMeetingPresence = (
     }
 
     return active;
-  }, [socketParticipants, allUsers, currentUserId]);
+  }, [invited, socketParticipants, allUsers, currentUserId]);
 
   const activeParticipants = useMemo<ActiveParticipantsResponse | null>(() => {
     if (!socketParticipants.length) return null;
@@ -62,6 +93,7 @@ export const useMeetingPresence = (
     socketParticipants: socketParticipants as SocketParticipant[],
     isSocketConnected: isConnected,
     meetingParticipants,
+    onlineUserIds,
     activeParticipants,
     allUsers,
   };

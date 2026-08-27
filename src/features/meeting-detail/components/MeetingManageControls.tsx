@@ -1,7 +1,8 @@
 /**
  * MeetingManageControls — creator-only controls below the meeting header:
  *   1. «Участники» — inline editor for the meeting's participant list.
- *   2. «Удалить встречу» — two-step confirm destructive action.
+ *   2. «Дата и время» — reschedule the meeting.
+ *   3. «Удалить встречу» — two-step confirm destructive action.
  *
  * MeetingResponseDto.participantIds is a plain string[] of user ids, so
  * display names are resolved via useUsersControllerFindAll.
@@ -19,7 +20,8 @@ import {
   getMeetingsControllerFindAllQueryKey,
 } from '@/src/shared/api/generated/meetings/meetings';
 import { useUsersControllerFindAll } from '@/src/shared/api/generated/users/users';
-import { Input } from '@/src/shared/ui';
+import { DateTimePicker, Input } from '@/src/shared/ui';
+import { formatDate, formatTime } from '@/src/shared/lib';
 import { meetingDetailQueryKeys } from '../hooks/queryKeys';
 
 interface MeetingManageControlsProps {
@@ -32,8 +34,23 @@ export const MeetingManageControls: React.FC<MeetingManageControlsProps> = ({ me
   const creatorId = meeting.creatorId._id;
 
   const [editorOpen, setEditorOpen] = useState(false);
+  const [scheduleOpen, setScheduleOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [confirmDelete, setConfirmDelete] = useState(false);
+
+  const storedDate = useMemo(() => {
+    if (!meeting.upcomingDate) return null;
+    const parsed = new Date(meeting.upcomingDate);
+    return isNaN(parsed.getTime()) ? null : parsed;
+  }, [meeting.upcomingDate]);
+
+  const [scheduledAt, setScheduledAt] = useState<Date | null>(storedDate);
+
+  // Re-sync when the meeting is rescheduled elsewhere (another tab, or the
+  // meetingUpdated socket event refetching the document).
+  useEffect(() => {
+    setScheduledAt(storedDate);
+  }, [storedDate]);
 
   // Local editable selection — creator is always included and cannot be removed.
   const [selectedIds, setSelectedIds] = useState<string[]>(() => [
@@ -60,6 +77,24 @@ export const MeetingManageControls: React.FC<MeetingManageControlsProps> = ({ me
       },
       onError: () => {
         toast.error('Не удалось обновить участников');
+      },
+    },
+  });
+
+  // A separate instance of the same mutation so the success/error toasts
+  // describe rescheduling rather than the participant list.
+  const { mutate: rescheduleMeeting, isPending: isRescheduling } = useMeetingsControllerUpdate({
+    mutation: {
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: meetingDetailQueryKeys.meeting(meeting._id),
+        });
+        queryClient.invalidateQueries({ queryKey: getMeetingsControllerFindAllQueryKey() });
+        toast.success('Дата и время встречи обновлены');
+        setScheduleOpen(false);
+      },
+      onError: () => {
+        toast.error('Не удалось изменить дату и время');
       },
     },
   });
@@ -106,6 +141,17 @@ export const MeetingManageControls: React.FC<MeetingManageControlsProps> = ({ me
     updateMeeting({ id: meeting._id, data: { participantIds: ids } });
   };
 
+  const isScheduleDirty =
+    scheduledAt !== null && scheduledAt.getTime() !== (storedDate?.getTime() ?? NaN);
+
+  const handleReschedule = () => {
+    if (!scheduledAt) return;
+    rescheduleMeeting({
+      id: meeting._id,
+      data: { upcomingDate: scheduledAt.toISOString() },
+    });
+  };
+
   const handleDelete = () => {
     if (!confirmDelete) {
       setConfirmDelete(true);
@@ -138,6 +184,25 @@ export const MeetingManageControls: React.FC<MeetingManageControlsProps> = ({ me
         </button>
 
         <button
+          onClick={() => setScheduleOpen((v) => !v)}
+          className={`flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-xl transition-all shadow-sm ${
+            scheduleOpen
+              ? 'bg-slate-900 text-white hover:bg-black'
+              : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
+          }`}
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+            />
+          </svg>
+          Дата и время
+        </button>
+
+        <button
           onClick={handleDelete}
           disabled={isDeleting}
           className={`px-4 py-2 text-sm font-semibold rounded-xl transition-all shadow-sm disabled:opacity-40 ${
@@ -157,6 +222,64 @@ export const MeetingManageControls: React.FC<MeetingManageControlsProps> = ({ me
           </button>
         )}
       </div>
+
+      {/* ── Reschedule ── */}
+      <AnimatePresence initial={false}>
+        {scheduleOpen && (
+          <motion.div
+            key="schedule-editor"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.22 }}
+            className="overflow-hidden"
+          >
+            <div className="mt-4 bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3">
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
+                Дата и время встречи
+              </p>
+
+              <p className="text-sm text-slate-500">
+                {storedDate
+                  ? `Сейчас назначена на ${formatDate(storedDate)}, ${formatTime(storedDate)}`
+                  : 'Дата не назначена'}
+              </p>
+
+              <DateTimePicker
+                selected={scheduledAt}
+                onChange={setScheduledAt}
+                showTimeSelect
+                disabled={isRescheduling}
+              />
+
+              <p className="text-xs text-slate-400">
+                Будущая дата вернёт встречу в предстоящие, прошедшая — сделает активной.
+                Участники, ответы и текущий этап сохранятся.
+              </p>
+
+              <div className="flex items-center gap-3 pt-1">
+                <button
+                  onClick={handleReschedule}
+                  disabled={isRescheduling || !isScheduleDirty}
+                  className="px-5 py-2.5 bg-slate-900 hover:bg-black text-white text-sm font-semibold rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
+                >
+                  {isRescheduling ? 'Сохранение...' : 'Сохранить'}
+                </button>
+                <button
+                  onClick={() => {
+                    setScheduledAt(storedDate);
+                    setScheduleOpen(false);
+                  }}
+                  disabled={isRescheduling}
+                  className="text-sm text-slate-400 hover:text-slate-600 font-medium transition-colors"
+                >
+                  Отмена
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ── Participants editor ── */}
       <AnimatePresence initial={false}>

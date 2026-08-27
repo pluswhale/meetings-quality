@@ -8,10 +8,13 @@
 import React from 'react';
 import type { UserResponseDto } from '@/src/shared/api/generated/meetingsQualityAPI.schemas';
 import type { EmotionalEvaluationsMap } from '../types';
+import { PresenceDot } from './PresenceDot';
 
 interface EmotionalEvaluationTableProps {
   currentUser: UserResponseDto;
   participants: UserResponseDto[];
+  /** Ids of participants currently connected, for the presence dot. */
+  onlineUserIds?: Set<string>;
   evaluations: EmotionalEvaluationsMap;
   onUpdateEvaluation: (
     participantId: string,
@@ -24,6 +27,7 @@ interface EmotionalEvaluationTableProps {
 export const EmotionalEvaluationTable: React.FC<EmotionalEvaluationTableProps> = ({
   currentUser,
   participants,
+  onlineUserIds,
   evaluations,
   onUpdateEvaluation,
   onLiveUpdate,
@@ -66,7 +70,10 @@ export const EmotionalEvaluationTable: React.FC<EmotionalEvaluationTableProps> =
               >
                 {/* Name */}
                 <div>
-                  <h4 className="font-black text-slate-900">{participant.fullName}</h4>
+                  <h4 className="font-black text-slate-900 flex items-center gap-2">
+                    <PresenceDot isOnline={onlineUserIds?.has(participant._id) ?? false} />
+                    <span className="truncate">{participant.fullName}</span>
+                  </h4>
                   {participant.email && (
                     <p className="text-xs text-slate-400 mt-0.5">{participant.email}</p>
                   )}

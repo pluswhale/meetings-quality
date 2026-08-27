@@ -49,6 +49,8 @@ export interface MeetingDetailViewModel {
   statistics: any;
   allUsers: UserResponseDto[];
   meetingParticipants: UserResponseDto[];
+  /** Ids of participants currently connected to the room. */
+  onlineUserIds: Set<string>;
   votingInfo: VotingInfo | null;
   phaseSubmissions: MeetingSubmissions | null;
   activeParticipants: ActiveParticipantsResponse | null;
@@ -76,7 +78,7 @@ export interface MeetingDetailViewModel {
   taskDescription: string;
   commonQuestion: string;
   estimateHours: string;
-  onChangeEstimateHours: React.Dispatch<React.SetStateAction<string>>;
+  onChangeEstimateHours: (v: string) => void;
   setCommonQuestion: React.Dispatch<React.SetStateAction<string>>;
   setTaskDescription: React.Dispatch<React.SetStateAction<string>>;
   deadline: string;

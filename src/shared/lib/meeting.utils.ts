@@ -2,10 +2,7 @@
  * Utility functions for meetings
  */
 
-import {
-  MeetingResponseDto,
-  ChangePhaseDtoPhase,
-} from '@/src/shared/api/generated/meetingsQualityAPI.schemas';
+import { MeetingResponseDto } from '@/src/shared/api/generated/meetingsQualityAPI.schemas';
 import { PHASE_ORDER, MeetingResponseDtoCurrentPhase } from '@/src/shared/constants/meetings';
 
 /**
@@ -22,12 +19,14 @@ export const isUserCreator = (meeting: MeetingResponseDto | null, userId: string
 /**
  * Get the next phase in the sequence
  */
-export const getNextPhase = (currentPhase: MeetingResponseDtoCurrentPhase): ChangePhaseDtoPhase | null => {
+export const getNextPhase = (
+  currentPhase: MeetingResponseDtoCurrentPhase,
+): MeetingResponseDtoCurrentPhase | null => {
   const currentIndex = PHASE_ORDER.indexOf(currentPhase);
   if (currentIndex === -1 || currentIndex === PHASE_ORDER.length - 1) {
     return null;
   }
-  return PHASE_ORDER[currentIndex + 1] as ChangePhaseDtoPhase;
+  return PHASE_ORDER[currentIndex + 1];
 };
 
 /**

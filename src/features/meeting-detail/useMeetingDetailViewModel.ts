@@ -38,7 +38,7 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
 
   const socket = useMeetingSocket(meetingId);
 
-  const { socketParticipants, meetingParticipants, activeParticipants, allUsers } =
+  const { socketParticipants, meetingParticipants, onlineUserIds, activeParticipants, allUsers } =
     useMeetingPresence(meetingId, meeting, currentUser?._id);
 
   const { submissions: phaseSubmissions, isLoading: isLoadingSubmissions } = useMeetingSubmissions(
@@ -120,6 +120,7 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
     statistics,
     allUsers,
     meetingParticipants,
+    onlineUserIds,
     votingInfo: null,
     phaseSubmissions,
     activeParticipants,

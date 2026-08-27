@@ -6,11 +6,14 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { MeetingResponseDtoCurrentPhase } from '@/src/shared/constants';
 import { PhaseIndicator } from '@/src/shared/components';
+import { formatDate, formatTime } from '@/src/shared/lib';
 
 interface MeetingHeaderProps {
   meetingId: string;
   title: string;
   createdAt: string;
+  /** Scheduled start of the meeting. Visible to every participant. */
+  upcomingDate?: string;
   /** Live phase (Zustand), with REST phase as fallback. */
   currentPhase: MeetingResponseDtoCurrentPhase;
   /** Phase being viewed, when the user stepped back into a past phase. */
@@ -26,6 +29,7 @@ export const MeetingHeader: React.FC<MeetingHeaderProps> = ({
   meetingId,
   title,
   createdAt,
+  upcomingDate,
   currentPhase,
   viewedPhase,
   onBack,
@@ -34,6 +38,9 @@ export const MeetingHeader: React.FC<MeetingHeaderProps> = ({
   onPrevPhase,
   onNextPhase,
 }) => {
+  const scheduled = upcomingDate ? new Date(upcomingDate) : null;
+  const hasSchedule = scheduled !== null && !isNaN(scheduled.getTime());
+
   return (
     <motion.div
       initial={{ opacity: 0, y: -20 }}
@@ -62,6 +69,21 @@ export const MeetingHeader: React.FC<MeetingHeaderProps> = ({
           {title}
         </h1>
 
+        {hasSchedule && (
+          <div className="flex items-center gap-2 text-sm font-bold text-slate-500">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+              />
+            </svg>
+            <span>
+              {formatDate(scheduled)}, {formatTime(scheduled)}
+            </span>
+          </div>
+        )}
       </div>
 
       <motion.div
