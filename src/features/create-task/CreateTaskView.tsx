@@ -1,6 +1,6 @@
 import React from 'react';
 import { useCreateTaskViewModel } from './useCreateTaskViewModel';
-import { formatDate } from '@/src/shared/lib';
+import { formatDate, toDateInputValue } from '@/src/shared/lib';
 
 export const CreateTaskView: React.FC = () => {
   const vm = useCreateTaskViewModel();
@@ -104,7 +104,7 @@ export const CreateTaskView: React.FC = () => {
               <input
                 type="date"
                 value={vm.deadline}
-                min={new Date().toISOString().split('T')[0]}
+                min={toDateInputValue(new Date())}
                 onChange={(e) => vm.setDeadline(e.target.value)}
                 className="px-4 py-3 text-sm border border-slate-200 rounded-xl bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
               />

@@ -73,7 +73,10 @@ export const useMeetingSocket = (meetingId: string): UseMeetingSocketReturn => {
 
     const socket = io(baseUrl, {
       auth: { token },
-      transports: ['websocket'],
+      // Polling is kept as a fallback: mobile networks and OS connection culling
+      // break WebSockets often enough that websocket-only leaves the client with
+      // no channel at all.
+      transports: ['websocket', 'polling'],
       reconnection: true,
       reconnectionAttempts: 10,
       reconnectionDelay: 1000,
@@ -119,11 +122,47 @@ export const useMeetingSocket = (meetingId: string): UseMeetingSocketReturn => {
       });
     };
 
+    /**
+     * Re-runs the join handshake — the server answers it with a full
+     * room:state_sync — and refreshes the REST meeting document alongside it,
+     * so both channels converge on the server's current state.
+     */
+    const joinAndResync = () => {
+      emitJoin();
+      queryClient.invalidateQueries({
+        queryKey: meetingDetailQueryKeys.meeting(meetingId),
+      });
+    };
+
+    /**
+     * Recovers state the page may have missed. A backgrounded mobile tab can be
+     * frozen or have its socket dropped without the page being told, so events
+     * such as room:phase_changed are simply lost; reconnecting alone may not
+     * happen until long after the user is looking at the screen again.
+     */
+    const recoverMissedEvents = () => {
+      if (!socket.connected) {
+        // The connect handler resyncs once the connection is back.
+        socket.connect();
+        return;
+      }
+      joinAndResync();
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') recoverMissedEvents();
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    // pageshow also covers back-forward cache restores, where visibilitychange
+    // does not necessarily fire.
+    window.addEventListener('pageshow', recoverMissedEvents);
+
     socket.on('connect', () => {
       setConnected(true);
       setReconnecting(false);
       console.debug('[WS] connected', socket.id);
-      emitJoin();
+      joinAndResync();
     });
 
     socket.on('connect_error', (err) => {
@@ -272,6 +311,18 @@ export const useMeetingSocket = (meetingId: string): UseMeetingSocketReturn => {
       }
     });
 
+    // Meeting metadata changed outside the phase flow (e.g. the creator moved
+    // the scheduled date). The payload carries only a change type, so refetch.
+    socket.on('meetingUpdated', (data: { meetingId: string; type: string }) => {
+      if (data.meetingId !== meetingId) return;
+      if (data.type !== 'meeting_rescheduled') return;
+
+      queryClient.invalidateQueries({
+        queryKey: meetingDetailQueryKeys.meeting(meetingId),
+      });
+      toast('Организатор изменил дату и время встречи', { id: 'meeting-rescheduled' });
+    });
+
     socket.on('admin:voting_progress', (progress: VotingProgress & { meetingId: string }) => {
       if (progress.meetingId === meetingId) {
         setVotingProgress({
@@ -286,6 +337,8 @@ export const useMeetingSocket = (meetingId: string): UseMeetingSocketReturn => {
 
     return () => {
       if (creatorWaitInterval) clearInterval(creatorWaitInterval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('pageshow', recoverMissedEvents);
       socket.emit('room:leave', { meetingId });
       socket.removeAllListeners();
       socket.disconnect();

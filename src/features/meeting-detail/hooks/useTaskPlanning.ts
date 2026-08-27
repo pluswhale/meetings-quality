@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo } from 'react';
 import { useTasksControllerFindAll } from '@/src/shared/api/generated/tasks/tasks';
+import { toDateInputValue } from '@/src/shared/lib';
 import { meetingDetailQueryKeys } from './queryKeys';
 import type { UseMeetingSocketReturn } from './useMeetingSocket';
 import type { UseTaskPlanningReturn } from '../state/meetingDetail.types';
@@ -40,7 +41,7 @@ export const useTaskPlanning = (
     myTask?.estimateHours != null ? String(myTask.estimateHours) : '',
   );
   const [deadline, setDeadline] = useState(
-    myTask?.deadline ? new Date(myTask.deadline).toISOString().split('T')[0] : '',
+    myTask?.deadline ? toDateInputValue(myTask.deadline) : '',
   );
   const [expectedContribution, setExpectedContribution] = useState(
     myTask?.contributionImportance ?? 50,

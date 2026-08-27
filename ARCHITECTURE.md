@@ -345,11 +345,36 @@ The meeting room uses **Socket.IO** for live updates. No page refresh is needed.
 
 | Event | What triggers it | What updates |
 |---|---|---|
-| Participant joins | User opens `/meeting/:id` | Participant appears in the online list |
-| Participant leaves | User closes the tab / disconnects | Participant removed from online list |
-| Submission received | Any participant saves a form | Creator's admin panel refreshes; Pending Voters list updates |
-| Task approved/rejected | Creator clicks Approve/Unapprove | Participant's form locks/unlocks; task list refreshes |
-| Phase changed | Creator advances phase | All participants' screens switch to the new phase form |
+| `room:participants_updated` | User joins or leaves the room | Online indicator on the participant list |
+| `room:vote_updated` | Any participant changes a form field | Creator's admin panel refreshes; Pending Voters list updates |
+| `room:task_approval_updated` / `room:task_approved` | Creator clicks Approve/Unapprove | Participant's form locks/unlocks; task list refreshes |
+| `room:phase_changed` | Creator advances phase | All participants' screens switch to the new phase form |
+| `room:state_sync` | Client joins or re-joins the room | Full current state — the recovery payload (see below) |
+| `meetingUpdated` (`meeting_rescheduled`) | Creator changes the meeting date/time | Displayed schedule updates; participants see a notice |
+
+> Event names are prefixed with `room:` / `admin:`. Earlier drafts of this
+> document listed `join_meeting`, `phase_changed`, and `participants_updated`;
+> those names are not used by the running code.
+
+### 5.1 Recovering from missed updates
+
+Live events only reach a client that is connected at the time. A mobile browser
+that backgrounds the tab may have its socket dropped, or the page frozen
+outright, without the page being notified — so an event such as a phase change
+is simply lost. There is **no polling loop** to fall back on.
+
+Instead the client re-runs its join handshake, which makes the server reply with
+a complete `room:state_sync`, and refreshes the meeting document over HTTP at the
+same time. This recovery runs when:
+
+- the socket (re)connects,
+- the page becomes visible again after being hidden,
+- the page is restored from the browser's back-forward cache.
+
+Because recovery replays the full current state rather than a delta, a client can
+be away across any number of phase changes and still catch up correctly. The
+connection indicator in the meeting room shows **Live**, **Reconnecting…**, or
+**Disconnected** so a participant can tell when the screen may not be current.
 
 ---
 
@@ -411,13 +436,15 @@ Browser
   │
   ├── On load: reads saved login token → restores session automatically
   │
-  ├── Every 2 seconds: silently checks for meeting / submission updates
-  │   (no manual refresh needed)
-  │
   ├── In real time via WebSocket:
   │     new submissions → updates admin panel + pending voters list
   │     phase change → all users' screens switch simultaneously
   │     task approved → participant's form locks immediately
+  │     meeting rescheduled → new date/time appears
+  │
+  ├── On returning to the page (or reconnecting):
+  │     re-joins the room → server sends full current state
+  │     (this is what covers updates missed while the tab was hidden)
   │
   └── On user action (form save, phase advance):
         sends data to server → server confirms → UI updates

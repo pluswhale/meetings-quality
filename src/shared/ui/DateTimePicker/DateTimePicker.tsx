@@ -50,8 +50,8 @@ export const DateTimePicker: React.FC<DateTimePickerProps> = ({
         calendarClassName="datepicker-calendar"
         popperClassName="datepicker-popper"
         showPopperArrow={false}
-        timeInputLabel="Точное время:"
-        showTimeInput
+        showTimeInput={showTimeSelect}
+        {...(showTimeSelect ? { timeInputLabel: 'Точное время:' } : {})}
       />
       <svg
         className="datepicker-icon"

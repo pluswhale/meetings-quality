@@ -38,3 +38,18 @@ export const isOverdue = (deadline: string | Date): boolean => {
 export const toISOString = (date: string | Date): string => {
   return new Date(date).toISOString();
 };
+
+/**
+ * Format a date as the `YYYY-MM-DD` value used by date inputs, based on the
+ * calendar date in the user's own timezone. Deriving it from `toISOString()`
+ * instead yields the previous day for timezones east of UTC, because a date
+ * picked at local midnight is still the day before in UTC.
+ */
+export const toDateInputValue = (date: string | Date): string => {
+  const parsed = new Date(date);
+  if (isNaN(parsed.getTime())) return '';
+
+  const month = String(parsed.getMonth() + 1).padStart(2, '0');
+  const day = String(parsed.getDate()).padStart(2, '0');
+  return `${parsed.getFullYear()}-${month}-${day}`;
+};

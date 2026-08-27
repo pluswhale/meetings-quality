@@ -323,6 +323,11 @@ export const useMeetingStore = create<MeetingRoomState & MeetingRoomActions>()(
 
     setPhase: (phase) =>
       set((state) => {
+        // Clearing per-phase state is only correct for a real transition. A
+        // replayed or duplicate phase event for the phase already on screen
+        // would otherwise discard the user's in-progress answers.
+        if (state.phase === phase) return;
+
         state.phase = phase;
         state.hasSubmitted = false;
         state.submittedUserIds = [];

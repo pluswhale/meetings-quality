@@ -6,22 +6,26 @@ import { MeetingResponseDtoCurrentPhase } from '@/src/shared/constants';
 import type { UseMeetingDataReturn } from '../state/meetingDetail.types';
 
 /**
- * Fetches the core meeting document once on mount.
+ * Fetches the core meeting document.
  *
- * There is NO refetchInterval here. Phase changes are pushed via the
- * room:phase_sync WebSocket event which calls:
+ * There is NO refetchInterval here. The WebSocket is the update channel:
+ * room:phase_changed and the recovery resync in useMeetingSocket both call
  *   queryClient.invalidateQueries({ queryKey: meetingDetailQueryKeys.meeting(meetingId) })
  *
- * This keeps the meeting document in sync without any polling overhead.
+ * staleTime is finite so that the automatic refetch triggers still apply —
+ * notably refetchOnReconnect, which never fires while data is treated as
+ * permanently fresh. Explicit invalidations refetch regardless of staleTime.
+ *
  * Statistics are only fetched after the meeting is finished.
  */
+const MEETING_STALE_TIME_MS = 30_000;
+
 export const useMeetingData = (meetingId: string): UseMeetingDataReturn => {
   const { data: meeting, isLoading } = useMeetingsControllerFindOne(meetingId, {
     query: {
       enabled: Boolean(meetingId),
-      staleTime: Infinity,
+      staleTime: MEETING_STALE_TIME_MS,
       refetchOnWindowFocus: false,
-      // No refetchInterval — invalidated by room:phase_sync WS event
     },
   });
 

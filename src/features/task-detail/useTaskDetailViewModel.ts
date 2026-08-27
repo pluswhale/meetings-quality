@@ -11,7 +11,7 @@ import {
   getTasksControllerFindAllQueryKey,
 } from '@/src/shared/api/generated/tasks/tasks';
 import { TaskDetailViewModel } from './types';
-import { toISOString } from '@/src/shared/lib';
+import { toDateInputValue, toISOString } from '@/src/shared/lib';
 
 export const useTaskDetailViewModel = (taskId: string): TaskDetailViewModel => {
   const navigate = useNavigate();
@@ -33,8 +33,7 @@ export const useTaskDetailViewModel = (taskId: string): TaskDetailViewModel => {
   useEffect(() => {
     if (task) {
       setDescription(task.description ?? '');
-      const dl = task.deadline ? new Date(task.deadline) : null;
-      setDeadline(dl && !isNaN(dl.getTime()) ? dl.toISOString().split('T')[0] : '');
+      setDeadline(task.deadline ? toDateInputValue(task.deadline) : '');
       setIsCompleted(task.isCompleted ?? false);
     }
   }, [task]);

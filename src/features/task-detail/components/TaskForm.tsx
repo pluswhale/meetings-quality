@@ -4,6 +4,7 @@
 
 import React from 'react';
 import { DateTimePicker } from '@/src/shared/ui';
+import { toDateInputValue } from '@/src/shared/lib';
 
 interface TaskFormProps {
   description: string;
@@ -52,7 +53,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({
               selected={deadline ? new Date(deadline) : null}
               onChange={(date: Date | null) => {
                 if (date) {
-                  onDeadlineChange(date.toISOString().split('T')[0]);
+                  onDeadlineChange(toDateInputValue(date));
                 }
               }}
               showTimeSelect={false}

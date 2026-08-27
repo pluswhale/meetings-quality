@@ -8,6 +8,7 @@
 
 import React from 'react';
 import { Slider, DateTimePicker } from '@/src/shared/ui';
+import { toDateInputValue } from '@/src/shared/lib';
 
 interface TaskPlanningFormProps {
   commonQuestion: string;
@@ -181,7 +182,7 @@ export const TaskPlanningForm: React.FC<TaskPlanningFormProps> = ({
             selected={deadline ? new Date(deadline) : null}
             onChange={(date: Date | null) => {
               if (date) {
-                onDeadlineChange(date.toISOString().split('T')[0]);
+                onDeadlineChange(toDateInputValue(date));
                 // Date picker has no blur — fire immediately on change
                 setTimeout(onLiveUpdate, 0);
               }
