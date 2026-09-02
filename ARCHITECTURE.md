@@ -12,8 +12,8 @@
 
 1. Rate each other's emotional contribution
 2. Assess their own understanding and distribute contribution credit across the team
-3. Commit to a personal task that arose from the meeting
-4. (Optionally) Evaluate the importance of everyone else's tasks
+3. Commit to one or more personal tasks that arose from the meeting, while the creator writes shared «Выводы встречи»
+4. Evaluate the importance of everyone else's tasks (each task is scored individually)
 
 The meeting **Creator** controls the pace — they advance the meeting through phases and have an admin view of all submitted answers in real time. **Participants** fill in the forms for each phase and can revisit earlier phases to update their answers.
 
@@ -141,7 +141,7 @@ DashboardView
 **What the user sees:**
 - Meeting title field
 - Main question field — the central topic the meeting will evaluate (multi-line)
-- Date & time picker for the scheduled meeting time
+- Date & time picker for the scheduled meeting time. A single «Время» list at 15-minute steps (no separate exact-time field). An already-scheduled off-step time is kept until a new time is chosen.
 - "Create" button
 
 **What happens on success:**
@@ -175,7 +175,7 @@ MeetingDetailView
         └── Meeting title + creation date
         └── PhaseIndicator (step bar)
   └── [Creator only] PendingVotersPanel
-  └── [Creator only] CreatorSubmissionsPanel (admin view of all answers)
+  └── [Creator only] CreatorAdminPanel (follows the phase the creator is reviewing; live results persist across phase switches)
   └── PhaseContent (the form for the current phase)
         └── UnderstandingScorePanel (always visible, all phases except Finished)
         └── [Phase-specific form — see section 4.5.3]
@@ -285,31 +285,23 @@ mid-phase. Live presence is shown only as a dot next to the name.
 
 **Phase 3 — Task Planning ("Задачи")**
 
-> Who fills it in: **All participants**
+> Who fills it in: **All participants** (tasks); **Creator only** for «Выводы встречи»
 
 What the participant sees:
-- **Global understanding** — text area: how the participant understood the meeting's main goal
-- **My task** — text area: what task they are personally committing to
-- **Time estimate** — numeric field (hours)
-- **Deadline** — date picker, calendar date only. There is deliberately no
-  exact-time control: a task deadline is meaningful to the day, and the time
-  portion was never used downstream.
-- **Expected contribution %** — slider (0–100%)
-- **Emotional state slider** — self-reported emotional state about the task
-- "Save changes" button
+- **Выводы встречи** — meeting-level text. Editable only by the creator; other participants see it live and read-only. Broadcast is throttled while the creator types.
+- **Task list** — one or more tasks. Each row has description, time estimate (hours), and a date-only deadline. «Добавить задачу» adds another row; an unapproved row can be removed.
+- Incomplete drafts stay local and are not persisted. A complete task is saved even if another row is still empty.
+- **Emotional state slider** — self-reported emotional state about planning
+- No submit button — complete tasks autosave on blur
 
-If the creator has **approved** the participant's task, all fields become read-only and a green "Approved" badge is shown. An informational note says "Task approved by organizer. Editing is locked."
+If the creator has **approved** a specific task, only that task's fields become read-only. Other tasks by the same person remain editable.
 
 ```
 PhaseContent
   └── TaskPlanningForm
-        └── Textarea (global understanding)
-        └── Textarea (task description)
-        └── Input (estimate hours)
-        └── DateTimePicker (deadline — date only, no time)
-        └── Slider (expected contribution %)
-        └── "Approved" badge (if approved)
-        └── Button "Save changes" (hidden if approved)
+        └── «Выводы встречи» (creator edits / others read-only)
+        └── Task rows (description, hours, date-only deadline, per-row approval)
+        └── Button «Добавить задачу»
   └── TaskEmotionalScaleSlider
         └── Slider (emotional state)
 ```
@@ -321,9 +313,10 @@ PhaseContent
 When the meeting creator advances past the last phase, the meeting is marked **Finished**. The meeting room switches to a full read-only summary view.
 
 What the user sees:
+- Meeting-level «Выводы встречи» when the creator wrote them (hidden if empty)
 - Complete list of all phase results across all participants:
   - Emotional evaluation scores (averages, top/bottom rated participants)
-  - Understanding scores per participant
+  - Understanding scores per participant (analytics cards; the old trailing «Понимание и вклад» list is not shown)
   - Contribution distribution summary
   - All submitted tasks with approval status
   - Task importance evaluation results (if available)
@@ -331,8 +324,8 @@ What the user sees:
 
 ```
 FinishedPhaseView
-  └── CreatorStatsPanels       (aggregated stats)
-  └── PhaseSubmissionsDisplay  (full response detail per participant)
+  └── AnalyticsDashboard
+  └── Phase result sections (emotional, tasks, evaluations)
   └── Button "Back to Dashboard"
 ```
 

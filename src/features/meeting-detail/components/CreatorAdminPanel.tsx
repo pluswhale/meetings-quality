@@ -15,6 +15,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   useMeetingStore,
   selectVotes,
+  selectVotesByPhase,
   selectVotingProgress,
   selectPendingVoters,
   selectParticipants,
@@ -24,6 +25,7 @@ import {
   type ActiveParticipant,
 } from '../store/useMeetingStore';
 import type { UseMeetingSocketReturn } from '../hooks/useMeetingSocket';
+import type { MeetingSubmissions } from '../../meeting/types';
 
 // ─── Типы ─────────────────────────────────────────────────────────────────────
 
@@ -111,16 +113,121 @@ interface Props {
   meetingId: string;
   socket: UseMeetingSocketReturn;
   absentParticipants?: AbsentParticipant[];
+  /** Phase the creator is looking at — may differ from the live phase. */
+  viewedPhase?: MeetingPhase | null;
+  /** Called when the creator wants to leave review mode. */
+  onReturnToLive?: () => void;
+  /** MongoDB snapshot used when Redis has nothing for the reviewed phase. */
+  submissions?: MeetingSubmissions | null;
+}
+
+function submissionsToVotes(
+  phase: MeetingPhase,
+  submissions: MeetingSubmissions | null,
+): Record<string, LiveVoteEntry> {
+  if (!submissions) return {};
+
+  const asEntry = (
+    userId: string,
+    fullName: string | null,
+    updatedAt: string,
+    payload: Record<string, unknown>,
+  ): [string, LiveVoteEntry] => [userId, { payload, fullName, updatedAt }];
+
+  if (phase === 'emotional_evaluation') {
+    return Object.fromEntries(
+      Object.entries(submissions.emotional_evaluation ?? {}).map(([id, s]) =>
+        asEntry(id, s.participant.fullName, s.submittedAt, {
+          evaluations: (s.evaluations ?? []).map((e) => ({
+            targetParticipantId: e.targetParticipant._id,
+            emotionalScale: e.emotionalScale,
+            isToxic: e.isToxic,
+          })),
+        }),
+      ),
+    );
+  }
+
+  if (phase === 'understanding_contribution') {
+    return Object.fromEntries(
+      Object.entries(submissions.understanding_contribution ?? {}).map(([id, s]) =>
+        asEntry(id, s.participant.fullName, s.submittedAt, {
+          understandingScore: s.understandingScore,
+          contributions: (s.contributions ?? []).map((c) => ({
+            participantId: c.participant._id,
+            contributionPercentage: c.contributionPercentage,
+          })),
+        }),
+      ),
+    );
+  }
+
+  if (phase === 'task_planning') {
+    const grouped = new Map<
+      string,
+      { fullName: string | null; submittedAt: string; tasks: Record<string, unknown>[] }
+    >();
+    for (const s of Object.values(submissions.task_planning ?? {})) {
+      const id = s.participant._id;
+      const existing = grouped.get(id) ?? {
+        fullName: s.participant.fullName,
+        submittedAt: s.submittedAt,
+        tasks: [],
+      };
+      existing.tasks.push({
+        taskKey: s.taskKey,
+        description: s.description,
+        taskDescription: s.description,
+        commonQuestion: s.commonQuestion,
+        deadline: s.deadline,
+        estimateHours: s.estimateHours,
+        expectedContributionPercentage: s.contributionImportance,
+        approved: s.approved,
+      });
+      grouped.set(id, existing);
+    }
+    return Object.fromEntries(
+      [...grouped.entries()].map(([id, g]) =>
+        asEntry(id, g.fullName, g.submittedAt, { tasks: g.tasks }),
+      ),
+    );
+  }
+
+  if (phase === 'task_evaluation') {
+    return Object.fromEntries(
+      Object.entries(submissions.task_evaluation ?? {}).map(([id, s]) =>
+        asEntry(id, s.participant.fullName, s.submittedAt, {
+          evaluations: (s.evaluations ?? []).map((e) => ({
+            ...(e.taskAuthor ? { taskAuthorId: e.taskAuthor._id } : {}),
+            ...(e.taskId ? { taskId: e.taskId } : {}),
+            importanceScore: e.importanceScore,
+          })),
+        }),
+      ),
+    );
+  }
+
+  return {};
 }
 
 export const CreatorAdminPanel: React.FC<Props> = ({
   meetingId: _meetingId,
   socket,
   absentParticipants = [],
+  viewedPhase = null,
+  onReturnToLive,
+  submissions = null,
 }) => {
-  const rawPhase = useMeetingStore((s) => s.phase);
-  const phase: MeetingPhase = rawPhase ?? 'emotional_evaluation';
-  const votes = useMeetingStore(selectVotes);
+  const livePhase = useMeetingStore((s) => s.phase);
+  const phase: MeetingPhase = viewedPhase ?? livePhase ?? 'emotional_evaluation';
+  const isReviewing = Boolean(viewedPhase && viewedPhase !== livePhase);
+  const votesByPhase = useMeetingStore(selectVotesByPhase);
+  const liveVotes = useMeetingStore(selectVotes);
+  const votes = useMemo(() => {
+    const fromLive = isReviewing ? (votesByPhase[phase] ?? {}) : liveVotes;
+    if (Object.keys(fromLive).length > 0) return fromLive;
+    return submissionsToVotes(phase, submissions);
+  }, [isReviewing, votesByPhase, phase, liveVotes, submissions]);
   const progress = useMeetingStore(selectVotingProgress);
   const pending = useMeetingStore(selectPendingVoters);
   const participants = useMeetingStore(selectParticipants);
@@ -131,7 +238,8 @@ export const CreatorAdminPanel: React.FC<Props> = ({
   const [search, setSearch] = useState('');
 
   const meta = PHASE_META[phase];
-  const nextPhase = NEXT_PHASE[phase];
+  const liveMeta = PHASE_META[livePhase ?? phase];
+  const nextPhase = isReviewing ? undefined : NEXT_PHASE[livePhase ?? phase];
   const total = participants.length || progress.total || 1;
   const submitted = progress.submitted || Object.keys(votes).length;
   const pct = Math.min(100, Math.round((submitted / total) * 100));
@@ -171,7 +279,8 @@ export const CreatorAdminPanel: React.FC<Props> = ({
   }, [pending.length, absentParticipants.length, advanceConfirm, nextPhase, socket]);
 
   const handleApprove = useCallback(
-    (userId: string, approved: boolean) => socket.emitApproveTask(userId, approved),
+    (userId: string, approved: boolean, taskKey?: string) =>
+      socket.emitApproveTask(taskKey ?? userId, approved, userId),
     [socket],
   );
 
@@ -196,9 +305,16 @@ export const CreatorAdminPanel: React.FC<Props> = ({
             </span>
             <div>
               <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
-                Панель организатора · Прямой эфир
+                {isReviewing
+                  ? 'Панель организатора · Просмотр прошлого этапа'
+                  : 'Панель организатора · Прямой эфир'}
               </p>
               <h2 className="text-base font-black text-slate-800 leading-tight">{meta.label}</h2>
+              {isReviewing && livePhase && (
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Текущий этап: {liveMeta.label}
+                </p>
+              )}
             </div>
           </div>
 
@@ -210,6 +326,15 @@ export const CreatorAdminPanel: React.FC<Props> = ({
               <span className="text-slate-800 font-black">{total}</span>
               {' '}проголосовали
             </span>
+
+            {isReviewing && onReturnToLive && (
+              <button
+                onClick={onReturnToLive}
+                className="rounded-xl px-4 py-2 text-xs font-bold bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 shadow-sm"
+              >
+                ← К текущему этапу
+              </button>
+            )}
 
             {nextLabel && (
               <button
@@ -368,7 +493,7 @@ interface CardProps {
   approvalState: ApprovalState;
   accent: string;
   participantMap: Record<string, string | null>;
-  onApprove: (userId: string, approved: boolean) => void;
+  onApprove: (userId: string, approved: boolean, taskKey?: string) => void;
 }
 
 const ParticipantCard: React.FC<CardProps> = ({
@@ -525,7 +650,7 @@ const VoteContent: React.FC<{
   phase: MeetingPhase;
   approvalState: ApprovalState;
   participantMap: Record<string, string | null>;
-  onApprove: (userId: string, approved: boolean) => void;
+  onApprove: (userId: string, approved: boolean, taskKey?: string) => void;
 }> = ({ userId, vote, phase, approvalState, participantMap, onApprove }) => {
   const time = new Date(vote.updatedAt).toLocaleTimeString('ru-RU', {
     hour: '2-digit', minute: '2-digit', second: '2-digit',
@@ -662,80 +787,123 @@ const TaskContent: React.FC<{
   userId: string;
   payload: Record<string, unknown>;
   approvalState: ApprovalState;
-  onApprove: (userId: string, approved: boolean) => void;
+  onApprove: (userId: string, approved: boolean, taskKey?: string) => void;
 }> = ({ userId, payload, approvalState, onApprove }) => {
-  const desc = payload.taskDescription as string | undefined;
-  const common = payload.commonQuestion as string | undefined;
-  const hours = payload.estimateHours as number | undefined;
-  const contrib = payload.expectedContributionPercentage as number | undefined;
+  const taskApprovals = useMeetingStore(selectTaskApprovals);
 
-  const deadline = (() => {
-    if (!payload.deadline) return null;
+  type TaskItem = {
+    taskKey?: string;
+    description?: string;
+    taskDescription?: string;
+    deadline?: string;
+    estimateHours?: number;
+    expectedContributionPercentage?: number;
+    approved?: boolean;
+  };
+
+  const items: TaskItem[] =
+    Array.isArray(payload.tasks) && (payload.tasks as TaskItem[]).length > 0
+      ? (payload.tasks as TaskItem[])
+      : [
+          {
+            taskKey: undefined,
+            description: payload.taskDescription as string | undefined,
+            deadline: payload.deadline as string | undefined,
+            estimateHours: payload.estimateHours as number | undefined,
+            expectedContributionPercentage: payload.expectedContributionPercentage as
+              | number
+              | undefined,
+          },
+        ];
+
+  const formatDeadline = (raw?: string) => {
+    if (!raw) return null;
     try {
-      const d = new Date(payload.deadline as string);
+      const d = new Date(raw);
       if (isNaN(d.getTime())) return null;
       return d.toLocaleDateString('ru-RU', { day: '2-digit', month: 'short' });
-    } catch { return null; }
-  })();
+    } catch {
+      return null;
+    }
+  };
 
   return (
-    <div className="space-y-3">
-      {desc ? (
-        <p className="text-sm text-slate-800 font-semibold leading-snug">{desc}</p>
-      ) : (
-        <p className="text-xs text-slate-400 italic">Участник ещё заполняет форму…</p>
-      )}
+    <div className="space-y-4">
+      {items.map((item, index) => {
+        const desc = item.description ?? item.taskDescription;
+        const taskKey = item.taskKey;
+        const approvalKey = taskKey ? `${userId}:${taskKey}` : userId;
+        const state = resolveApproval(
+          taskApprovals[approvalKey] ??
+            (taskKey ? taskApprovals[userId] : undefined) ??
+            (typeof item.approved === 'boolean' ? item.approved : undefined) ??
+            (items.length === 1 ? (approvalState === 'pending' ? undefined : approvalState === 'approved') : undefined),
+        );
+        const deadline = formatDeadline(item.deadline);
+        const hours = item.estimateHours;
+        const contrib = item.expectedContributionPercentage;
 
-      {common && (
-        <p className="text-[11px] text-slate-500 italic border-l-2 border-slate-300 pl-2 leading-snug">
-          «{common}»
-        </p>
-      )}
-
-      <div className="flex flex-wrap gap-1.5">
-        {deadline && <MetaChip icon="📅">{deadline}</MetaChip>}
-        {hours !== undefined && hours > 0 && <MetaChip icon="⏱">{hours} ч.</MetaChip>}
-        {contrib !== undefined && contrib > 0 && <MetaChip icon="📊">{contrib}%</MetaChip>}
-      </div>
-
-      {/* ── Кнопки одобрения ── */}
-      {approvalState === 'pending' && (
-        // Только «Одобрить» — отклонить нельзя без предварительного одобрения
-        <button
-          onClick={() => onApprove(userId, true)}
-          className="w-full rounded-xl py-2 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-all active:scale-[0.97]"
-        >
-          ✓ Одобрить задачу
-        </button>
-      )}
-
-      {approvalState === 'approved' && (
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-bold px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200">
-            ✓ Одобрено
-          </span>
-          <button
-            onClick={() => onApprove(userId, false)}
-            className="text-xs font-bold px-3 py-1.5 rounded-xl bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition-all active:scale-[0.97]"
+        return (
+          <div
+            key={taskKey ?? `legacy-${index}`}
+            className="space-y-3 border-t border-slate-100 first:border-t-0 first:pt-0 pt-3"
           >
-            Отклонить
-          </button>
-        </div>
-      )}
+            {items.length > 1 && (
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
+                Задача {index + 1}
+              </p>
+            )}
+            {desc ? (
+              <p className="text-sm text-slate-800 font-semibold leading-snug">{desc}</p>
+            ) : (
+              <p className="text-xs text-slate-400 italic">Участник ещё заполняет форму…</p>
+            )}
 
-      {approvalState === 'rejected' && (
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-bold px-3 py-1.5 rounded-xl bg-red-50 text-red-600 border border-red-200">
-            ✗ Отклонено
-          </span>
-          <button
-            onClick={() => onApprove(userId, true)}
-            className="text-xs font-bold px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition-all active:scale-[0.97]"
-          >
-            Одобрить снова
-          </button>
-        </div>
-      )}
+            <div className="flex flex-wrap gap-1.5">
+              {deadline && <MetaChip icon="📅">{deadline}</MetaChip>}
+              {hours !== undefined && hours > 0 && <MetaChip icon="⏱">{hours} ч.</MetaChip>}
+              {contrib !== undefined && contrib > 0 && <MetaChip icon="📊">{contrib}%</MetaChip>}
+            </div>
+
+            {state === 'pending' && (
+              <button
+                onClick={() => onApprove(userId, true, taskKey)}
+                className="w-full rounded-xl py-2 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-all active:scale-[0.97]"
+              >
+                ✓ Одобрить задачу
+              </button>
+            )}
+
+            {state === 'approved' && (
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  ✓ Одобрено
+                </span>
+                <button
+                  onClick={() => onApprove(userId, false, taskKey)}
+                  className="text-xs font-bold px-3 py-1.5 rounded-xl bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition-all active:scale-[0.97]"
+                >
+                  Отклонить
+                </button>
+              </div>
+            )}
+
+            {state === 'rejected' && (
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold px-3 py-1.5 rounded-xl bg-red-50 text-red-600 border border-red-200">
+                  ✗ Отклонено
+                </span>
+                <button
+                  onClick={() => onApprove(userId, true, taskKey)}
+                  className="text-xs font-bold px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition-all active:scale-[0.97]"
+                >
+                  Одобрить снова
+                </button>
+              </div>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 };
@@ -747,7 +915,8 @@ const EvaluationContent: React.FC<{
   participantMap: Record<string, string | null>;
 }> = ({ payload, participantMap }) => {
   const evals = (payload.evaluations ?? []) as Array<{
-    taskAuthorId: string;
+    taskAuthorId?: string;
+    taskId?: string;
     importanceScore: number;
   }>;
 
@@ -757,10 +926,14 @@ const EvaluationContent: React.FC<{
 
   return (
     <div className="space-y-1.5">
-      {evals.map((e) => {
-        const name = participantMap[e.taskAuthorId] ?? 'Нет данных';
+      {evals.map((e, idx) => {
+        const name = e.taskAuthorId
+          ? (participantMap[e.taskAuthorId] ?? 'Нет данных')
+          : e.taskId
+            ? `Задача ${e.taskId.slice(-4)}`
+            : 'Нет данных';
         return (
-          <div key={e.taskAuthorId} className="flex items-center gap-2">
+          <div key={e.taskId ?? e.taskAuthorId ?? idx} className="flex items-center gap-2">
             <span className="text-[10px] text-slate-700 flex-1 truncate font-medium">{name}</span>
             <div className="w-16 h-1.5 bg-slate-200 rounded-full overflow-hidden">
               <div

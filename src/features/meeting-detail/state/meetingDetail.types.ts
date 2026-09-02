@@ -129,31 +129,43 @@ export interface UseUnderstandingContributionReturn {
   handleLiveUpdate: () => void;
 }
 
-export interface UseTaskPlanningReturn {
-  taskDescription: string;
-  setTaskDescription: React.Dispatch<React.SetStateAction<string>>;
-  commonQuestion: string;
-  setCommonQuestion: React.Dispatch<React.SetStateAction<string>>;
+export interface PlanningTaskDraft {
+  taskKey: string;
+  description: string;
   estimateHours: string;
-  onChangeEstimateHours: (v: string) => void;
   deadline: string;
-  setDeadline: React.Dispatch<React.SetStateAction<string>>;
   expectedContribution: number;
-  setExpectedContribution: React.Dispatch<React.SetStateAction<number>>;
+}
+
+export interface UseTaskPlanningReturn {
+  tasks: PlanningTaskDraft[];
+  addTask: () => void;
+  removeTask: (taskKey: string) => void;
+  updateTask: (taskKey: string, patch: Partial<PlanningTaskDraft>) => void;
+  onChangeEstimateHours: (taskKey: string, v: string) => void;
+  isTaskApproved: (taskKey: string) => boolean;
+  isDraftComplete: (task: PlanningTaskDraft) => boolean;
   taskEmotionalScale: number;
   setTaskEmotionalScale: React.Dispatch<React.SetStateAction<number>>;
-  isMyTaskApproved: boolean;
-  /** True only when all required task fields are filled — until then nothing is persisted. */
+  /** True when at least one task is complete and persisted. */
   isTaskPlanningValid: boolean;
-  /** Fires on every field blur / slider release — persists immediately. */
+  /** Fires on every field blur / slider release — persists complete tasks. */
   handleLiveUpdate: () => void;
+}
+
+export interface EvaluableTask {
+  _id: string;
+  description: string;
+  authorId: string;
+  authorName: string;
 }
 
 export interface UseTaskEvaluationReturn {
   taskEvaluations: Record<string, number>;
   setTaskEvaluations: React.Dispatch<React.SetStateAction<Record<string, number>>>;
+  evaluableTasks: EvaluableTask[];
   /** Fires on every slider release — persists immediately. */
-  handleLiveUpdate: (authorId: string, score: number) => void;
+  handleLiveUpdate: (taskId: string, score: number) => void;
 }
 
 export interface UseTaskApprovalReturn {

@@ -4,6 +4,7 @@ export { PhaseContent } from './PhaseContent';
 export { EmotionalEvaluationTable } from './EmotionalEvaluationTable';
 export { ContributionDistributionPanel } from './ContributionDistributionPanel';
 export { TaskPlanningForm } from './TaskPlanningForm';
+export { TaskEvaluationForm } from './TaskEvaluationForm';
 export { UnderstandingScorePanel } from './UnderstandingScorePanel';
 export { TaskEmotionalScaleSlider } from './TaskEmotionalScaleSlider';
 export { PendingVotersPanel } from './PendingVotersPanel';

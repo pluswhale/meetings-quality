@@ -100,18 +100,22 @@ interface MeetingRoomState {
   retroStatuses: Record<string, RetroTaskStatus>; // keyed by taskId
 
   /**
-   * Live votes map: votes[userId] = { payload, fullName, updatedAt }
-   * Populated on room:state_sync (hydration) and updated on room:vote_updated (live).
-   * Keyed by userId with latest payload per user for the CURRENT phase.
-   * Cleared on phase change.
+   * Live votes for the current phase. Derived from votesByPhase[phase] and
+   * kept in sync so existing consumers of `selectVotes` keep working.
    */
   votes: Record<string, LiveVoteEntry>;
+  /**
+   * Results of every phase entered so far. Survives phase transitions.
+   * votesByPhase[phase][userId] = LiveVoteEntry
+   */
+  votesByPhase: Record<string, Record<string, LiveVoteEntry>>;
+  /** Meeting-level «Выводы встречи», written by the creator. */
+  conclusions: string;
   votingProgress: VotingProgress;
 
   /**
-   * Task approval map: taskApprovals[userId] = true|false
-   * Updated in real-time via room:task_approval_updated.
-   * userId === taskId during Phase 3 (one task per participant).
+   * Task approval map. Keys are `${userId}:${taskKey}` for the multi-task
+   * flow, or `userId` for the legacy one-task-per-user path.
    */
   taskApprovals: Record<string, boolean>;
 
@@ -130,9 +134,11 @@ interface MeetingRoomState {
   taskEstimateHours: number;
   /** Set to true when the creator approves this user's task via room:task_approved. */
   myTaskApproved: boolean;
+  /** Per-task approval, keyed by taskKey (falls back to userId for legacy). */
+  myTaskApprovals: Record<string, boolean>;
 
-  // Task Evaluation local (Phase 4)
-  taskEvaluations: Record<string, number>; // taskAuthorId → importanceScore
+  // Task Evaluation local (Phase 4) — keyed by task `_id`
+  taskEvaluations: Record<string, number>;
 
   // Connection
   isConnected: boolean;
@@ -187,13 +193,14 @@ interface MeetingRoomActions {
     'taskExpectedContribution' | 'taskEstimateHours'
   >, value: number) => void;
 
-  setMyTaskApproved: (approved: boolean) => void;
+  setMyTaskApproved: (approved: boolean, taskKey?: string) => void;
 
   // Task Evaluation
   setTaskEvaluation: (taskAuthorId: string, score: number) => void;
 
   // Live votes (real-time from room:vote_updated and room:state_sync)
-  updateVote: (userId: string, entry: LiveVoteEntry) => void;
+  updateVote: (userId: string, entry: LiveVoteEntry, phase?: MeetingPhase) => void;
+  setConclusions: (text: string) => void;
 
   // Task approvals (real-time from room:task_approval_updated)
   setTaskApprovalInStore: (userId: string, approved: boolean) => void;
@@ -229,6 +236,8 @@ const initialState: MeetingRoomState = {
   retroStatuses: {},
 
   votes: {},
+  votesByPhase: {},
+  conclusions: '',
   votingProgress: { submitted: 0, total: 0, percentage: 0 },
   taskApprovals: {},
 
@@ -241,6 +250,7 @@ const initialState: MeetingRoomState = {
   taskExpectedContribution: 0,
   taskEstimateHours: 0,
   myTaskApproved: false,
+  myTaskApprovals: {},
   taskEvaluations: {},
 
   isConnected: false,
@@ -280,14 +290,34 @@ export const useMeetingStore = create<MeetingRoomState & MeetingRoomActions>()(
         );
 
         // Hydrate live votes from server snapshot.
-        // Server sends votes as Record<userId, { payload, fullName, updatedAt }>.
-        const serverVotes = (payload as Record<string, unknown>).votes as
-          | Record<string, LiveVoteEntry>
+        // Prefer votesByPhase (all phases); fall back to the flat `votes` map
+        // for the live phase so an older server still hydrates the panel.
+        const extra = payload as Record<string, unknown>;
+        const serverByPhase = extra.votesByPhase as
+          | Record<string, Record<string, LiveVoteEntry>>
           | undefined;
+        if (serverByPhase && typeof serverByPhase === 'object') {
+          for (const [p, map] of Object.entries(serverByPhase)) {
+            state.votesByPhase[p] = { ...(state.votesByPhase[p] ?? {}), ...map };
+          }
+        }
+
+        const serverVotes = extra.votes as Record<string, LiveVoteEntry> | undefined;
         if (serverVotes && typeof serverVotes === 'object') {
-          // Merge: server is the authoritative baseline; keep any votes that
-          // arrived live before this sync (keyed by userId — last write wins).
-          state.votes = { ...state.votes, ...serverVotes };
+          const livePhase = (payload.phase ?? state.phase) as string | null;
+          if (livePhase) {
+            state.votesByPhase[livePhase] = {
+              ...(state.votesByPhase[livePhase] ?? {}),
+              ...serverVotes,
+            };
+          }
+        }
+
+        const live = (payload.phase ?? state.phase) as string | null;
+        state.votes = live ? (state.votesByPhase[live] ?? {}) : {};
+
+        if (typeof extra.conclusions === 'string') {
+          state.conclusions = extra.conclusions;
         }
 
         // Hydrate task approval flags — sent by the server in room:state_sync.
@@ -333,13 +363,16 @@ export const useMeetingStore = create<MeetingRoomState & MeetingRoomActions>()(
         state.submittedUserIds = [];
         state.pendingVoters = [...state.participants];
         state.myDraft = null;
-        // Clear all per-phase state on transition
+        // Local form fields are reset so the incoming phase starts clean;
+        // each form hook rehydrates from votesByPhase[phase][self].
         state.emotionalEvaluations = {};
         state.contributions = {};
         state.taskEvaluations = {};
         state.myTaskApproved = false;
-        // Clear live votes and approvals — next state_sync re-hydrates for the new phase.
-        state.votes = {};
+        state.myTaskApprovals = {};
+        // Prior phases' results stay in votesByPhase. Point `votes` at the
+        // new live phase so existing panel consumers keep working.
+        state.votes = state.votesByPhase[phase] ?? {};
         state.taskApprovals = {};
       }),
 
@@ -391,9 +424,10 @@ export const useMeetingStore = create<MeetingRoomState & MeetingRoomActions>()(
         (state as Record<string, unknown>)[field] = value;
       }),
 
-    setMyTaskApproved: (approved) =>
+    setMyTaskApproved: (approved, taskKey) =>
       set((state) => {
         state.myTaskApproved = approved;
+        if (taskKey) state.myTaskApprovals[taskKey] = approved;
       }),
 
     setTaskEvaluation: (taskAuthorId, score) =>
@@ -401,9 +435,23 @@ export const useMeetingStore = create<MeetingRoomState & MeetingRoomActions>()(
         state.taskEvaluations[taskAuthorId] = score;
       }),
 
-    updateVote: (userId, entry) =>
+    updateVote: (userId, entry, phase) =>
       set((state) => {
-        state.votes[userId] = entry;
+        const targetPhase = phase ?? state.phase;
+        if (!targetPhase) {
+          state.votes[userId] = entry;
+          return;
+        }
+        if (!state.votesByPhase[targetPhase]) state.votesByPhase[targetPhase] = {};
+        state.votesByPhase[targetPhase][userId] = entry;
+        if (targetPhase === state.phase) {
+          state.votes[userId] = entry;
+        }
+      }),
+
+    setConclusions: (text) =>
+      set((state) => {
+        state.conclusions = text;
       }),
 
     setTaskApprovalInStore: (userId, approved) =>
@@ -446,6 +494,8 @@ export const selectRetroTasks = (s: MeetingRoomState) => s.retroTasks;
 export const selectRetroStatuses = (s: MeetingRoomState) => s.retroStatuses;
 /** All live votes for the current phase: votes[userId] = { payload, fullName, updatedAt } */
 export const selectVotes = (s: MeetingRoomState) => s.votes;
+export const selectVotesByPhase = (s: MeetingRoomState) => s.votesByPhase;
+export const selectConclusions = (s: MeetingRoomState) => s.conclusions;
 /** Task approval map: taskApprovals[userId] = true|false */
 export const selectTaskApprovals = (s: MeetingRoomState) => s.taskApprovals;
 export const selectVotingProgress = (s: MeetingRoomState) => s.votingProgress;

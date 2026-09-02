@@ -100,6 +100,15 @@ export function FinishedPhaseView({
       {/* ── Analytics Dashboard ── */}
       <AnalyticsDashboard meeting={meeting} resolveName={resolveName} />
 
+      {meeting.conclusions?.trim() ? (
+        <section className="space-y-4">
+          <h2 className="text-2xl font-black">Выводы встречи</h2>
+          <div className="p-6 bg-white rounded-3xl border">
+            <p className="text-slate-800 font-medium whitespace-pre-wrap">{meeting.conclusions}</p>
+          </div>
+        </section>
+      ) : null}
+
       {/* Emotional Evaluations */}
       {meeting.emotionalEvaluations?.length > 0 && (
         <section className="space-y-6">
@@ -127,32 +136,6 @@ export function FinishedPhaseView({
                         </span>
                       )}
                     </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </section>
-      )}
-
-      {/* Understanding & Contribution */}
-      {meeting.understandingContributions?.length > 0 && (
-        <section className="space-y-6">
-          <h2 className="text-2xl font-black">Понимание и вклад</h2>
-          {meeting.understandingContributions.map((uc: any) => (
-            <div
-              key={uc.participant?._id ?? uc.participantId}
-              className="p-6 bg-white rounded-3xl border space-y-4"
-            >
-              <div className="flex items-center justify-between">
-                <UserBadge user={uc.participant} />
-                <span className="text-2xl font-black text-blue-600">{uc.understandingScore}%</span>
-              </div>
-              <div className="space-y-2">
-                {uc.contributions?.map((c: any, idx: number) => (
-                  <div key={idx} className="flex justify-between text-sm text-slate-600">
-                    <span>{resolveName(c.participantId)}</span>
-                    <span>{c.contributionPercentage}%</span>
                   </div>
                 ))}
               </div>

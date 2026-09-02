@@ -38,7 +38,7 @@ export const DateTimePicker: React.FC<DateTimePickerProps> = ({
         onChange={onChange}
         showTimeSelect={showTimeSelect}
         timeFormat="HH:mm"
-        timeIntervals={1}
+        timeIntervals={15}
         dateFormat={showTimeSelect ? "dd.MM.yyyy HH:mm" : "dd.MM.yyyy"}
         timeCaption="Время"
         locale="ru"
@@ -50,8 +50,6 @@ export const DateTimePicker: React.FC<DateTimePickerProps> = ({
         calendarClassName="datepicker-calendar"
         popperClassName="datepicker-popper"
         showPopperArrow={false}
-        showTimeInput={showTimeSelect}
-        {...(showTimeSelect ? { timeInputLabel: 'Точное время:' } : {})}
       />
       <svg
         className="datepicker-icon"

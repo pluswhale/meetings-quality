@@ -12,4 +12,5 @@ export { useEmotionalEvaluation } from './useEmotionalEvaluation';
 export { useUnderstandingContribution } from './useUnderstandingContribution';
 export { useTaskPlanning } from './useTaskPlanning';
 export { useTaskEvaluation } from './useTaskEvaluation';
+export { useMeetingConclusions } from './useMeetingConclusions';
 export { useTaskApproval } from './useTaskApproval';

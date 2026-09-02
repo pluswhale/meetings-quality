@@ -176,7 +176,8 @@ export interface UnderstandingContributionDto {
 }
 
 export interface TaskImportanceEvaluationItemDto {
-  taskAuthorId: string;
+  taskAuthorId?: string;
+  taskId?: string;
   /**
    * @minimum 0
    * @maximum 100
@@ -224,6 +225,8 @@ export interface MeetingResponseDto {
   currentPhase: MeetingResponseDtoCurrentPhase;
   status: MeetingResponseDtoStatus;
   upcomingDate: string;
+  /** Выводы встречи — заполняет организатор на этапе планирования задач. */
+  conclusions: string;
   emotionalEvaluations: EmotionalEvaluationDto[];
   understandingContributions: UnderstandingContributionDto[];
   taskEvaluations: TaskEvaluationDto[];
@@ -320,6 +323,7 @@ export interface TaskResponseDto {
   contributionImportance: number;
   approved: boolean;
   isCompleted: boolean;
+  taskKey?: string;
   createdAt: string;
   updatedAt: string;
 }

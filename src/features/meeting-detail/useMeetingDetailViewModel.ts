@@ -25,6 +25,7 @@ import { useUnderstandingContribution } from './hooks/useUnderstandingContributi
 import { useTaskPlanning } from './hooks/useTaskPlanning';
 import { useTaskEvaluation } from './hooks/useTaskEvaluation';
 import { useTaskApproval } from './hooks/useTaskApproval';
+import { useMeetingConclusions } from './hooks/useMeetingConclusions';
 import { usePendingVoters } from './hooks/usePendingVoters';
 import { useMeetingStore } from './store/useMeetingStore';
 
@@ -86,26 +87,25 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
   } = useUnderstandingContribution(meetingId, socket);
 
   const {
-    taskDescription,
-    setTaskDescription,
-    commonQuestion,
-    setCommonQuestion,
-    estimateHours,
+    tasks: planningTasks,
+    addTask: addPlanningTask,
+    removeTask: removePlanningTask,
+    updateTask: updatePlanningTask,
     onChangeEstimateHours,
-    deadline,
-    setDeadline,
-    expectedContribution,
-    setExpectedContribution,
+    isTaskApproved: isPlanningTaskApproved,
+    isDraftComplete: isPlanningDraftComplete,
     taskEmotionalScale,
     setTaskEmotionalScale,
-    isMyTaskApproved,
     isTaskPlanningValid,
     handleLiveUpdate: handleLiveUpdateTaskPlanning,
   } = useTaskPlanning(meetingId, currentUser?._id, socket);
 
+  const { conclusions, onConclusionsChange } = useMeetingConclusions(socket, isCreator);
+
   const {
     taskEvaluations,
     setTaskEvaluations,
+    evaluableTasks,
     handleLiveUpdate: handleLiveUpdateTaskEvaluation,
   } = useTaskEvaluation(meetingId, socket);
 
@@ -141,25 +141,25 @@ export const useMeetingDetailViewModel = (meetingId: string): MeetingDetailViewM
     setContributions,
     totalContribution,
 
-    taskDescription,
-    setTaskDescription,
-    estimateHours,
+    planningTasks,
+    addPlanningTask,
+    removePlanningTask,
+    updatePlanningTask,
     onChangeEstimateHours,
-    commonQuestion,
-    setCommonQuestion,
-    deadline,
-    setDeadline,
-    expectedContribution,
-    setExpectedContribution,
+    isPlanningTaskApproved,
+    isPlanningDraftComplete,
     taskEmotionalScale,
     setTaskEmotionalScale,
-    isMyTaskApproved,
     isTaskPlanningValid,
+    conclusions,
+    onConclusionsChange,
+    isMyTaskApproved: planningTasks.some((t) => isPlanningTaskApproved(t.taskKey)),
     handleApproveTask,
     isApprovingTask,
 
     taskEvaluations,
     setTaskEvaluations,
+    evaluableTasks,
 
     isChangingPhase,
 

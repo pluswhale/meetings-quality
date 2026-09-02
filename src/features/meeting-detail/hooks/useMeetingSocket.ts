@@ -31,7 +31,8 @@ export interface UseMeetingSocketReturn {
   emitUpdateLiveVote: (phase: MeetingPhase, payload: Record<string, unknown>) => void;
   emitRetroStatus: (taskId: string, status: 'completed' | 'incomplete', statusNote?: string) => void;
   emitAdvancePhase: (toPhase: MeetingPhase) => void;
-  emitApproveTask: (taskId: string, approved: boolean) => void;
+  emitApproveTask: (taskId: string, approved: boolean, authorUserId?: string) => void;
+  emitUpdateConclusions: (conclusions: string) => void;
   emitFinishMeeting: () => void;
 }
 
@@ -56,6 +57,7 @@ export const useMeetingSocket = (meetingId: string): UseMeetingSocketReturn => {
     setConnected,
     setReconnecting,
     setWaitingForCreator,
+    setConclusions,
     reset,
   } = useMeetingStore();
 
@@ -242,7 +244,7 @@ export const useMeetingSocket = (meetingId: string): UseMeetingSocketReturn => {
           fullName: data.fullName,
           updatedAt: data.updatedAt,
         };
-        updateVote(data.userId, entry);
+        updateVote(data.userId, entry, data.phase);
 
         // Mark self as having submitted data (for pending voters indicator)
         if (data.userId === userId) {
@@ -280,9 +282,9 @@ export const useMeetingSocket = (meetingId: string): UseMeetingSocketReturn => {
 
     socket.on(
       'room:task_approved',
-      (data: { meetingId: string; userId: string; approved: boolean }) => {
+      (data: { meetingId: string; userId: string; taskKey?: string; approved: boolean }) => {
         if (data.meetingId !== meetingId) return;
-        setMyTaskApproved(data.approved);
+        setMyTaskApproved(data.approved, data.taskKey);
         if (data.approved) {
           toast.success('Ваша задача одобрена организатором!');
         } else {
@@ -293,13 +295,30 @@ export const useMeetingSocket = (meetingId: string): UseMeetingSocketReturn => {
 
     socket.on(
       'room:task_approval_updated',
-      (data: { meetingId: string; taskId: string; approved: boolean }) => {
+      (data: {
+        meetingId: string;
+        taskId: string;
+        authorUserId?: string;
+        approved: boolean;
+      }) => {
         if (data.meetingId === meetingId) {
-          // taskId === userId during Phase 3 — update approval map in Zustand
-          setTaskApprovalInStore(data.taskId, data.approved);
+          const key =
+            data.authorUserId && data.authorUserId !== data.taskId
+              ? `${data.authorUserId}:${data.taskId}`
+              : data.taskId;
+          setTaskApprovalInStore(key, data.approved);
           queryClient.invalidateQueries({
             queryKey: meetingDetailQueryKeys.meetingTasks(meetingId),
           });
+        }
+      },
+    );
+
+    socket.on(
+      'room:conclusions_updated',
+      (data: { meetingId: string; conclusions: string }) => {
+        if (data.meetingId === meetingId) {
+          setConclusions(data.conclusions);
         }
       },
     );
@@ -403,8 +422,15 @@ export const useMeetingSocket = (meetingId: string): UseMeetingSocketReturn => {
   );
 
   const emitApproveTask = useCallback(
-    (taskId: string, approved: boolean) => {
-      emit('admin:approve_task', { meetingId, taskId, approved });
+    (taskId: string, approved: boolean, authorUserId?: string) => {
+      emit('admin:approve_task', { meetingId, taskId, approved, authorUserId });
+    },
+    [emit, meetingId],
+  );
+
+  const emitUpdateConclusions = useCallback(
+    (conclusions: string) => {
+      emit('admin:update_conclusions', { meetingId, conclusions });
     },
     [emit, meetingId],
   );
@@ -421,6 +447,7 @@ export const useMeetingSocket = (meetingId: string): UseMeetingSocketReturn => {
     emitRetroStatus,
     emitAdvancePhase,
     emitApproveTask,
+    emitUpdateConclusions,
     emitFinishMeeting,
   };
 };

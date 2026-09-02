@@ -23,8 +23,8 @@ export const meetingDetailQueryKeys = {
   /** Voting info — creator-only endpoint. */
   votingInfo: (meetingId: string) => [`/meetings/${meetingId}/voting-info`] as const,
 
-  /** Tasks collection keyed by meeting. Used for invalidation after approve/create. */
-  meetingTasks: (meetingId: string) => ['/tasks', 'meeting', meetingId] as const,
+  /** Tasks collection keyed by meeting. Matches Orval find-by-meeting. */
+  meetingTasks: (meetingId: string) => [`/tasks/meeting/${meetingId}`] as const,
 
   /** All tasks for the current user (populated by tasksControllerFindAll). */
   userTasks: () => ['/tasks'] as const,

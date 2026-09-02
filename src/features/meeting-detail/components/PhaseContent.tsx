@@ -13,6 +13,7 @@ import { EmotionalEvaluationTable } from './EmotionalEvaluationTable';
 import { UnderstandingScorePanel } from './UnderstandingScorePanel';
 import { ContributionDistributionPanel } from './ContributionDistributionPanel';
 import { TaskPlanningForm } from './TaskPlanningForm';
+import { TaskEvaluationForm } from './TaskEvaluationForm';
 import { TaskEmotionalScaleSlider } from './TaskEmotionalScaleSlider';
 import { MeetingDetailViewModel } from '../types';
 
@@ -69,26 +70,37 @@ export const PhaseContent: React.FC<PhaseContentProps> = ({ vm }) => {
   const renderTaskPlanningPhase = () => (
     <div className="space-y-12">
       <TaskPlanningForm
-        estimateHours={vm.estimateHours}
-        onEstimateHoursChange={vm.onChangeEstimateHours}
-        commonQuestion={vm.commonQuestion}
-        onCommonQuestionChange={vm.setCommonQuestion}
-        taskDescription={vm.taskDescription}
-        onTaskDescriptionChange={vm.setTaskDescription}
-        deadline={vm.deadline}
-        onDeadlineChange={vm.setDeadline}
-        expectedContribution={vm.expectedContribution}
-        onExpectedContributionChange={vm.setExpectedContribution}
+        tasks={vm.planningTasks}
+        onUpdateTask={vm.updatePlanningTask}
+        onChangeEstimateHours={vm.onChangeEstimateHours}
+        onAddTask={vm.addPlanningTask}
+        onRemoveTask={vm.removePlanningTask}
+        isTaskApproved={vm.isPlanningTaskApproved}
+        isDraftComplete={vm.isPlanningDraftComplete}
         onLiveUpdate={vm.handleLiveUpdateTaskPlanning}
-        isApproved={vm.isMyTaskApproved}
-        isValid={vm.isTaskPlanningValid}
+        conclusions={vm.conclusions}
+        onConclusionsChange={vm.onConclusionsChange}
+        isCreator={vm.isCreator}
       />
 
       <TaskEmotionalScaleSlider
         value={vm.taskEmotionalScale}
         onChange={vm.setTaskEmotionalScale}
         onAutoSave={vm.handleLiveUpdateTaskPlanning}
-        disabled={vm.isMyTaskApproved}
+        disabled={vm.planningTasks.every((t) => vm.isPlanningTaskApproved(t.taskKey))}
+      />
+    </div>
+  );
+
+  const renderTaskEvaluationPhase = () => (
+    <div className="space-y-12">
+      <TaskEvaluationForm
+        tasks={vm.evaluableTasks}
+        scores={vm.taskEvaluations}
+        onScoreChange={(taskId, score) =>
+          vm.setTaskEvaluations((prev) => ({ ...prev, [taskId]: score }))
+        }
+        onScoreCommit={vm.handleLiveUpdateTaskEvaluation}
       />
     </div>
   );
@@ -123,6 +135,8 @@ export const PhaseContent: React.FC<PhaseContentProps> = ({ vm }) => {
       {activePhase === MeetingResponseDtoCurrentPhase.understanding_contribution &&
         renderUnderstandingContributionPhase()}
       {activePhase === MeetingResponseDtoCurrentPhase.task_planning && renderTaskPlanningPhase()}
+      {activePhase === MeetingResponseDtoCurrentPhase.task_evaluation &&
+        renderTaskEvaluationPhase()}
 
       {/* Creator phase-advance control */}
       {isCreator && activePhase !== MeetingResponseDtoCurrentPhase.finished && (

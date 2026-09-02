@@ -5,6 +5,7 @@
 import { UserResponseDto } from '@/src/shared/api/generated/meetingsQualityAPI.schemas';
 import { ActiveParticipantsResponse } from './api/meeting-room.api';
 import type { MeetingSubmissions } from '@/src/features/meeting/types';
+import type { PlanningTaskDraft, EvaluableTask } from './state/meetingDetail.types';
 
 export interface EmotionalEvaluationState {
   emotionalScale: number;
@@ -75,23 +76,23 @@ export interface MeetingDetailViewModel {
   totalContribution: number;
 
   // Phase 3 state
-  taskDescription: string;
-  commonQuestion: string;
-  estimateHours: string;
-  onChangeEstimateHours: (v: string) => void;
-  setCommonQuestion: React.Dispatch<React.SetStateAction<string>>;
-  setTaskDescription: React.Dispatch<React.SetStateAction<string>>;
-  deadline: string;
-  setDeadline: React.Dispatch<React.SetStateAction<string>>;
-  expectedContribution: number;
-  setExpectedContribution: React.Dispatch<React.SetStateAction<number>>;
+  planningTasks: PlanningTaskDraft[];
+  addPlanningTask: () => void;
+  removePlanningTask: (taskKey: string) => void;
+  updatePlanningTask: (taskKey: string, patch: Partial<PlanningTaskDraft>) => void;
+  onChangeEstimateHours: (taskKey: string, v: string) => void;
+  isPlanningTaskApproved: (taskKey: string) => boolean;
+  isPlanningDraftComplete: (task: PlanningTaskDraft) => boolean;
   taskEmotionalScale: number;
   setTaskEmotionalScale: React.Dispatch<React.SetStateAction<number>>;
   isTaskPlanningValid: boolean;
+  conclusions: string;
+  onConclusionsChange: (value: string) => void;
 
   // Phase 4 state
   taskEvaluations: Record<string, number>;
   setTaskEvaluations: React.Dispatch<React.SetStateAction<Record<string, number>>>;
+  evaluableTasks: EvaluableTask[];
 
   // Mutations
   isChangingPhase: boolean;
@@ -105,7 +106,7 @@ export interface MeetingDetailViewModel {
   handleLiveUpdateEmotional: () => void;
   handleLiveUpdateUnderstanding: () => void;
   handleLiveUpdateTaskPlanning: () => void;
-  handleLiveUpdateTaskEvaluation: (authorId: string, score: number) => void;
+  handleLiveUpdateTaskEvaluation: (taskId: string, score: number) => void;
 
   handleNavigateBack: () => void;
 }

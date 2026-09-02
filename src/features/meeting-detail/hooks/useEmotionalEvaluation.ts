@@ -1,7 +1,8 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useMeetingStore } from '../store/useMeetingStore';
 import type { UseMeetingSocketReturn } from './useMeetingSocket';
 import type { UseEmotionalEvaluationReturn } from '../state/meetingDetail.types';
+import { useAuthStore } from '@/src/shared/store/auth.store';
 
 /**
  * Phase 1 — Emotional Evaluation.
@@ -20,6 +21,27 @@ export const useEmotionalEvaluation = (
 ): UseEmotionalEvaluationReturn => {
   const emotionalEvaluations = useMeetingStore((s) => s.emotionalEvaluations);
   const setEmotionalEntry = useMeetingStore((s) => s.setEmotionalEntry);
+  const currentUserId = useAuthStore((s) => s.currentUser?._id);
+  const phase = useMeetingStore((s) => s.phase);
+  const ownVote = useMeetingStore(
+    (s) => (currentUserId ? s.votesByPhase.emotional_evaluation?.[currentUserId] : undefined),
+  );
+
+  useEffect(() => {
+    if (!currentUserId || !ownVote?.payload) return;
+    const evals = ownVote.payload.evaluations as
+      | Array<{ targetParticipantId: string; emotionalScale: number; isToxic: boolean }>
+      | undefined;
+    if (!evals?.length) return;
+    const current = useMeetingStore.getState().emotionalEvaluations;
+    if (Object.keys(current).length > 0) return;
+    evals.forEach((e) =>
+      setEmotionalEntry(e.targetParticipantId, {
+        emotionalScale: e.emotionalScale ?? 0,
+        isToxic: e.isToxic ?? false,
+      }),
+    );
+  }, [currentUserId, ownVote, phase, setEmotionalEntry]);
 
   const setEmotionalEvaluations = useCallback(
     (updater: Parameters<UseEmotionalEvaluationReturn['setEmotionalEvaluations']>[0]) => {

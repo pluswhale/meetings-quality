@@ -35,6 +35,7 @@ import { useUnderstandingContribution } from '../hooks/useUnderstandingContribut
 import { useTaskPlanning } from '../hooks/useTaskPlanning';
 import { useTaskEvaluation } from '../hooks/useTaskEvaluation';
 import { useTaskApproval } from '../hooks/useTaskApproval';
+import { useMeetingConclusions } from '../hooks/useMeetingConclusions';
 
 // ─── View components ──────────────────────────────────────────────────────────
 import { MeetingHeader } from '../components/MeetingHeader';
@@ -45,7 +46,7 @@ import { CreatorAdminPanel } from '../components/CreatorAdminPanel';
 import { MeetingManageControls } from '../components/MeetingManageControls';
 
 import { isUserCreator } from '../lib';
-import { selectPhase, useMeetingStore } from '../store/useMeetingStore';
+import { selectPhase, useMeetingStore, type MeetingPhase } from '../store/useMeetingStore';
 
 export const MeetingDetailContainer: React.FC = () => {
   const { id: meetingId = '' } = useParams<{ id: string }>();
@@ -124,26 +125,25 @@ export const MeetingDetailContainer: React.FC = () => {
   } = useUnderstandingContribution(meetingId, socket);
 
   const {
-    taskDescription,
-    setTaskDescription,
-    commonQuestion,
-    setCommonQuestion,
-    estimateHours,
+    tasks: planningTasks,
+    addTask: addPlanningTask,
+    removeTask: removePlanningTask,
+    updateTask: updatePlanningTask,
     onChangeEstimateHours,
-    deadline,
-    setDeadline,
-    expectedContribution,
-    setExpectedContribution,
+    isTaskApproved: isPlanningTaskApproved,
+    isDraftComplete: isPlanningDraftComplete,
     taskEmotionalScale,
     setTaskEmotionalScale,
-    isMyTaskApproved,
     isTaskPlanningValid,
     handleLiveUpdate: handleLiveUpdateTaskPlanning,
   } = useTaskPlanning(meetingId, currentUser?._id, socket);
 
+  const { conclusions, onConclusionsChange } = useMeetingConclusions(socket, isCreator);
+
   const {
     taskEvaluations,
     setTaskEvaluations,
+    evaluableTasks,
     handleLiveUpdate: handleLiveUpdateTaskEvaluation,
   } = useTaskEvaluation(meetingId, socket);
 
@@ -242,25 +242,25 @@ export const MeetingDetailContainer: React.FC = () => {
     setContributions,
     totalContribution,
 
-    taskDescription,
-    setTaskDescription,
-    estimateHours,
+    planningTasks,
+    addPlanningTask,
+    removePlanningTask,
+    updatePlanningTask,
     onChangeEstimateHours,
-    commonQuestion,
-    setCommonQuestion,
-    deadline,
-    setDeadline,
-    expectedContribution,
-    setExpectedContribution,
+    isPlanningTaskApproved,
+    isPlanningDraftComplete,
     taskEmotionalScale,
     setTaskEmotionalScale,
-    isMyTaskApproved,
     isTaskPlanningValid,
+    conclusions,
+    onConclusionsChange,
+    isMyTaskApproved: planningTasks.some((t) => isPlanningTaskApproved(t.taskKey)),
     handleApproveTask,
     isApprovingTask,
 
     taskEvaluations,
     setTaskEvaluations,
+    evaluableTasks,
 
     isChangingPhase,
 
@@ -299,7 +299,7 @@ export const MeetingDetailContainer: React.FC = () => {
 
       {isCreator && <MeetingManageControls meeting={meeting} />}
 
-      {!isCreator && viewedPhase && (
+      {viewedPhase && (
         <ViewingPreviousPhaseAlert onReturn={handleReturnToCurrentPhase} />
       )}
 
@@ -314,6 +314,9 @@ export const MeetingDetailContainer: React.FC = () => {
             meetingId={meetingId}
             socket={socket}
             absentParticipants={absentParticipants}
+            viewedPhase={(viewedPhase as MeetingPhase | null) ?? null}
+            onReturnToLive={handleReturnToCurrentPhase}
+            submissions={phaseSubmissions}
           />
         )}
 

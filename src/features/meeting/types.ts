@@ -62,6 +62,7 @@ export interface UnderstandingSubmission {
 export interface TaskSubmission {
   participant: MeetingParticipantRefDto;
   taskId: string;
+  taskKey?: string;
   submitted: boolean;
   submittedAt: string;
   description: string;
@@ -76,7 +77,8 @@ export interface TaskSubmission {
 // ─── Task evaluation ──────────────────────────────────────────────────────────
 
 export interface TaskEvaluationEntry {
-  taskAuthor: ParticipantCompactRef;
+  taskAuthor?: ParticipantCompactRef;
+  taskId?: string;
   importanceScore: number;
 }
 
