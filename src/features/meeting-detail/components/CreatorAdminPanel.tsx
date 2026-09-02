@@ -26,6 +26,7 @@ import {
 } from '../store/useMeetingStore';
 import type { UseMeetingSocketReturn } from '../hooks/useMeetingSocket';
 import type { MeetingSubmissions } from '../../meeting/types';
+import { participantDisplayName } from '../lib';
 
 // ─── Типы ─────────────────────────────────────────────────────────────────────
 
@@ -119,6 +120,8 @@ interface Props {
   onReturnToLive?: () => void;
   /** MongoDB snapshot used when Redis has nothing for the reviewed phase. */
   submissions?: MeetingSubmissions | null;
+  /** Invited roster names (REST), used when the socket payload has no fullName. */
+  rosterNames?: Record<string, string>;
 }
 
 function submissionsToVotes(
@@ -217,6 +220,7 @@ export const CreatorAdminPanel: React.FC<Props> = ({
   viewedPhase = null,
   onReturnToLive,
   submissions = null,
+  rosterNames = {},
 }) => {
   const livePhase = useMeetingStore((s) => s.phase);
   const phase: MeetingPhase = viewedPhase ?? livePhase ?? 'emotional_evaluation';
@@ -247,13 +251,16 @@ export const CreatorAdminPanel: React.FC<Props> = ({
   const pendingSet = new Set(pending.map((p) => p.userId));
 
   // userId → display name for content sub-components
-  const participantMap = useMemo(
-    () =>
-      Object.fromEntries(
-        participants.map((p) => [p.userId, p.fullName ?? null]),
-      ),
-    [participants],
-  );
+  const participantMap = useMemo(() => {
+    const map: Record<string, string | null> = { ...rosterNames };
+    participants.forEach((p) => {
+      map[p.userId] = participantDisplayName(
+        { fullName: map[p.userId] ?? p.fullName, email: p.email },
+        'Нет данных',
+      );
+    });
+    return map;
+  }, [participants, rosterNames]);
 
   // Client-side search filter (case-insensitive, matches any part of the name or email)
   const filteredParticipants = useMemo(() => {
@@ -445,10 +452,14 @@ export const CreatorAdminPanel: React.FC<Props> = ({
                     const vote = votes[p.userId];
                     const isPending = pendingSet.has(p.userId);
                     const approvalState = resolveApproval(taskApprovals[p.userId]);
+                    const named = {
+                      ...p,
+                      fullName: rosterNames[p.userId] || p.fullName,
+                    };
                     return (
                       <ParticipantCard
                         key={p.userId}
-                        participant={p}
+                        participant={named}
                         vote={vote ?? null}
                         phase={phase}
                         isPending={isPending}
@@ -506,7 +517,10 @@ const ParticipantCard: React.FC<CardProps> = ({
   participantMap,
   onApprove,
 }) => {
-  const displayName = participant.fullName ?? 'Нет данных';
+  const displayName = participantDisplayName(
+    { fullName: participant.fullName, email: participant.email },
+    'Нет данных',
+  );
   const initials = displayName === 'Нет данных'
     ? '?'
     : displayName.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase();
@@ -578,7 +592,10 @@ const ParticipantCard: React.FC<CardProps> = ({
 // ─── Карточка отсутствующего участника ────────────────────────────────────────
 
 const AbsentParticipantCard: React.FC<{ participant: AbsentParticipant }> = ({ participant }) => {
-  const displayName = participant.fullName ?? 'Нет данных';
+  const displayName = participantDisplayName(
+    { fullName: participant.fullName, email: participant.email },
+    'Нет данных',
+  );
   const initials = displayName === 'Нет данных'
     ? '?'
     : displayName.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase();

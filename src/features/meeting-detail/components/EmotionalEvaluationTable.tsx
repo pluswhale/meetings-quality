@@ -72,7 +72,7 @@ export const EmotionalEvaluationTable: React.FC<EmotionalEvaluationTableProps> =
                 <div>
                   <h4 className="font-black text-slate-900 flex items-center gap-2">
                     <PresenceDot isOnline={onlineUserIds?.has(participant._id) ?? false} />
-                    <span className="truncate">{participant.fullName}</span>
+                    <span className="truncate">{participant.fullName || participant.email || 'Участник'}</span>
                   </h4>
                   {participant.email && (
                     <p className="text-xs text-slate-400 mt-0.5">{participant.email}</p>

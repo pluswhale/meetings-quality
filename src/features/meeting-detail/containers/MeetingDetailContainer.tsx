@@ -317,12 +317,21 @@ export const MeetingDetailContainer: React.FC = () => {
             viewedPhase={(viewedPhase as MeetingPhase | null) ?? null}
             onReturnToLive={handleReturnToCurrentPhase}
             submissions={phaseSubmissions}
+            rosterNames={Object.fromEntries(
+              meetingParticipants.map((p) => [p._id, p.fullName]),
+            )}
           />
         )}
 
         {/* Phase 0 — Retrospective: rendered when previousMeetingId is set */}
         {activePhase === MeetingResponseDtoCurrentPhase.retrospective ? (
-          <RetroPhaseView socket={socket} isCreator={isCreator} />
+          <RetroPhaseView
+            socket={socket}
+            isCreator={isCreator}
+            rosterNames={Object.fromEntries(
+              meetingParticipants.map((p) => [p._id, p.fullName]),
+            )}
+          />
         ) : (
           <PhaseContent vm={vm} />
         )}

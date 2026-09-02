@@ -8,21 +8,28 @@ import {
 } from '../store/useMeetingStore';
 import type { UseMeetingSocketReturn } from '../hooks/useMeetingSocket';
 
+import { participantDisplayName } from '../lib';
+
 interface Props {
   socket: UseMeetingSocketReturn;
   isCreator: boolean;
+  rosterNames?: Record<string, string>;
 }
 
-export const RetroPhaseView: React.FC<Props> = ({ socket, isCreator }) => {
+export const RetroPhaseView: React.FC<Props> = ({ socket, isCreator, rosterNames = {} }) => {
   const retroTasks = useMeetingStore(selectRetroTasks);
   const retroStatuses = useMeetingStore(selectRetroStatuses);
   const participants = useMeetingStore(selectParticipants);
 
-  // Build a map for quick author name lookup: userId → fullName
-  const authorMap = React.useMemo(
-    () => Object.fromEntries(participants.map((p) => [p.userId, p.fullName ?? 'Участник'])),
-    [participants],
-  );
+  const authorMap = React.useMemo(() => {
+    const map: Record<string, string> = { ...rosterNames };
+    participants.forEach((p) => {
+      map[p.userId] = participantDisplayName(
+        { fullName: map[p.userId] ?? p.fullName, email: p.email },
+      );
+    });
+    return map;
+  }, [participants, rosterNames]);
 
   const allDone =
     retroTasks.length > 0 && retroTasks.every((t) => t._id in retroStatuses);
@@ -341,7 +348,7 @@ const CreatorRetroView: React.FC<CreatorRetroViewProps> = ({
           >
             <div>
               <p className="text-sm font-bold text-slate-800">
-                {participant.fullName ?? participant.email ?? 'Участник'}
+                {authorMap[participant.userId] ?? participant.fullName ?? participant.email ?? 'Участник'}
               </p>
               <p className="text-xs text-slate-400 mt-0.5">
                 Проверено задач: {reviewed} из {total}

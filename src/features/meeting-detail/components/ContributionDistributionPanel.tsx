@@ -74,7 +74,7 @@ export const ContributionDistributionPanel: React.FC<ContributionDistributionPan
                 <div className="flex-1 min-w-0">
                   <span className="font-bold text-slate-900 flex items-center gap-2">
                     <PresenceDot isOnline={isOnline} />
-                    <span className="truncate">{participant.fullName}</span>
+                    <span className="truncate">{participant.fullName || participant.email || 'Участник'}</span>
                   </span>
                   <span className="text-xs text-slate-400 block truncate">
                     {participant.email}

@@ -16,6 +16,27 @@ export const isUserCreator = (
   return meeting.creatorId._id === userId;
 };
 
+/** True when a ref has a non-empty name or email we can show. */
+export const hasUsableParticipantLabel = (ref: {
+  fullName?: string | null;
+  email?: string | null;
+}): boolean => Boolean(ref.fullName?.trim() || ref.email?.trim());
+
+/**
+ * Display label for a participant. Never returns a blank string.
+ * Prefers fullName, then email, then the fallback.
+ */
+export const participantDisplayName = (
+  ref: { fullName?: string | null; email?: string | null } | null | undefined,
+  fallback = 'Участник',
+): string => {
+  const name = ref?.fullName?.trim();
+  if (name) return name;
+  const email = ref?.email?.trim();
+  if (email) return email;
+  return fallback;
+};
+
 /**
  * Get the next phase in the sequence
  */

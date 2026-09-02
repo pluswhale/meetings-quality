@@ -39,7 +39,7 @@ export const useTaskEvaluation = (
           _id: t._id,
           description: t.description,
           authorId: t.authorId._id,
-          authorName: t.authorId.fullName ?? 'Участник',
+          authorName: t.authorId.fullName?.trim() || t.authorId.email || 'Участник',
         })),
     [meetingTasks, currentUserId],
   );

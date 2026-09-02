@@ -1,12 +1,23 @@
 import { useMemo } from 'react';
 import { useUsersControllerFindAll } from '@/src/shared/api/generated/users/users';
 import type {
+  MeetingParticipantRefDto,
   MeetingResponseDto,
   UserResponseDto,
 } from '@/src/shared/api/generated/meetingsQualityAPI.schemas';
 import type { UseMeetingPresenceReturn, SocketParticipant } from '../state/meetingDetail.types';
 import type { ActiveParticipantsResponse } from '../api/meeting-room.api';
 import { useMeetingStore, selectParticipants, selectIsConnected } from '../store/useMeetingStore';
+import { hasUsableParticipantLabel, participantDisplayName } from '../lib';
+
+const asUserId = (value: unknown): string | null => {
+  if (!value) return null;
+  if (typeof value === 'string') return value;
+  if (typeof value === 'object' && value !== null && '_id' in value) {
+    return String((value as { _id: unknown })._id);
+  }
+  return null;
+};
 
 /**
  * Derives the meeting roster and live presence.
@@ -15,6 +26,9 @@ import { useMeetingStore, selectParticipants, selectIsConnected } from '../store
  * being invited and being currently connected are different things, and the
  * phase forms need everyone who was invited. Presence is exposed separately as
  * `onlineUserIds` so it can be displayed without affecting who is listed.
+ *
+ * Names are merged from the meeting payload, the user directory, and the
+ * live socket so a missing populate or empty fullName cannot blank the rows.
  *
  * useMeetingSocket handles the socket connection; this hook only reads the store.
  */
@@ -27,12 +41,25 @@ export const useMeetingPresence = (
   const isConnected = useMeetingStore(selectIsConnected);
 
   const invited = meeting?.participants;
-  const hasInvitedRoster = Boolean(invited?.length);
+  const invitedIds = useMemo(() => {
+    const ids: string[] = [];
+    const push = (id: string | null) => {
+      if (id && !ids.includes(id)) ids.push(id);
+    };
+    push(asUserId(meeting?.creatorId));
+    (invited ?? []).forEach((ref) => push(asUserId(ref._id)));
+    (meeting?.participantIds ?? []).forEach((id) => push(asUserId(id)));
+    return ids;
+  }, [meeting?.creatorId, invited, meeting?.participantIds]);
 
-  // Only the fallback path below needs the full user list, so the meeting room
-  // does not request it when the meeting document already carries the roster.
+  const rosterNeedsDirectory = useMemo(() => {
+    if (invitedIds.length === 0) return true;
+    if (!invited?.length) return true;
+    return invited.some((ref) => !hasUsableParticipantLabel(ref));
+  }, [invited, invitedIds.length]);
+
   const { data: allUsers = [] } = useUsersControllerFindAll({
-    query: { enabled: !hasInvitedRoster },
+    query: { enabled: rosterNeedsDirectory, staleTime: 30_000 },
   });
 
   const onlineUserIds = useMemo(
@@ -41,35 +68,55 @@ export const useMeetingPresence = (
   );
 
   const meetingParticipants = useMemo<UserResponseDto[]>(() => {
-    if (invited?.length) {
-      // fullName and email are nullable on the ref, so fall back to something
-      // renderable rather than an empty row.
-      return invited.map((ref) => ({
-        _id: ref._id,
-        fullName: ref.fullName ?? ref.email ?? 'Участник',
-        email: ref.email ?? '',
-      }));
+    const byId = new Map<string, UserResponseDto>();
+
+    const upsert = (
+      id: string | null,
+      fullName?: string | null,
+      email?: string | null,
+    ) => {
+      if (!id) return;
+      const prev = byId.get(id);
+      const label = participantDisplayName(
+        { fullName, email },
+        prev?.fullName || prev?.email || '',
+      );
+      byId.set(id, {
+        _id: id,
+        fullName: label || 'Участник',
+        email: email?.trim() || prev?.email || '',
+      });
+    };
+
+    invited?.forEach((ref: MeetingParticipantRefDto) =>
+      upsert(asUserId(ref._id), ref.fullName, ref.email),
+    );
+    if (meeting?.creatorId) {
+      upsert(
+        asUserId(meeting.creatorId._id),
+        meeting.creatorId.fullName,
+        meeting.creatorId.email,
+      );
     }
-
-    // Fallback for a backend that predates `participants` on the response: the
-    // roster degrades to whoever is currently connected. Drops invited-but-
-    // absent participants, which is the bug this field was added to fix, but it
-    // keeps the room usable while the two sides deploy independently.
-    if (!socketParticipants.length || !allUsers.length) return [];
-    const activeIds = new Set(socketParticipants.map((p) => p.userId));
-    const active = allUsers.filter((u) => activeIds.has(u._id));
-
-    if (
-      currentUserId &&
-      activeIds.has(currentUserId) &&
-      !active.some((u) => u._id === currentUserId)
-    ) {
+    (meeting?.participantIds ?? []).forEach((id) => upsert(asUserId(id)));
+    allUsers.forEach((u) => upsert(u._id, u.fullName, u.email));
+    socketParticipants.forEach((p) => upsert(p.userId, p.fullName, p.email));
+    if (currentUserId && !byId.has(currentUserId)) {
       const self = allUsers.find((u) => u._id === currentUserId);
-      if (self) active.push(self);
+      upsert(currentUserId, self?.fullName, self?.email);
     }
 
-    return active;
-  }, [invited, socketParticipants, allUsers, currentUserId]);
+    const order = invitedIds.length > 0 ? invitedIds : [...byId.keys()];
+    return order.map((id) => byId.get(id)).filter((u): u is UserResponseDto => Boolean(u));
+  }, [
+    invited,
+    meeting?.creatorId,
+    meeting?.participantIds,
+    allUsers,
+    socketParticipants,
+    currentUserId,
+    invitedIds,
+  ]);
 
   const activeParticipants = useMemo<ActiveParticipantsResponse | null>(() => {
     if (!socketParticipants.length) return null;
@@ -78,16 +125,16 @@ export const useMeetingPresence = (
       meetingId,
       activeParticipants: socketParticipants.map((p) => ({
         _id: p.userId,
-        fullName: p.fullName ?? '',
+        fullName: participantDisplayName(p),
         email: p.email ?? '',
         isActive: true,
         joinedAt: p.joinedAt,
         lastSeen: p.lastSeen,
       })),
-      totalParticipants: meeting?.participantIds?.length ?? 0,
+      totalParticipants: invitedIds.length,
       activeCount: socketParticipants.length,
     };
-  }, [socketParticipants, meetingId, meeting?.participantIds]);
+  }, [socketParticipants, meetingId, invitedIds.length]);
 
   return {
     socketParticipants: socketParticipants as SocketParticipant[],

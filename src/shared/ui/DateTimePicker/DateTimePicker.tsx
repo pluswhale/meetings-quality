@@ -37,6 +37,7 @@ export const DateTimePicker: React.FC<DateTimePickerProps> = ({
         selected={selected}
         onChange={onChange}
         showTimeSelect={showTimeSelect}
+        showTimeInput={false}
         timeFormat="HH:mm"
         timeIntervals={15}
         dateFormat={showTimeSelect ? "dd.MM.yyyy HH:mm" : "dd.MM.yyyy"}
@@ -50,6 +51,7 @@ export const DateTimePicker: React.FC<DateTimePickerProps> = ({
         calendarClassName="datepicker-calendar"
         popperClassName="datepicker-popper"
         showPopperArrow={false}
+        onKeyDown={(e) => e.preventDefault()}
       />
       <svg
         className="datepicker-icon"

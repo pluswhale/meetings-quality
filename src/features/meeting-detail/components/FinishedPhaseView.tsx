@@ -36,7 +36,8 @@ const useParticipantNameResolver = (meeting: any) => {
     return (ref: any): string => {
       if (!ref) return 'Участник';
       if (typeof ref === 'object') {
-        if (ref.fullName) return ref.fullName;
+        const named = ref.fullName?.trim() || ref.email?.trim();
+        if (named) return named;
         return names.get(String(ref._id)) ?? 'Участник';
       }
       return names.get(String(ref)) ?? 'Участник';
